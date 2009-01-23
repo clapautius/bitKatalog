@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2005 by Tudor Pristavu                                  *
+ *   me@clapautius                                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,20 +17,45 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#if !defined(MAIN_H)
+#define MAIN_H
+
+#include <qpixmap.h>
+#include <kapplication.h>
+#include <kconfig.h>
+
+#include <string>
+
+#include "bitkatalogview.h"
+#include "xfcapp.h"
+
+//#define CONFIG_FILE "/home/me/.axfck.rc"
+
+//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
+//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
+#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
+#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
 
 
-#ifndef _BITKATALOGIFACE_H_
-#define _BITKATALOGIFACE_H_
+extern KSharedConfigPtr gpConfig;
 
-#include <dcopobject.h>
+extern QPixmap *gpDiskPixmap;
+extern QPixmap *gpDirPixmap;
+extern QPixmap *gpFilePixmap;
 
-class bitKatalogIface : virtual public DCOPObject
-{
-  K_DCOP
-public:
+extern KApplication *gpApplication;
+extern bitKatalogView *gpView;
+extern bitKatalog *gpMainWindow;
 
-k_dcop:
-  virtual void openURL(QString url) = 0;
-};
+extern int gCatalogState;
+// 0 - not loaded
+// 1 - modified
+// 2 - not modified
 
-#endif // _BITKATALOGIFACE_H_
+
+
+//extern std::string gLastDir;
+
+//void runningForTheFirstTime();
+ 
+#endif

@@ -23,29 +23,36 @@
 
 #include <klocale.h>
 
-#include <qlayout.h>
-#include <qlabel.h>
+#include <Qt/qlayout.h>
+#include <Qt/qlabel.h>
 
 bitKatalogPreferences::bitKatalogPreferences()
-    : KDialogBase(TreeList, i18n("bitKatalog Preferences"),
-                  Help|Default|Ok|Apply|Cancel, Ok)
+    : KDialog()
+/*    : KDialog(TreeList, i18n("bitKatalog Preferences"),
+      Help|Default|Ok|Apply|Cancel, Ok) */
+
 {
+    setButtons(KDialog::Help | KDialog::Default | KDialog::Ok | KDialog::Apply | KDialog::Cancel);
+    setCaption(i18n("bitKatalog Preferences"));
+    
     // this is the base class for your preferences dialog.  it is now
     // a Treelist dialog.. but there are a number of other
     // possibilities (including Tab, Swallow, and just Plain)
-    QFrame *frame;
-    frame = addPage(i18n("First Page"), i18n("Page One Options"));
+    // :todo: kde4
+    /*
+    KHbox *page=new KHBox();
+    KPageWidgetItem *item = addPage(page, i18n("First Page"), i18n("Page One Options"));
     m_pageOne = new bitKatalogPrefPageOne(frame);
 
     frame = addPage(i18n("Second Page"), i18n("Page Two Options"));
     m_pageTwo = new bitKatalogPrefPageTwo(frame);
+    */
 }
 
 bitKatalogPrefPageOne::bitKatalogPrefPageOne(QWidget *parent)
     : QFrame(parent)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setAutoAdd(true);
 
     new QLabel(i18n("Add something here"), this);
 }
@@ -54,8 +61,6 @@ bitKatalogPrefPageTwo::bitKatalogPrefPageTwo(QWidget *parent)
     : QFrame(parent)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setAutoAdd(true);
 
     new QLabel(i18n("Add something here"), this);
 }
-#include "pref.moc"

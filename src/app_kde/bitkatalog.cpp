@@ -22,32 +22,32 @@
 #include "bitkatalog.h"
 #include "pref.h"
 
-#include <qdragobject.h>
-#include <kprinter.h>
-#include <qpainter.h>
-#include <qpaintdevicemetrics.h>
+#include <Qt/qdrag.h>
+#include <QtGui/QPrinter>
+#include <QtGui/QPrintDialog>
+#include <Qt/qpainter.h>
+//#include <qpaintdevicemetrics.h>
 
 #include <kglobal.h>
 #include <klocale.h>
 #include <kiconloader.h>
 #include <kdeversion.h>
 #include <kstatusbar.h>
-#include <kaccel.h>
+//#include <kaccel.h>
 #include <kio/netaccess.h>
 #include <kfiledialog.h>
 #include <kconfig.h>
 #include <kurl.h>
-#include <kurldrag.h>
 #include <kurlrequesterdlg.h>
 
 #include <kstdaccel.h>
 #include <kaction.h>
-#include <kstdaction.h>
+#include <kstandardaction.h>
 
 bitKatalog::bitKatalog()
-    : KMainWindow( 0, "bitKatalog" ),
-      m_view(new bitKatalogView(this)),
-      m_printer(0)
+    : KMainWindow(),
+      m_view(new bitKatalogView(this))
+      //,m_printer(0)
 {
     // accept dnd
     setAcceptDrops(true);
@@ -65,7 +65,7 @@ bitKatalog::bitKatalog()
 		// automatically save settings if changed: window size, toolbar
     // position, icon size, etc.  Also to add actions for the statusbar
 		// toolbar, and keybindings if necessary.
-    setupGUI();
+    //setupGUI(); // :fixme: kde4
 
     // allow the view to change the statusbar and caption
     connect(m_view, SIGNAL(signalChangeStatusbar(const QString&)),
@@ -79,7 +79,7 @@ bitKatalog::~bitKatalog()
 {
 }
 
-void bitKatalog::load(const KURL& url)
+void bitKatalog::load(const KUrl& url)
 {
     QString target;
     // the below code is what you should normally do.  in this
@@ -101,26 +101,29 @@ void bitKatalog::load(const KURL& url)
     }
     #endif
 
-    setCaption(url.prettyURL());
-    m_view->openURL(url);
+    setCaption(url.prettyUrl());
+    m_view->openUrl(url);
 }
 
 void bitKatalog::setupActions()
 {
-    KStdAction::openNew(this, SLOT(fileNew()), actionCollection());
-    KStdAction::open(this, SLOT(fileOpen()), actionCollection());
-    KStdAction::save(this, SLOT(fileSave()), actionCollection());
-    KStdAction::saveAs(this, SLOT(fileSaveAs()), actionCollection());
-    KStdAction::print(this, SLOT(filePrint()), actionCollection());
-    KStdAction::quit(kapp, SLOT(quit()), actionCollection());
+    KStandardAction::openNew(this, SLOT(fileNew()), this);
+    KStandardAction::open(this, SLOT(fileOpen()), this);
+    KStandardAction::save(this, SLOT(fileSave()), this);
+    KStandardAction::saveAs(this, SLOT(fileSaveAs()), this);
+    KStandardAction::print(this, SLOT(filePrint()), this);
+    KStandardAction::quit(kapp, SLOT(quit()), this);
 
-    KStdAction::preferences(this, SLOT(optionsPreferences()), actionCollection());
+    KStandardAction::preferences(this, SLOT(optionsPreferences()), this);
 
     // this doesn't do anything useful.  it's just here to illustrate
     // how to insert a custom menu and menu item
+    // :fixme: kde4
+#if 0
     KAction *custom = new KAction(i18n("Cus&tom Menuitem"), 0,
                                   this, SLOT(optionsPreferences()),
-                                  actionCollection(), "custom_action");
+                                  this, "custom_action");
+#endif
 }
 
 void bitKatalog::saveProperties(KConfig *config)
@@ -129,12 +132,8 @@ void bitKatalog::saveProperties(KConfig *config)
     // config file.  anything you write here will be available
     // later when this app is restored
 
-    if (!m_view->currentURL().isEmpty()) {
-#if KDE_IS_VERSION(3,1,3)
-        config->writePathEntry("lastURL", m_view->currentURL());
-#else
-        config->writeEntry("lastURL", m_view->currentURL());
-#endif
+    if (!m_view->currentUrl().isEmpty()) {
+        config->group("").writeEntry("lastURL", m_view->currentUrl());
     }
 }
 
@@ -145,16 +144,17 @@ void bitKatalog::readProperties(KConfig *config)
     // the app is being restored.  read in here whatever you wrote
     // in 'saveProperties'
 
-    QString url = config->readPathEntry("lastURL");
+    QString url = config->group("").readEntry("lastURL");
 
     if (!url.isEmpty())
-        m_view->openURL(KURL(url));
+        m_view->openUrl(KUrl(url));
 }
 
 void bitKatalog::dragEnterEvent(QDragEnterEvent *event)
 {
     // accept uri drops only
-    event->accept(KURLDrag::canDecode(event));
+    if (KUrl::List::canDecode(event->mimeData()))
+        event->accept();
 }
 
 void bitKatalog::dropEvent(QDropEvent *event)
@@ -162,17 +162,20 @@ void bitKatalog::dropEvent(QDropEvent *event)
     // this is a very simplistic implementation of a drop event.  we
     // will only accept a dropped URL.  the Qt dnd code can do *much*
     // much more, so please read the docs there
-    KURL::List urls;
+    // :fixme: - kde4
+#if 0
+    KUrl::List urls;
 
     // see if we can decode a URI.. if not, just ignore it
-    if (KURLDrag::decode(event, urls) && !urls.isEmpty())
+    if (KUrlDrag::decode(event, urls) && !urls.isEmpty())
     {
         // okay, we have a URI.. process it
-        const KURL &url = urls.first();
+        const KUrl &url = urls.first();
 
         // load in the file
         load(url);
     }
+#endif
 }
 
 void bitKatalog::fileNew()
@@ -195,9 +198,9 @@ void bitKatalog::fileOpen()
     KURL url = KURLRequesterDlg::getURL(QString::null, this, i18n("Open Location") );
 */
     // standard filedialog
-    KURL url = KFileDialog::getOpenURL(QString::null, QString::null, this, i18n("Open Location"));
+    KUrl url = KFileDialog::getOpenUrl(KUrl(), QString::null, this, i18n("Open Location"));
     if (!url.isEmpty())
-        m_view->openURL(url);
+        m_view->openUrl(url);
 }
 
 void bitKatalog::fileSave()
@@ -212,7 +215,7 @@ void bitKatalog::fileSave()
 void bitKatalog::fileSaveAs()
 {
     // this slot is called whenever the File->Save As menu is selected,
-    KURL file_url = KFileDialog::getSaveURL();
+    KUrl file_url = KFileDialog::getSaveUrl();
     if (!file_url.isEmpty() && file_url.isValid())
     {
         // save your info, here
@@ -221,17 +224,21 @@ void bitKatalog::fileSaveAs()
 
 void bitKatalog::filePrint()
 {
+    // :fixme: - kde4
+#if 0
     // this slot is called whenever the File->Print menu is selected,
     // the Print shortcut is pressed (usually CTRL+P) or the Print toolbar
     // button is clicked
-    if (!m_printer) m_printer = new KPrinter;
-    if (m_printer->setup(this))
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    //printDialog.setWindowTitle(i18n("Print Dialog Title"));
+    if (printDialog.exec())
     {
         // setup the printer.  with Qt, you always "print" to a
         // QPainter.. whether the output medium is a pixmap, a screen,
         // or paper
         QPainter p;
-        p.begin(m_printer);
+        p.begin(printer);
 
         // we let our view do the actual printing
         QPaintDeviceMetrics metrics(m_printer);
@@ -240,6 +247,7 @@ void bitKatalog::filePrint()
         // and send the result to the printer
         p.end();
     }
+#endif
 }
 
 void bitKatalog::optionsPreferences()
@@ -255,7 +263,8 @@ void bitKatalog::optionsPreferences()
 void bitKatalog::changeStatusbar(const QString& text)
 {
     // display the text on the statusbar
-    statusBar()->message(text);
+    statusBar()->changeItem(text, 0); // :fixme: - check - does it work - what
+                                      // is id = 0 ?
 }
 
 void bitKatalog::changeCaption(const QString& text)
@@ -263,4 +272,3 @@ void bitKatalog::changeCaption(const QString& text)
     // display the text on the caption
     setCaption(text);
 }
-#include "bitkatalog.moc"

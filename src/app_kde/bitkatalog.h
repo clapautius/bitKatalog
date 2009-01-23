@@ -26,13 +26,15 @@
 #include <config.h>
 #endif
 
+#include <QtGui/QDragEnterEvent>
+
 #include <kapplication.h>
-#include <kmainwindow.h>
+#include <kxmlguiwindow.h>
 
 #include "bitkatalogview.h"
 
-class KPrinter;
-class KURL;
+//class KPrinter;
+class Kurl;
 
 /**
  * This class serves as the main window for bitKatalog.  It handles the
@@ -59,7 +61,7 @@ public:
     /**
      * Use this method to load whatever file/URL you have
      */
-    void load(const KURL& url);
+    void load(const KUrl& url);
 
 protected:
     /**
@@ -101,7 +103,7 @@ private:
 private:
     bitKatalogView *m_view;
 
-    KPrinter   *m_printer;
+    //KPrinter   *m_printer;
 };
 
 #endif // _BITKATALOG_H_

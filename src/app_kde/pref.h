@@ -22,13 +22,13 @@
 #ifndef _BITKATALOGPREF_H_
 #define _BITKATALOGPREF_H_
 
-#include <kdialogbase.h>
-#include <qframe.h>
+#include <kdialog.h>
+#include <Qt/qframe.h>
 
 class bitKatalogPrefPageOne;
 class bitKatalogPrefPageTwo;
 
-class bitKatalogPreferences : public KDialogBase
+class bitKatalogPreferences : public KDialog
 {
     Q_OBJECT
 public:

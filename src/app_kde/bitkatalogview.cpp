@@ -21,24 +21,23 @@
 
 #include "bitkatalogview.h"
 
-#include <qpainter.h>
-#include <qlayout.h>
+#include <Qt/qpainter.h>
+#include <Qt/qlayout.h>
 
 #include <kurl.h>
 
-#include <ktrader.h>
+#include <kmimetypetrader.h>
 #include <klibloader.h>
 #include <kmessagebox.h>
 #include <krun.h>
 #include <klocale.h>
 
 bitKatalogView::bitKatalogView(QWidget *parent)
-    : QWidget(parent),
-      DCOPObject("bitKatalogIface")
+    : QWidget(parent)
 {
     // setup our layout manager to automatically add our widgets
     QHBoxLayout *top_layout = new QHBoxLayout(this);
-    top_layout->setAutoAdd(true);
+    //top_layout->setAutoAdd(true);
 
     // we want to look for all components that satisfy our needs.  the
     // trader will actually search through *all* registered KDE
@@ -53,12 +52,12 @@ bitKatalogView::bitKatalogView(QWidget *parent)
     // string 'KParts/ReadOnlyPart' must be found in the ServiceTypes
     // field.  with this, only components of the type we want will be
     // returned.
-    KTrader::OfferList offers = KTrader::self()->query("text/html", "'KParts/ReadOnlyPart' in ServiceTypes");
+    KService::List offers = KMimeTypeTrader::self()->query("text/html", "KParts/ReadOnlyPart");
 
     KLibFactory *factory = 0;
     // in theory, we only care about the first one.. but let's try all
     // offers just in case the first can't be loaded for some reason
-    KTrader::OfferList::Iterator it(offers.begin());
+    KService::List::Iterator it(offers.begin());
     for( ; it != offers.end(); ++it)
     {
         KService::Ptr ptr = (*it);
@@ -69,7 +68,7 @@ bitKatalogView::bitKatalogView(QWidget *parent)
         factory = KLibLoader::self()->factory( ptr->library() );
         if (factory)
         {
-            m_html = static_cast<KParts::ReadOnlyPart *>(factory->create(this, ptr->name(), "KParts::ReadOnlyPart"));
+            m_html = static_cast<KParts::ReadOnlyPart *>(factory->create(this, ptr->name().toAscii().constData(), QStringList("KParts::ReadOnlyPart")));
             break;
         }
     }
@@ -85,7 +84,7 @@ bitKatalogView::bitKatalogView(QWidget *parent)
     connect(m_html, SIGNAL(setWindowCaption(const QString&)),
             this,   SLOT(slotSetTitle(const QString&)));
     connect(m_html, SIGNAL(setStatusBarText(const QString&)),
-            this,   SLOT(slotOnURL(const QString&)));
+            this,   SLOT(slotOnUrl(const QString&)));
 
 }
 
@@ -99,22 +98,22 @@ void bitKatalogView::print(QPainter *p, int height, int width)
     // p->drawText(etc..)
 }
 
-QString bitKatalogView::currentURL()
+QString bitKatalogView::currentUrl()
 {
     return m_html->url().url();
 }
 
-void bitKatalogView::openURL(QString url)
+void bitKatalogView::openUrl(QString url)
 {
-    openURL(KURL(url));
+    openUrl(KUrl(url));
 }
 
-void bitKatalogView::openURL(const KURL& url)
+void bitKatalogView::openUrl(const KUrl& url)
 {
-    m_html->openURL(url);
+    m_html->openUrl(url);
 }
 
-void bitKatalogView::slotOnURL(const QString& url)
+void bitKatalogView::slotOnUrl(const QString& url)
 {
     emit signalChangeStatusbar(url);
 }
@@ -123,4 +122,3 @@ void bitKatalogView::slotSetTitle(const QString& title)
 {
     emit signalChangeCaption(title);
 }
-#include "bitkatalogview.moc"

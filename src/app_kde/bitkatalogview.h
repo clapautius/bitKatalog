@@ -22,9 +22,8 @@
 #ifndef _BITKATALOGVIEW_H_
 #define _BITKATALOGVIEW_H_
 
-#include <qwidget.h>
+#include <Qt/qwidget.h>
 #include <kparts/part.h>
-#include <bitkatalogiface.h>
 
 class QPainter;
 class KURL;
@@ -40,7 +39,7 @@ class KURL;
  * @author Tudor Pristavu <clapautiuAtGmaliDotCom>
  * @version 0.1
  */
-class bitKatalogView : public QWidget, public bitKatalogIface
+class bitKatalogView : public QWidget
 {
     Q_OBJECT
 public:
@@ -57,17 +56,17 @@ public:
     /**
      * Random 'get' function
      */
-    QString currentURL();
+    QString currentUrl();
 
     /**
      * Random 'set' function accessed by DCOP
      */
-    virtual void openURL(QString url);
+    virtual void openUrl(QString url);
 
     /**
      * Random 'set' function
      */
-    virtual void openURL(const KURL& url);
+    virtual void openUrl(const KUrl& url);
 
     /**
      * Print this view to any medium -- paper or not
@@ -86,7 +85,7 @@ signals:
     void signalChangeCaption(const QString& text);
 
 private slots:
-    void slotOnURL(const QString& url);
+    void slotOnUrl(const QString& url);
     void slotSetTitle(const QString& title);
 
 private:
