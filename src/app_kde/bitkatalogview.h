@@ -24,9 +24,15 @@
 
 #include <Qt/qwidget.h>
 #include <kparts/part.h>
+#include <k3listview.h>
+
+#include "xfc.h"
+
+#define DESCRIPTION_COLUMN 1
+#define NAME_COLUMN 0
 
 class QPainter;
-class KURL;
+class KUrl;
 
 /**
  * This is the main view class for bitKatalog.  Most of the non-menu,
@@ -53,6 +59,17 @@ public:
 	 */
     virtual ~bitKatalogView();
 
+    Xfc* getCatalog();
+    void setCatalog(Xfc*);
+    // doesn't modify gCatalogState
+    // does refresh
+    // does delete old xfc
+    
+    bool catalogWasModified();
+    void resetModifiedFlag();
+
+    void populateTree(Xfc*);
+        
     /**
      * Random 'get' function
      */
@@ -87,9 +104,34 @@ signals:
 private slots:
     void slotOnUrl(const QString& url);
     void slotSetTitle(const QString& title);
+    
+    void contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint &p);
 
+    void details() throw();
+    
+    void verifyDisk() throw();
+
+    void renameDisk() throw();
+
+    void deleteDisk() throw();
+    
 private:
+    
+    void setupListView();
+        
     KParts::ReadOnlyPart *m_html;
+    
+    K3ListView *mListView;
+    
+    K3ListViewItem *mRootItem;
+    
+    Xfc *mCatalog;
+    
+    bool mModifiedCatalog;
+    
+    Q3ListViewItem *mpCurrentItem;
+
+    std::string mCurrentItemPath;
 };
 
 #endif // _BITKATALOGVIEW_H_

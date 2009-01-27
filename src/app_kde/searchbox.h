@@ -17,46 +17,74 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#if !defined(MAIN_H)
-#define MAIN_H
+#ifndef SEARCHBOX_H
+#define SEARCHBOX_H
 
-#include <qpixmap.h>
-#include <kapplication.h>
-#include <kconfig.h>
+#include <kdialog.h>
+#include <klineedit.h>
+#include <qlabel.h>
+#include <kprogressdialog.h>
+#include <QBoxLayout>
+#include <Qt3Support/q3vgroupbox.h>
+#include <Qt3Support/q3hbox.h>
+#include <k3listbox.h>
 
-#include <string>
-
-#include "bitkatalog.h"
-#include "bitkatalogview.h"
 #include "xfcapp.h"
+#include "xmlentityitem.h"
 
-//#define CONFIG_FILE "/home/me/.axfck.rc"
+/**
+@author Tudor Pristavu
+*/
+class SearchBox : public KDialog
+{
+    Q_OBJECT
+            
+public:
+    SearchBox(Xfc *);
 
-//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
-//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
-#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
-#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
+    ~SearchBox();
 
+protected slots:  
+    
+//    virtual void close();
+    void search();
+    
+    virtual void slotUser1();
 
-extern KSharedConfigPtr gpConfig;
+private:
 
-extern QPixmap *gpDiskPixmap;
-extern QPixmap *gpDirPixmap;
-extern QPixmap *gpFilePixmap;
+    void connectButtons();
+    
+    void layout();
+    
+    
+    Xfc *mpCatalog;
+    
+    QFrame *mpPage1, *mpPage2; // on heap
+    
+    QVBoxLayout *mpLayout1; // on heap
+    
+    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
+    
+    KLineEdit *mpSimpleSearchEdit; // on heap
+    
+    Q3HBox *mpSimpleSearchBox; // on heap
+    
+    K3ListBox *mpSimpleSearchResults;
+    
+    KProgressDialog *mpProgress;
+};
+    
+class SearchStruct
+{
+public:
+    KProgressDialog *mpProgressDialog;
+    const char *mpString;
+    std::vector<std::string> *mpSearchResultsPaths;
+    std::vector<xmlNodePtr> *mpSearchResultsNodes;
+};
 
-extern KApplication *gpApplication;
-extern bitKatalogView *gpView;
-extern bitKatalog *gpMainWindow;
+int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
+                void *lpParam);
 
-extern int gCatalogState;
-// 0 - not loaded
-// 1 - modified
-// 2 - not modified
-
-
-
-//extern std::string gLastDir;
-
-//void runningForTheFirstTime();
- 
 #endif

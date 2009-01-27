@@ -60,7 +60,7 @@ void startUp();
 int main(int argc, char **argv)
 {
     std::string otherText;
-    KAboutData about(QByteArray("axfck"), QByteArray(""), ki18n("axfck"), QByteArray(version), ki18n("A beautiful KDE application"));
+    KAboutData about(QByteArray("bitkatalog"), QByteArray("bitkatalog"), ki18n("bitkatalog"), QByteArray(version), ki18n("A beautiful KDE application"),  KAboutData::License_GPL);
 
     // :fixme: - kde4
     //KAboutData::License_GPL, "(C) 2009 Tudor Pristavu", 0, 0, "clapautiusAtGmailDotCom");

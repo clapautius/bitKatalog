@@ -17,46 +17,50 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#if !defined(MAIN_H)
-#define MAIN_H
-
-#include <qpixmap.h>
-#include <kapplication.h>
-#include <kconfig.h>
-
-#include <string>
-
-#include "bitkatalog.h"
-#include "bitkatalogview.h"
-#include "xfcapp.h"
-
-//#define CONFIG_FILE "/home/me/.axfck.rc"
-
-//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
-//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
-#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
-#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
+#ifndef NEWCATALOGBOX_H
+#define NEWCATALOGBOX_H
 
 
-extern KSharedConfigPtr gpConfig;
-
-extern QPixmap *gpDiskPixmap;
-extern QPixmap *gpDirPixmap;
-extern QPixmap *gpFilePixmap;
-
-extern KApplication *gpApplication;
-extern bitKatalogView *gpView;
-extern bitKatalog *gpMainWindow;
-
-extern int gCatalogState;
-// 0 - not loaded
-// 1 - modified
-// 2 - not modified
+#include <kdialog.h>
+#include <klineedit.h>
+#include <qlabel.h>
+#include <Qt3Support/q3vgroupbox.h>
+#include <Qt3Support/q3hbox.h>
+#include <k3listbox.h>
+#include <qlayout.h>
 
 
+/**
+@author Tudor Pristavu
+*/
+class NewCatalogBox : public KDialog
+{
+Q_OBJECT
 
-//extern std::string gLastDir;
+public:
+    NewCatalogBox();
 
-//void runningForTheFirstTime();
- 
+    ~NewCatalogBox();
+
+protected slots:  
+
+    virtual void slotUser1();
+        
+private:
+
+    void layout();
+    
+    QFrame *mpPage; // on heap
+
+    QVBoxLayout *mpLayout1; // on heap
+
+    Q3HBox *mpLayoutBox1;
+    
+    QLabel *mpTmpLabel1;
+    
+    KLineEdit *mpCatalogNameEdit;
+
+};
+
+
 #endif

@@ -17,46 +17,57 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#if !defined(MAIN_H)
-#define MAIN_H
+#include "scanthread.h"
 
-#include <qpixmap.h>
-#include <kapplication.h>
-#include <kconfig.h>
+#include <kmessagebox.h>
 
-#include <string>
-
-#include "bitkatalog.h"
-#include "bitkatalogview.h"
-#include "xfcapp.h"
-
-//#define CONFIG_FILE "/home/me/.axfck.rc"
-
-//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
-//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
-#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
-#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
+ScanThread::ScanThread(Xfc *lpCatalog, std::string lPath, std::string lDiskName,
+            bool dontComputeSha)
+ : QThread()
+{
+    mpCatalog=lpCatalog;
+    mPath=lPath;
+    mDiskName=lDiskName;
+    mStopNow=false;
+    mDontComputeSha=dontComputeSha;
+}
 
 
-extern KSharedConfigPtr gpConfig;
-
-extern QPixmap *gpDiskPixmap;
-extern QPixmap *gpDirPixmap;
-extern QPixmap *gpFilePixmap;
-
-extern KApplication *gpApplication;
-extern bitKatalogView *gpView;
-extern bitKatalog *gpMainWindow;
-
-extern int gCatalogState;
-// 0 - not loaded
-// 1 - modified
-// 2 - not modified
+ScanThread::~ScanThread()
+{
+}
 
 
+void ScanThread::run()
+{
+    try
+    {
+        mpCatalog->addPathToXmlTree(mPath, -1, mDiskName,
+            "","","", mDontComputeSha);
+    }
+    catch(std::string e)
+    {
+        mReturnValue=1;
+        mErrorMessage=e;
+        return;
+    }
+    mReturnValue=0;
+}
 
-//extern std::string gLastDir;
 
-//void runningForTheFirstTime();
- 
-#endif
+int ScanThread::returnValue()
+{
+    return mReturnValue;
+} 
+
+
+void ScanThread::stopThread()
+{
+    mStopNow=true;
+} 
+
+
+std::string ScanThread::getErrorMessage() const
+{
+    return mErrorMessage;
+}

@@ -1,6 +1,6 @@
 find_package (KDE4 REQUIRED)
 
-set (bitKatalog_srcs bitkatalog.cpp ../fs.cpp ../misc.cpp ../plugins.cpp bitkatalogview.cpp pref.cpp main.cpp)
+set (bitKatalog_srcs bitkatalog.cpp ../fs.cpp ../misc.cpp ../plugins.cpp bitkatalogview.cpp pref.cpp main.cpp adddiskbox.cpp detailsbox.cpp newcatalogbox.cpp outputwindow.cpp scanthread.cpp searchbox.cpp verifythread.cpp xmlentityitem.cpp)
 
 include (KDE4Defaults)
 
@@ -13,4 +13,5 @@ ${bitKatalog_SOURCE_DIR}/src ${bitKatalog_SOURCE_DIR}/src/xfclib)
 
 link_directories (${bitKatalog_BINARY_DIR}/xfclib)
 
-target_link_libraries (bitKatalog xfc xml2 ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBRARY} ${KDE4_KPARTS_LIBRARY})
+target_link_libraries (bitKatalog xfc xml2 ${KDE4_KDEUI_LIBS}
+  ${KDE4_KIO_LIBRARY} ${KDE4_KPARTS_LIBRARY} ${KDE4_KDE3SUPPORT_LIBRARY})

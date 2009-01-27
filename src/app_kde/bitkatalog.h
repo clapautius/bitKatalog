@@ -30,6 +30,9 @@
 
 #include <kapplication.h>
 #include <kxmlguiwindow.h>
+#include <kstandardaction.h>
+#include <ktoolbar.h>
+#include <ktoggleaction.h>
 
 #include "bitkatalogview.h"
 
@@ -44,7 +47,7 @@ class Kurl;
  * @author Tudor Pristavu <clapautiuAtGmaliDotCom>
  * @version 0.1
  */
-class bitKatalog : public KMainWindow
+class bitKatalog : public KXmlGuiWindow
 {
     Q_OBJECT
 public:
@@ -62,7 +65,16 @@ public:
      * Use this method to load whatever file/URL you have
      */
     void load(const KUrl& url);
+    
+    bitKatalogView* getView() const;
+    
+    void setCatalogPath(std::string);
+    void setCatalogPath(QString);
 
+    std::string getCatalogPath() const;
+
+    void updateTitle(bool modified=false);
+    
 protected:
     /**
      * Overridden virtuals for Qt drag 'n drop (XDND)
@@ -70,19 +82,21 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent *event);
     virtual void dropEvent(QDropEvent *event);
 
+    virtual bool queryClose();
+
 protected:
     /**
      * This function is called when it is time for the app to save its
      * properties for session management purposes.
      */
-    void saveProperties(KConfig *);
+    virtual void saveProperties(KConfigGroup&);
 
     /**
      * This function is called when this app is restored.  The KConfig
      * object points to the session management config file that was saved
      * with @ref saveProperties
      */
-    void readProperties(KConfig *);
+    virtual void readProperties(const KConfigGroup&);
 
 
 private slots:
@@ -91,19 +105,38 @@ private slots:
     void fileSave();
     void fileSaveAs();
     void filePrint();
+    void optionsShowToolbar();
+    void optionsShowStatusbar();
+    void optionsConfigureKeys();
+    void optionsConfigureToolbars();
     void optionsPreferences();
+    void newToolbarConfig();
 
+    void search();
+    
+    void addDisk();
+    
     void changeStatusbar(const QString& text);
     void changeCaption(const QString& text);
 
 private:
+
     void setupAccel();
     void setupActions();
-
+    
+    void createNumberedBackup(std::string lFile)
+            throw (std::string);
+    
 private:
+
     bitKatalogView *m_view;
 
     //KPrinter   *m_printer;
+
+    KToggleAction *m_toolbarAction;
+    KToggleAction *m_statusbarAction;
+    
+    std::string mCatalogPath;
 };
 
 #endif // _BITKATALOG_H_

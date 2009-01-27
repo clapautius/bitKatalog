@@ -17,46 +17,46 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#if !defined(MAIN_H)
-#define MAIN_H
+#ifndef SCANTHREAD_H
+#define SCANTHREAD_H
 
-#include <qpixmap.h>
-#include <kapplication.h>
-#include <kconfig.h>
-
+#include <qthread.h>
 #include <string>
 
-#include "bitkatalog.h"
-#include "bitkatalogview.h"
-#include "xfcapp.h"
+#include "xfc.h"
 
-//#define CONFIG_FILE "/home/me/.axfck.rc"
+/**
+@author Tudor Pristavu
+*/
+class ScanThread : public QThread
+{
+private:
+    Xfc *mpCatalog;
+    
+    std::string mPath, mDiskName;
 
-//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
-//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
-#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
-#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
+    std::string mErrorMessage;
 
+    int mReturnValue;
+    
+    bool mStopNow;
 
-extern KSharedConfigPtr gpConfig;
+    bool mDontComputeSha;
+    
+public:
+    ScanThread(Xfc*, std::string, std::string,
+        bool dontComputeSha=false);
 
-extern QPixmap *gpDiskPixmap;
-extern QPixmap *gpDirPixmap;
-extern QPixmap *gpFilePixmap;
+    ~ScanThread();
+    
+    virtual void run();
+    
+    int returnValue();
+    
+    void stopThread();
 
-extern KApplication *gpApplication;
-extern bitKatalogView *gpView;
-extern bitKatalog *gpMainWindow;
+    std::string getErrorMessage() const;
 
-extern int gCatalogState;
-// 0 - not loaded
-// 1 - modified
-// 2 - not modified
+};
 
-
-
-//extern std::string gLastDir;
-
-//void runningForTheFirstTime();
- 
 #endif
