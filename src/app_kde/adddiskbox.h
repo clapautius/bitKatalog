@@ -20,7 +20,7 @@
 #ifndef ADDDISKBOX_H
 #define ADDDISKBOX_H
 
-#include <kdialog.h>
+#include <kpagedialog.h>
 #include <klineedit.h>
 #include <qlabel.h>
 #include <Qt3Support/q3vgroupbox.h>
@@ -38,7 +38,7 @@
 /**
 @author Tudor Pristavu
 */
-class AddDiskBox : public KDialog
+class AddDiskBox : public KPageDialog
 {      
 Q_OBJECT
             
@@ -72,7 +72,7 @@ private:
 
     //QFrame *mpPage; // on heap
 
-    QVBoxLayout *mpLayout1; // on heap
+    //QVBoxLayout *mpLayout1; // on heap
     
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3,
         *mpTmpLabel4; // on heap
@@ -80,7 +80,7 @@ private:
     QLabel *mpPathLabel; // on heap
     //KLineEdit *mpSimpleSearchEdit; // on heap
     
-    Q3HBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3,
+    KHBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3,
         *mpLayoutBox4; // on heap
 
     KPushButton *mpBrowseButton, 

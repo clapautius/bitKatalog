@@ -29,6 +29,7 @@
 #include <kinputdialog.h>
 
 #include "bitkatalogview.h"
+#include "xfcEntity.h"
 
 #if defined(MTP_DEBUG)
   #include <iostream>
@@ -154,7 +155,7 @@ void DetailsBox::layout()
 
     KHBox *pDescriptionBox=new KHBox(pBox1);
     //top_layout1->addWidget(mpDescriptionBox);
-    mpTmpLabel1=new QLabel("Description: ", mpDescriptionBox);
+    mpTmpLabel1=new QLabel("Description: ", pDescriptionBox);
     mpDescriptionEdit=new KLineEdit(pDescriptionBox);
     lDetails=mpXmlItem->getDetails();
     mpDescriptionEdit->setText(lDetails[0].c_str());
@@ -163,13 +164,13 @@ void DetailsBox::layout()
     //mpDescription->setAlignment(Qt::AlignHCenter);
 
     // labels group box
-    mpLabelGroup=new Q3VGroupBox("Labels", mpPage1);
+    mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
     //top_layout1->addWidget(mpLabelGroup);
     
     KHBox *pLabelsBox=new KHBox(mpLabelGroup);
     //top_layout1->addWidget(mpLabelsBox);
     //lpTempLabel=new QLabel("Labels: ", lpLabelsBox);
-    mpLabels=new K3ListBox(mpLabelsBox);
+    mpLabels=new K3ListBox(pLabelsBox);
     lSize=mpLabels->size();
     lFont=mpLabels->font();
     lpFontMetrics=new QFontMetrics(lFont);
@@ -189,9 +190,9 @@ void DetailsBox::layout()
     //top_layout1->addWidget(mpLabelButtons);
     //mpLabelButtonBox=new KButtonBox(lpLabelButtons);
     
-    mpAddLabelButton=new QPushButton("Add a label", mpLabelButtons);
-    mpEditLabelButton=new QPushButton("Edit current label", mpLabelButtons);
-    mpDeleteLabelButton=new QPushButton("Delete current label", mpLabelButtons);
+    mpAddLabelButton=new QPushButton("Add a label", pLabelButtons);
+    mpEditLabelButton=new QPushButton("Edit current label", pLabelButtons);
+    mpDeleteLabelButton=new QPushButton("Delete current label", pLabelButtons);
     
     //mpAddLabelButton=mpLabelButtonBox->addButton("Add a label");
     //mpEditLabelButton=mpLabelButtonBox->addButton("Edit current label");
@@ -210,40 +211,39 @@ void DetailsBox::layout()
     mpCancelButton=mpButtonBox->addButton("Cancel");
     */
 
-#if 0
     // page2
-    if(mpXmlItem->isFile())
-    {
+    KPageWidgetItem *pPage2=NULL;
+    KVBox *pBox2=NULL;
+    if (mpXmlItem->isFileOrDir()) {
       int fileType;
       fileType=mpXmlItem->getTypeOfFile();
-      if(0 == fileType) // not good
+      if (0 == fileType) // not good
         ;
-      else if(1 == fileType)
-      {
-        mpPage2=addPage(QString("File details"));
-        top_layout2 = new QVBoxLayout(mpPage2, 5);
-
-        str="Sha1 sum: ";
-        if("" == lDetails[2])
-          str+="-";
-        else
-          str+=lDetails[2];
-        mpShaLabel=new QLabel(str.c_str(), mpPage2);
-        top_layout2->addWidget(mpShaLabel);
+      else if (1 == fileType) {
+          KVBox *pBox2= new KVBox();
+          pPage2=addPage(pBox2, QString("File details"));
+          pPage2->setHeader(QString("File details"));
+          KVBox *pLayoutBox2=new KVBox(pBox2);
+          str="Sha1 sum: ";
+          if ("" == lDetails[2])
+              str+="-";
+          else
+              str+=lDetails[2];
+          mpShaLabel=new QLabel(str.c_str(), pLayoutBox2);
       }
-      else if(2 == fileType)
-      {
-        mpPage2=addPage(QString("Directory details"));
-        top_layout2 = new QVBoxLayout(mpPage2, 5);
+      else if (2 == fileType) {
+          KVBox *pBox2= new KVBox();
+          pPage2=addPage(pBox2, QString("Directory details"));
+          pPage2->setHeader(QString("Directory details"));
+          KVBox *pLayoutBox2=new KVBox(pBox2);
       }
     }
-    else // disk
-    {
-        mpPage2=addPage(QString("Disk details"));
-        top_layout2 = new QVBoxLayout(mpPage2, 5);
-
-        mpCdateBox=new QHBox(mpPage2);
-        top_layout2->addWidget(mpCdateBox);
+    else { // disk
+        KVBox *pBox2= new KVBox();
+        pPage2=addPage(pBox2, QString("Disk details"));
+        pPage2->setHeader(QString("Disk details"));
+        KVBox *pLayoutBox2=new KVBox(pBox2);
+        mpCdateBox=new KHBox(pBox2);
         pTmpLabel=new QLabel("Creation date: ", mpCdateBox);
         mpCdateEdit=new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(lDetails[1].c_str());
@@ -251,7 +251,6 @@ void DetailsBox::layout()
 
     // page3
     //mpPage3=addPage(QString("Misc"));
-#endif
 }
 
 

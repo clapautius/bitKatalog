@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "xmlentityitem.h"
 #include "main.h"
+#include "xfcEntity.h"
 
 
 XmlEntityItem::XmlEntityItem(Q3ListView *lpListView, QString lS)
@@ -65,11 +66,19 @@ void XmlEntityItem::setOpen(bool lOpen)
             else
                 lpItem=new XmlEntityItem(this, lEnt.getName().c_str());
             lpItem->setXmlNode(lEnt.getXmlNode());
-            if(lEnt.isFile())
+            switch (lEnt.getElementType()) {
+            case Xfc::eFile:
                 lpItem->setPixmap(0, *gpFilePixmap);
-            if(lEnt.isDisk())
-                lpItem->setPixmap(0, *gpDiskPixmap);            
-            
+                break;
+            case Xfc::eDir:
+                lpItem->setPixmap(0, *gpDirPixmap);
+                break;
+            case Xfc::eDisk:
+                lpItem->setPixmap(0, *gpDiskPixmap);
+                break;
+            default:
+                throw std::string("You've just found a bug! (The application shouldn't be here)");
+            }
             lpTempIterator=new EntityIterator(*mspCatalog, lEnt.getXmlNode());
             if(lpTempIterator->hasMoreChildren())
                 lpItem->setExpandable(true);

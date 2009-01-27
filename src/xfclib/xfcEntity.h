@@ -25,9 +25,7 @@
 
 #include <libxml/parser.h>
 
-
-class Xfc;
-
+#include "xfc.h"
 
 
 /// wrapper class for an xml item from the catalog
@@ -45,11 +43,16 @@ public:
   void setName(std::string);
   
   //void setXmlNode(xmlNodePtr) throw();
-  
-  bool isFile() const;
-  
+
+  Xfc::ElementType getElementType() const;
+
+  // DEPRECATED
+  bool isFileOrDir() const;
+
+  // DEPRECATED
   bool isDisk() const;
 
+  // DEPRECATED
   int getTypeOfFile() const throw (std::string);
   // 0 - regular file
   // 1 - directory

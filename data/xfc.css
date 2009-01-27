@@ -1,0 +1,82 @@
+
+/* axfc ver. 0.5.1 */
+
+/* :ver: */
+
+div.disk
+{
+//  font-weight: bold;
+  text-align: center;
+  border: 1px solid #000000;
+  background-color: #cccccc;
+}
+
+div.name
+{
+  font-weight: bold;
+  text-align: center;
+  border-style: hidden hidden solid hidden;
+  border-width: 2px;
+  border-color: #333333;
+}
+
+div.category
+{
+  font-weight: normal;
+}
+
+div.description
+{
+  font-weight: normal;
+}
+
+div.fileList1
+{
+  margin: 12pt;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #000000;
+  text-align: left;
+  font-weight: normal;
+  background-color: #ffffff;
+}
+
+
+ul.label, li.label
+{
+	text-align: center;
+}
+
+
+div.label
+{
+	font-style: italic;
+}
+  
+
+li.file:before
+{
+  display: marker;
+  content: url("file.png") " ";
+//  list-style-type: none;
+//  list-style-image: url("file.png");
+}
+
+
+li.dir:before
+{
+  display: marker;
+  content: url("dir.png") " ";
+//  list-style-type: none;
+//  list-style-image: url("file.png");
+}
+
+li.dir
+{
+  font-weight: bold;
+}
+
+span.details
+{
+  font-style: italic;
+}

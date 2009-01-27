@@ -1,0 +1,7 @@
+2009-01-27  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
+	* data/xfc.dtd: changed xfc DTD. Directories are no more a special type
+	of file. Files and dirs are distinct elements ('file' and 'dir'). Added
+	an xslt script to convert from the old xml format to the new one
+	(xfc0ToXfc.xsl).
+

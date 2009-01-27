@@ -20,6 +20,7 @@
 #include "verifythread.h"
 #include "fs.h"
 #include "misc.h"
+#include "xfcEntity.h"
 
 #if defined(MTP_DEBUG)
 #include <iostream>

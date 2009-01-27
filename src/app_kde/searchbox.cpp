@@ -25,14 +25,16 @@
 #include <qprogressbar.h>
 #include <kprogressdialog.h>
 #include <kmessagebox.h>
+#include <kvbox.h>
 
 #include "main.h"
 
 // :todo: - make a tabbed version
 
 SearchBox::SearchBox(Xfc *lpCatalog)
-    : KDialog()
+    : KPageDialog()
 {
+    //setFaceType(KPageDialog::Tabbed);
     setCaption(QString("Search"));
     setButtons(KDialog::Close | KDialog::User1);
     setModal(true);
@@ -49,25 +51,24 @@ SearchBox::~SearchBox()
 void SearchBox::layout()
 {
     resize(800,450);
-    
-    // search button
-    // :todo:
-        
-    // page1
-    
     setButtonText(KDialog::User1, "Search"); // :fixme: - replace with a kguiitem
     
+    // page1
+    KVBox *pBox1= new KVBox();
+    KPageWidgetItem *pPage1=addPage(pBox1, QString("Simple search"));
+    pPage1->setHeader(QString("Simple search"));
+    
     //mpPage1=addPage(QString("Simple search"));    
-    mpLayout1 = new QVBoxLayout(this);
+    //mpLayout1 = new QVBoxLayout(this);
 
-    mpSimpleSearchBox=new Q3HBox(this);
-    mpLayout1->addWidget(mpSimpleSearchBox);
+    mpSimpleSearchBox=new KHBox(pBox1);
+    //mpLayout1->addWidget(mpSimpleSearchBox);
     mpTmpLabel1=new QLabel("Search for: ", mpSimpleSearchBox);
     mpSimpleSearchEdit=new KLineEdit(mpSimpleSearchBox);    
 
     // ...    
-    mpSimpleSearchResults=new K3ListBox(mpPage1);
-    mpLayout1->addWidget(mpSimpleSearchResults, 5);
+    mpSimpleSearchResults=new K3ListBox(pBox1);
+    //mpLayout1->addWidget(mpSimpleSearchResults, 5);
 
     // page2
     //mpPage2=addPage(QString("Advanced search"));

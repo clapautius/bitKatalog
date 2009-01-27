@@ -22,7 +22,7 @@
 
 #include "xfcapp.h"
 #include "xfc.h"
-//#include "xmlStuff.h"
+#include "xfcEntity.h"
 #include "fs.h"
 #include "misc.h"
 
@@ -147,7 +147,7 @@ void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
 #if defined(XFC_DEBUG)
         std::cout<<":debug: child addr="<<lpChild<<endl;
 #endif 
-        if(isFile(lpChild) || isDisk(lpChild))
+        if(isFileOrDir(lpChild) || isDisk(lpChild))
         {
             lRet=callBackFunc(lDepth, lPath, *this, lpChild, lpParam);
             if(lRet==-1) // abandon
@@ -165,12 +165,13 @@ void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
 }
 
 
-bool Xfc::isFile(xmlNodePtr lpNode) const throw()
+bool Xfc::isFileOrDir(xmlNodePtr lpNode) const throw()
 {
 #if defined(XFC_DEBUG)
-    cout<<":debug: checking if it is a file: "<<lpNode->name<<endl;
-#endif 
-    if(!strcmp((const char*)lpNode->name, "file"))
+    cout<<":debug: checking if it is a file/dir: "<<lpNode->name<<endl;
+#endif
+    ElementType type=getTypeOfElement(lpNode);
+    if (eFile==type || eDir==type)
         return true;
     else
         return false;
@@ -181,8 +182,8 @@ bool Xfc::isDisk(xmlNodePtr lpNode) const throw()
 {
 #if defined(XFC_DEBUG)
     cout<<":debug: checking if it is a disk: "<<lpNode->name<<endl;
-#endif 
-    if(!strcmp((const char*)lpNode->name, "disk"))
+#endif
+    if (eDisk == getTypeOfElement(lpNode))
         return true;
     else
         return false;
@@ -192,7 +193,7 @@ bool Xfc::isDisk(xmlNodePtr lpNode) const throw()
 std::string Xfc::getNameOfFile(xmlNodePtr lpNode)
         const throw (std::string)
 {
-    if(isFile(lpNode))
+    if(isFileOrDir(lpNode))
         return getNameOfElement(lpNode);
     else
         throw std::string("Xfc::getNameOfDisk(): node is not a disk");
@@ -263,46 +264,35 @@ Xfc::setNameOfElement(xmlNodePtr pNode, std::string newName) throw (std::string)
 }
          
 
-std::string
+Xfc::ElementType
 Xfc::getTypeOfElement(xmlNodePtr lpNode)
   const throw (std::string)
 {
     // :fixme: - check state
-    
+    ElementType retVal=eUnknown;
 #if defined(XFC_DEBUG)
     cout<<":debug: in getTypeOfElement()"<<endl;
 #endif 
-    std::string lS;
-    if(lpNode==NULL)
-      lS=""; 
-    else
-    {
-      xmlNodePtr lNameNode;
-      lNameNode=lpNode->xmlChildrenNode; 
-#if defined(XFC_DEBUG)
-      cout<<"    :debug: searching type of element"<<endl;
-#endif 
-      while(lNameNode!=NULL)
-      {
-#if defined(XFC_DEBUG)
-        cout<<"    :debug: found "<<(const char*)lNameNode->name<<endl;
-#endif 
-        if(!strcmp((const char*)lNameNode->name, "type"))
-        {
-          xmlChar *lpStr;
-          lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
-          lS=(char*)lpStr;
-          xmlFree(lpStr);
-          break;
+    if (lpNode==NULL)
+        retVal=eUnknown;
+    else {
+        const char *pElemName=(const char*)lpNode->name;
+        if (pElemName) {
+            if (!strcmp(pElemName, "disk"))
+                retVal=eDisk;
+            else if (!strcmp(pElemName, "file"))
+                retVal=eFile;
+            else if (!strcmp(pElemName, "dir"))
+                retVal=eDir;
+            else
+                retVal=eUnknown;
         }
-        lNameNode=lNameNode->next;
-      }
     }
 #if defined(XFC_DEBUG)
-    cout<<":debug: type is: "<<lS.c_str()<<endl;
+    cout<<":debug: type is: "<<retVal<<endl;
     cout<<":debug: out of getTypeOfElement()"<<endl;
 #endif 
-    return lS;
+    return retVal;
 }
 
 
@@ -617,7 +607,7 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 
 std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
 {
-    if(!isFile(lpNode) && !isDisk(lpNode))
+    if(!isFileOrDir(lpNode) && !isDisk(lpNode))
     {
         throw std::string("Xfc::getDetailsForNode(): Node is not a file node");
     }
@@ -701,7 +691,7 @@ xmlNodePtr Xfc::getFirstFileNode(xmlNodePtr lpNode)
     lpChildNode=lpNode->xmlChildrenNode; 
     while(lpChildNode!=NULL)
     {
-        if(isFile(lpChildNode))
+        if(isFileOrDir(lpChildNode))
             return lpChildNode;
         lpChildNode=lpChildNode->next;
     }

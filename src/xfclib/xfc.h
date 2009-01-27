@@ -25,11 +25,14 @@
 
 #include <libxml/parser.h>
 
-#include "xfcEntity.h"
 
 /**
 @author Tudor Marian Pristavu
 */
+
+
+class XfcEntity;
+class Xfc;
 
 
 typedef int(*ParserFuncType)(unsigned int, std::string, Xfc&, xmlNodePtr, void*);
@@ -39,6 +42,13 @@ typedef int(*ParserFuncType)(unsigned int, std::string, Xfc&, xmlNodePtr, void*)
 class Xfc
 {
 public:
+
+    typedef enum {
+        eUnknown=0,
+        eDisk,
+        eFile,
+        eDir
+    } ElementType;
 
     static std::string getVersionString();
   
@@ -75,7 +85,7 @@ public:
     
     std::vector<std::string> getDiskList();
     
-    bool isFile(xmlNodePtr) const throw();
+    bool isFileOrDir(xmlNodePtr) const throw();
     
     bool isDisk(xmlNodePtr) const throw();
         
@@ -87,7 +97,7 @@ public:
     
     void setNameOfElement(xmlNodePtr, std::string newName) throw (std::string);
 
-    std::string getTypeOfElement(xmlNodePtr lpNode) const throw (std::string);
+    ElementType getTypeOfElement(xmlNodePtr lpNode) const throw (std::string);
 
     std::string getDescriptionOfNode(xmlNodePtr lpNode, xmlNodePtr *lpDescriptionNode=NULL) 
             const throw (std::string);

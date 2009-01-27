@@ -78,7 +78,7 @@ private:
 
     Q3ListViewItem *mpListItem;
       
-    QFrame *mpPage1, *mpPage2, *mpPage3;
+    //QFrame *mpPage1, *mpPage2, *mpPage3;
     
     QVBoxLayout *top_layout1, *top_layout2; // on heap
                 
@@ -96,10 +96,10 @@ private:
 
     Q3VGroupBox *mpLabelGroup; // on heap
       
-    Q3HBox *mpDescriptionBox; // entity description on heap
-    Q3HBox *mpLabelsBox; // on heap
-    Q3HBox *mpLabelButtons; // on heap
-    Q3HBox *mpCdateBox;
+    //Q3HBox *mpDescriptionBox; // entity description on heap
+    //Q3HBox *mpLabelsBox; // on heap
+    //Q3HBox *mpLabelButtons; // on heap
+    KHBox *mpCdateBox;
     
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
 

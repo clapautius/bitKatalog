@@ -44,6 +44,7 @@
 #include "verifythread.h"
 #include "fs.h"
 #include "misc.h"
+#include "xfcEntity.h"
 
 #if defined(MTP_DEBUG)
 #include <iostream>
@@ -232,23 +233,24 @@ void bitKatalogView::contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint 
     mCurrentItemPath=lCompletePath;
 
     try {
-      // check if this is a disk
-      XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
-      if (lEnt.isDisk()) {
-          pAct=pContextMenu->addAction("Verify disk");
-          connect(pAct, SIGNAL(triggered()), this, SLOT(verifyDisk()));
-          
-          pAct=pContextMenu->addAction("Rename disk");
-          connect(pAct, SIGNAL(triggered()), this, SLOT(renameDisk()));
-          
-          pAct=pContextMenu->addAction("Delete disk");
-          connect(pAct, SIGNAL(triggered()), this, SLOT(deleteDisk()));
-      }
-    
-      pContextMenu->exec(p);
+        msgInfo("Context menu for: ", lCompletePath);
+        // check if this is a disk
+        XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
+        if (lEnt.isDisk()) {
+            pAct=pContextMenu->addAction("Verify disk");
+            connect(pAct, SIGNAL(triggered()), this, SLOT(verifyDisk()));
+            
+            pAct=pContextMenu->addAction("Rename disk");
+            connect(pAct, SIGNAL(triggered()), this, SLOT(renameDisk()));
+            
+            pAct=pContextMenu->addAction("Delete disk");
+            connect(pAct, SIGNAL(triggered()), this, SLOT(deleteDisk()));
+        }
+        pContextMenu->exec(p);
     }
     catch(std::string e) {
-      KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
+        msgWarn("Hmmm, cannot display info about this item! completePath=", lCompletePath);
+        KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
     }
 }
 
@@ -459,15 +461,13 @@ bitKatalogView::renameDisk() throw()
 }
 
 
-void
-bitKatalogView::deleteDisk() throw()
+void bitKatalogView::deleteDisk() throw()
 {
   Q3ListViewItem *lpItem;
   std::string lCompletePath;
   std::string lOldName, lNewName;
   
-  if(mCatalog==NULL)
-  {
+  if (mCatalog==NULL) {
     KMessageBox::error(this, "No catalog!");
     return;
   }
@@ -501,7 +501,7 @@ void bitKatalogView::resetModifiedFlag() // :todo: - remove this function
 void bitKatalogView::populateTree(Xfc *mpCatalog)
 {
     mListView->clear();
-    mRootItem=new K3ListViewItem(mListView, "/");
+    mRootItem=new K3ListViewItem(mListView, "/"); // :fixme: - use catalog name?
 
     EntityIterator *lpIterator;
     EntityIterator *lpTempIterator;
@@ -511,11 +511,10 @@ void bitKatalogView::populateTree(Xfc *mpCatalog)
     XmlEntityItem *lpItem;
     std::vector<std::string> lVect;
     
-    while(lpIterator->hasMoreChildren())
-    {
+    while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
         lVect=lEnt.getDetails();
-        if(lVect.size()>0)
+        if (lVect.size()>0)
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), lVect[0].c_str());
         else
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str());
@@ -523,7 +522,7 @@ void bitKatalogView::populateTree(Xfc *mpCatalog)
         lpItem->setXmlNode(lEnt.getXmlNode());
         lpItem->setPixmap(0, *gpDiskPixmap);
         lpTempIterator=new EntityIterator(*mpCatalog, lEnt.getXmlNode());
-        if(lpTempIterator->hasMoreChildren())
+        if (lpTempIterator->hasMoreChildren())
             lpItem->setExpandable(true);
         delete lpTempIterator;
     }

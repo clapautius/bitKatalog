@@ -1,0 +1,17 @@
+<!ELEMENT catalog (disk)*>
+
+<!ELEMENT disk (name, cdate?, category?, description?, label*, file*, dir*)>
+
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT category (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+<!ELEMENT label (#PCDATA)>
+
+<!ELEMENT file (name, size?, sum?, category?, descrption?, label*)>
+<!ELEMENT dir (name, size?, category?, descrption?, label*, file*, dir*)>
+
+<!ELEMENT size (#PCDATA)>
+<!ELEMENT sum (#PCDATA)>
+
+<!ATTLIST catalog name CDATA #IMPLIED>
+<!ATTLIST sum type CDATA #REQUIRED>

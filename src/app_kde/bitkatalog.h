@@ -131,6 +131,7 @@ private:
 
     bitKatalogView *m_view;
 
+    KMenu *mpFileMenu, *mpEditMenu;
     //KPrinter   *m_printer;
 
     KToggleAction *m_toolbarAction;

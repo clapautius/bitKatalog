@@ -32,11 +32,6 @@
 
 //#define CONFIG_FILE "/home/me/.axfck.rc"
 
-//#define ICON_DISK "/opt/kde3/share/icons/default.kde/16x16/devices/cdwriter_unmount.png"
-//#define ICON_DIR "/opt/kde3/share/icons/default.kde/16x16/filesystems/folder_green.png"
-#define ICON_DISK "/home/me/prg/axfck/icons/cdwriter_unmount.png"
-#define ICON_DIR "/home/me/prg/axfck/icons/folder_green.png"
-
 
 extern KSharedConfigPtr gpConfig;
 
@@ -53,7 +48,9 @@ extern int gCatalogState;
 // 1 - modified
 // 2 - not modified
 
-
+void msgWarn(std::string, std::string="", std::string="");
+void msgInfo(std::string, std::string="", std::string="");
+void msgDebug(std::string);
 
 //extern std::string gLastDir;
 

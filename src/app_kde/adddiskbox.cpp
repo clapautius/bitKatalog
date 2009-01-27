@@ -25,6 +25,8 @@
 #include <klocale.h>
 #include <qcheckbox.h>
 #include <kdatepicker.h>
+#include <khbox.h>
+#include <kvbox.h>
 
 #include <sstream>
  
@@ -34,14 +36,14 @@
 
 
 AddDiskBox::AddDiskBox(Xfc *lpCatalog)
-    : KDialog()
+    : KPageDialog()
 {
     setButtons(KDialog::Close | KDialog::User1);
     setCaption("Scan");
     mpCatalog=lpCatalog;
     mCatalogWasModified=false;
-    layout();
     setModal(true);
+    layout();
 }
 
 
@@ -55,34 +57,35 @@ void AddDiskBox::layout()
     resize(800,450);
         
     setButtonText(KDialog::User1, "Add"); // :fixme: - replace with a kguiitem
-    
-    QWidget *mpPage=new QWidget(this); //plainPage();    
-    mpLayout1 = new QVBoxLayout(mpPage);
 
-    mpLayoutBox1=new Q3HBox(mpPage);
-    mpLayout1->addWidget(mpLayoutBox1);
+    KVBox *pLayoutBox= new KVBox();
+    KPageWidgetItem *pPage=addPage(pLayoutBox, QString("Add disk"));
+    pPage->setHeader(QString("Add disk"));
+
+    mpLayoutBox1=new KHBox(pLayoutBox);
+    //mpLayout1->addWidget(mpLayoutBox1);
     mpTmpLabel1=new QLabel("Path to add: ", mpLayoutBox1);
     mpPathLabel=new QLabel("", mpLayoutBox1);
     mpBrowseButton=new KPushButton("Browse ...", mpLayoutBox1);
     mpBrowseButton->setMaximumSize(mpBrowseButton->sizeHint());
     connect(mpBrowseButton, SIGNAL(clicked()), this, SLOT(browseButtonClicked()));
     
-    mpLayoutBox2=new Q3HBox(mpPage);
-    mpLayout1->addWidget(mpLayoutBox2);
+    mpLayoutBox2=new KHBox(pLayoutBox);
+    //mpLayout1->addWidget(mpLayoutBox2);
     mpTmpLabel2=new QLabel("Disk name: ", mpLayoutBox2);
     mpDiskNameEdit=new KLineEdit(mpLayoutBox2);
     
-    mpGroupBox=new Q3VGroupBox(" Parameters ", mpPage);
-    mpLayout1->addWidget(mpGroupBox);
+    mpGroupBox=new Q3VGroupBox(" Parameters ", pLayoutBox);
+    //mpLayout1->addWidget(mpGroupBox);
 
-    mpLayoutBox3=new Q3HBox(mpGroupBox);
-    mpLayout1->addWidget(mpLayoutBox3);
+    mpLayoutBox3=new KHBox(mpGroupBox);
+    //mpLayout1->addWidget(mpLayoutBox3);
     mpTmpLabel3=new QLabel("Disk description: ", mpLayoutBox3);
     mpDiskDescriptionEdit=new KLineEdit(mpLayoutBox3);
     
     // creation date
-    mpLayoutBox4=new Q3HBox(mpGroupBox);
-    mpLayout1->addWidget(mpLayoutBox4);
+    mpLayoutBox4=new KHBox(mpGroupBox);
+    //mpLayout1->addWidget(mpLayoutBox4);
     mpTmpLabel4=new QLabel("Disk creation date: ", mpLayoutBox4);
     
     mpDiskCDateEdit=new KLineEdit(mpLayoutBox4);
@@ -97,7 +100,6 @@ void AddDiskBox::layout()
     mpDontComputeShaSumCheckBox=
         new QCheckBox("Don't compute sha1 sum for this disk", mpGroupBox);
     mpDontComputeShaSumCheckBox->setChecked(false);
-
 } 
 
 

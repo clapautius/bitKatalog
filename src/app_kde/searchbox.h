@@ -20,14 +20,14 @@
 #ifndef SEARCHBOX_H
 #define SEARCHBOX_H
 
-#include <kdialog.h>
+#include <kpagedialog.h>
 #include <klineedit.h>
 #include <qlabel.h>
 #include <kprogressdialog.h>
-#include <QBoxLayout>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
 #include <k3listbox.h>
+#include <khbox.h>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
@@ -35,7 +35,7 @@
 /**
 @author Tudor Pristavu
 */
-class SearchBox : public KDialog
+class SearchBox : public KPageDialog
 {
     Q_OBJECT
             
@@ -60,15 +60,15 @@ private:
     
     Xfc *mpCatalog;
     
-    QFrame *mpPage1, *mpPage2; // on heap
+    //QFrame *mpPage1, *mpPage2; // on heap
     
-    QVBoxLayout *mpLayout1; // on heap
+    //QVBoxLayout *mpLayout1; // on heap
     
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
     
     KLineEdit *mpSimpleSearchEdit; // on heap
     
-    Q3HBox *mpSimpleSearchBox; // on heap
+    KHBox *mpSimpleSearchBox; // on heap
     
     K3ListBox *mpSimpleSearchResults;
     

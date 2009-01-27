@@ -17,7 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
+#include <iostream>
 
 #include "bitkatalog.h"
 #include <kapplication.h>
@@ -52,6 +52,42 @@ int gCatalogState=0;
 // :ver:
 static const char version[] = "0.4.0-alpha";
 
+static int gVerboseLevel=3;
+
+
+void
+msgWarn(std::string s, std::string s2, std::string s3)
+{
+    if (gVerboseLevel>=1) {
+        std::cout<<s;
+        if (!s2.empty())
+            std::cout<<s2;
+        if (!s3.empty())
+            std::cout<<s3;
+        std::cout<<std::endl;
+    }
+}
+
+
+void
+msgInfo(std::string s, std::string s2, std::string s3)
+{
+    if (gVerboseLevel>=2) {
+        std::cout<<s;
+        if (!s2.empty())
+            std::cout<<s2;
+        if (!s3.empty())
+            std::cout<<s3;
+        std::cout<<std::endl;
+    }
+}
+
+
+void msgDebug(std::string s)
+{
+    if (gVerboseLevel>=3)
+        std::cout<<s<<std::endl;
+}
 
 
 void startUp();
@@ -60,7 +96,7 @@ void startUp();
 int main(int argc, char **argv)
 {
     std::string otherText;
-    KAboutData about(QByteArray("bitkatalog"), QByteArray("bitkatalog"), ki18n("bitkatalog"), QByteArray(version), ki18n("A beautiful KDE application"),  KAboutData::License_GPL);
+    KAboutData about(QByteArray("bitKatalog"), QByteArray("bitKatalog"), ki18n("bitKatalog"), QByteArray(version), ki18n("A KDE file & disk catalog that uses plain-text XML to store catalog information."),  KAboutData::License_GPL);
 
     // :fixme: - kde4
     //KAboutData::License_GPL, "(C) 2009 Tudor Pristavu", 0, 0, "clapautiusAtGmailDotCom");
@@ -76,27 +112,35 @@ int main(int argc, char **argv)
     options.add("+[URL]", ki18n("Document to open"));
     KCmdLineArgs::addCmdLineOptions(options);
     KApplication app;
-    gpApplication=&app;
+
+    // try to find a suitable window icon
+    KIconLoader *pIconLoader=KIconLoader::global();
+    QIcon windowIcon=pIconLoader->loadIconSet("bitKatalog", KIconLoader::NoGroup, 0, true);
+    if (windowIcon.isNull()) {
+        msgInfo("Couldn't find bitKatalog icon");
+        //delete pWindowIcon;
+        windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
+        if (windowIcon.isNull())
+            msgWarn("Couldn't find media-optical icon");
+    }
+    app.setWindowIcon(windowIcon);
 
     startUp();
 
     // see if we are starting with session management
-    if (app.isSessionRestored())
-    {
+    if (app.isSessionRestored()) {
         RESTORE(bitKatalog);
     }
-    else
-    {
+    else {
         // no session.. just start up normally
         KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-        if (args->count() == 0)
-        {
+        if (args->count() == 0) {
             bitKatalog *widget = new bitKatalog;
+            widget->setWindowIcon(windowIcon);
             widget->show();
             gpMainWindow=widget;
         }
-        else if(args->count() == 1)
-        {
+        else if (args->count() == 1) {
             bitKatalog *widget = new bitKatalog;
             widget->show();
             gpMainWindow=widget;
@@ -104,17 +148,17 @@ int main(int argc, char **argv)
         }
         args->clear();
     }
-
     return app.exec();
 }
 
 
 void startUp()
 {
-    gpDiskPixmap=new QPixmap(ICON_DISK);
-    gpDirPixmap=new QPixmap(ICON_DIR);
-    gpFilePixmap=new QPixmap(ICON_DIR);
-    
+    KIconLoader *pIconLoader=KIconLoader::global();
+    gpDiskPixmap=new QPixmap(pIconLoader->loadIcon("media-optical", KIconLoader::Small));
+    gpDirPixmap=new QPixmap(pIconLoader->loadIcon("folder-green", KIconLoader::Small));
+    gpFilePixmap=new QPixmap(pIconLoader->loadIcon("text-plain", KIconLoader::Small));
+
     xmlIndentTreeOutput=1;
     xmlKeepBlanksDefault(0);
 

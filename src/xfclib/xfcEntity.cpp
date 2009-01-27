@@ -59,12 +59,19 @@ XfcEntity::getXmlNode() const
 }
 
 
+Xfc::ElementType
+XfcEntity::getElementType() const
+{
+    checkValidData();
+    return mpXfc->getTypeOfElement(mpXmlNode);
+}
+
 
 bool
-XfcEntity::isFile() const
+XfcEntity::isFileOrDir() const
 {
   checkValidData();
-  return mpXfc->isFile(mpXmlNode);
+  return mpXfc->isFileOrDir(mpXmlNode);
 }
         
 
@@ -83,16 +90,18 @@ XfcEntity::getTypeOfFile() const
 // 1 - regular file
 // 2 - directory
 {
-  std::string lS;
-  if(!isFile())
-    throw std::string("Not a file");
-  lS=mpXfc->getTypeOfElement(mpXmlNode);
-  if("file" == lS)
-    return 1;
-  else if("dir" == lS)
-    return 2;
-  else
-    return 0;
+    Xfc::ElementType type;
+    if (!isFileOrDir())
+        throw std::string("Not a file/dir");
+    type=mpXfc->getTypeOfElement(mpXmlNode);
+    switch(type) {
+    case Xfc::eFile:
+        return 1;
+    case Xfc::eDir:
+        return 2;
+    default:
+        return 0;
+    }
 }
 
 
@@ -115,9 +124,9 @@ void
 XfcEntity::checkValidData(bool xfcMustBeValid) const
   throw (std::string)
 {
-  if(mpXmlNode==NULL)
+  if (mpXmlNode==NULL)
     throw std::string("Xml node is NULL");
-  if(xfcMustBeValid && mpXfc==NULL)
+  if (xfcMustBeValid && mpXfc==NULL)
     throw std::string("Xfc is NULL");
 }
 
@@ -143,9 +152,8 @@ EntityIterator::EntityIterator(Xfc &lrXfc, xmlNodePtr lpNode)
 
 bool EntityIterator::hasMoreChildren()
 {
-    while(mpCurrentNode!=NULL)
-    {
-        if(mrXfc.isFile(mpCurrentNode) || mrXfc.isDisk(mpCurrentNode))
+    while (mpCurrentNode!=NULL) {
+        if (mrXfc.isFileOrDir(mpCurrentNode) || mrXfc.isDisk(mpCurrentNode))
            return true;
         mpCurrentNode=mpCurrentNode->next;
     }    

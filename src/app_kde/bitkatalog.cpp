@@ -67,24 +67,39 @@ bitKatalog::bitKatalog()
     // tell the KMainWindow that this is indeed the main widget
     setCentralWidget(m_view);
 
+    // disable help menu in order not to break the order of the standard menus
+    // I'm not sure how to do this write
+    // I'll create the help menu after the creation of File/Edit/etc.
+    setHelpMenuEnabled(false);
+
+    createGUI();
+    //setupGUI();
+
+    mpFileMenu=new KMenu("&File");
+    menuBar()->addMenu(mpFileMenu);
+    mpEditMenu=new KMenu("&Edit");
+    menuBar()->addMenu(mpEditMenu);
+
+    // create the Help menu (the last one)
+    menuBar()->addMenu(helpMenu());
+    
+    //mpEditMenu->addAction("&Search");
+    mpEditMenu->addAction("&Add disk to catalog", this, SLOT(addDisk()));
+
     // then, setup our actions
     setupActions();
 
     // and a status bar
     statusBar()->show();
 
+    toolBar()->show();
+    
     // apply the saved mainwindow settings, if any, and ask the mainwindow
     // to automatically save settings if changed: window size, toolbar
     // position, icon size, etc.
     setAutoSaveSettings();
     
     gpView=m_view;
-    
-    KMenu *pEditMenu=new KMenu("&Edit", this);
-    menuBar()->addMenu(pEditMenu);
-
-    pEditMenu->addAction("&Search");
-    pEditMenu->addAction("&Add disk to catalog");
     
     // allow the view to change the statusbar and caption
     connect(m_view, SIGNAL(signalChangeStatusbar(const QString&)),
@@ -125,32 +140,33 @@ void bitKatalog::load(const KUrl& url)
 
 void bitKatalog::setupActions()
 {
-    KStandardAction::openNew(this, SLOT(fileNew()), actionCollection());
-    KStandardAction::open(this, SLOT(fileOpen()), this);
-    KStandardAction::save(this, SLOT(fileSave()), this);
-    KStandardAction::saveAs(this, SLOT(fileSaveAs()), this);
-    KStandardAction::print(this, SLOT(filePrint()), this);
-    KStandardAction::quit(kapp, SLOT(quit()), this);
+    mpFileMenu->addAction(KStandardAction::openNew(this, SLOT(fileNew()), this));
+    mpFileMenu->addAction(KStandardAction::open(this, SLOT(fileOpen()), this));
+    mpFileMenu->addAction(KStandardAction::save(this, SLOT(fileSave()), this));
+    mpFileMenu->addAction(KStandardAction::saveAs(this, SLOT(fileSaveAs()), this));
+    mpFileMenu->addSeparator();
+    mpFileMenu->addAction(KStandardAction::quit(kapp, SLOT(quit()), this));
 
-    KStandardAction::preferences(this, SLOT(optionsPreferences()), this);
+    mpEditMenu->addAction(KStandardAction::find(this, SLOT(search()), this));
+    mpEditMenu->addSeparator();
+    mpEditMenu->addAction(KStandardAction::preferences(this, SLOT(optionsPreferences()), this));
+    
+    mpEditMenu->addAction(
+        m_statusbarAction=KStandardAction::showStatusbar(this, SLOT(optionsShowStatusbar()), this));
+    mpEditMenu->addAction(
+        m_toolbarAction=KStandardAction::showStatusbar(this, SLOT(optionsShowToolbar()), this));
 
-    m_statusbarAction = KStandardAction::showStatusbar(this, SLOT(optionsShowStatusbar()), this);
+    mpEditMenu->addAction(KStandardAction::keyBindings(this, SLOT(optionsConfigureKeys()), this));
+    mpEditMenu->addAction(KStandardAction::configureToolbars(this, SLOT(optionsConfigureToolbars()), this));
+    //mpEditMenu->addAction(KStandardAction::preferences(this, SLOT(optionsPreferences()), this));
 
-    KStandardAction::keyBindings(this, SLOT(optionsConfigureKeys()), this);
-    KStandardAction::configureToolbars(this, SLOT(optionsConfigureToolbars()), this);
-    KStandardAction::preferences(this, SLOT(optionsPreferences()), this);
-
-    // this doesn't do anything useful.  it's just here to illustrate
-    // how to insert a custom menu and menu item
-    // :fixme: kde4
-#if 0
-    KAction *custom = new KAction(i18n("Cus&tom Menuitem"), 0,
-                                  this, SLOT(optionsPreferences()),
-                                  this, "custom_action");
-#endif
-
-    //createGUI();
-    setupGUI();
+    toolBar()->addAction(KStandardAction::open(this, SLOT(fileOpen()), this));
+    toolBar()->addAction(KStandardAction::save(this, SLOT(fileSave()), this));
+    toolBar()->addAction(KStandardAction::find(this, SLOT(search()), this));
+    KIcon addIcon("list-add");
+    KAction *pAddAct=new KAction(addIcon, "Add disk ...", this);
+    connect(pAddAct, SIGNAL(triggered()), this, SLOT(addDisk()));
+    toolBar()->addAction(pAddAct);
 }
 
 
@@ -220,12 +236,11 @@ void bitKatalog::fileNew()
     // create a new window
     (new bitKatalog)->show();
     
-    if(gCatalogState==1)
-    {
-        if(KMessageBox::warningContinueCancel(this, "Catalog modified. Changes will be lost. Continue?")==KMessageBox::Cancel)
+    if (gCatalogState==1) {
+        if(KMessageBox::warningContinueCancel(
+               this, "Catalog modified. Changes will be lost. Continue?")==KMessageBox::Cancel)
             return;
     }
-
     NewCatalogBox *lpNewCatalogBox=new NewCatalogBox;
     lpNewCatalogBox->exec();
 }
@@ -297,21 +312,17 @@ void bitKatalog::fileSaveAs()
     QString lLastDir;
     lLastDir=gpConfig->group("").readEntry("LastDir", ".");
     KUrl file_url = KFileDialog::getSaveUrl(lLastDir);
-    if (!file_url.isEmpty() && file_url.isValid())
-    {
+    if (!file_url.isEmpty() && file_url.isValid()) {
         lLastDir=file_url.directory();
         gpConfig->group("").writeEntry("LastDir", lLastDir);
         gpConfig->sync();
 
         Xfc *lpCatalog=m_view->getCatalog();
-        if(lpCatalog==NULL)
-        {
+        if (lpCatalog==NULL) {
             KMessageBox::error(this, "No catalog! You should load a catalog from file or create a new one");
         }
-        else
-        {
-            try
-            {
+        else {
+            try {
                 // :fixme: - check global config
                 createNumberedBackup(file_url.path().toAscii().constData());
                 lpCatalog->saveToFile(file_url.path().toAscii().constData(), 1);
@@ -321,13 +332,13 @@ void bitKatalog::fileSaveAs()
                 gpMainWindow->updateTitle(false);
                 KMessageBox::information(this, "File succesfully saved"); // :tmp:
             }
-            catch(std::string e)
-            {
+            catch(std::string e) {
                 KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
             }
         }
     }
 }
+
 
 void bitKatalog::filePrint()
 {
@@ -339,8 +350,7 @@ void bitKatalog::filePrint()
     QPrinter printer;
     QPrintDialog printDialog(&printer, this);
     //printDialog.setWindowTitle(i18n("Print Dialog Title"));
-    if (printDialog.exec())
-    {
+    if (printDialog.exec()) {
         // setup the printer.  with Qt, you always "print" to a
         // QPainter.. whether the output medium is a pixmap, a screen,
         // or paper
@@ -412,8 +422,7 @@ bitKatalog::optionsPreferences()
 {
     // popup some sort of preference dialog, here
     bitKatalogPreferences dlg;
-    if (dlg.exec())
-    {
+    if (dlg.exec()) {
         // redo your settings
     }
 }
@@ -433,8 +442,7 @@ void bitKatalog::changeCaption(const QString& text)
 
 void bitKatalog::search()
 {
-    if(gCatalogState==1 || gCatalogState==2)
-    {
+    if (gCatalogState==1 || gCatalogState==2) {
         SearchBox *lpSearchBox=new SearchBox(m_view->getCatalog());
         lpSearchBox->exec();
     }
@@ -445,13 +453,11 @@ void bitKatalog::search()
 
 void bitKatalog::addDisk()
 {
-    if(gCatalogState==1 || gCatalogState==2)
-    {
+    if (gCatalogState==1 || gCatalogState==2) {
         AddDiskBox *lpAddDiskBox=new AddDiskBox(m_view->getCatalog());
         lpAddDiskBox->exec();
         m_view->populateTree(m_view->getCatalog());
-        if(lpAddDiskBox->catalogWasModified())
-        {
+        if (lpAddDiskBox->catalogWasModified()) {
             gCatalogState=1; // modified
             gpMainWindow->updateTitle(true);
         }
@@ -467,10 +473,8 @@ void bitKatalog::createNumberedBackup(std::string lFile)
     char lAux[5];
     int i;
     std::string lBackupName;
-    if(fileExists(lFile))
-    {
-        for(i=0;i<999;i++)
-        {
+    if (fileExists(lFile)) {
+        for (i=0;i<999;i++) {
             sprintf(lAux, ".%03d", i);
             lBackupName=lFile+lAux;
             if(!fileExists(lBackupName))
@@ -514,11 +518,9 @@ bitKatalog::getCatalogPath() const
 
 bool bitKatalog::queryClose()
 {
-    if(1 == gCatalogState)
-    {
+    if (1 == gCatalogState) {
         switch ( KMessageBox::warningYesNoCancel( this,
-                i18n("The catalog is not saved. Are you sure you want to exit?")) ) 
-        {
+                i18n("The catalog is not saved. Are you sure you want to exit?")) ) {
             case KMessageBox::Yes :
                 return true;
             case KMessageBox::No :
@@ -537,4 +539,3 @@ void bitKatalog::updateTitle(bool modified)
     setCaption(KDialog::makeStandardCaption(mCatalogPath.c_str(), this,
                                             modified?KDialog::ModifiedCaption:KDialog::NoCaptionFlags));
 }
-
