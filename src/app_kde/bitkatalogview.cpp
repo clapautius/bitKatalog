@@ -61,51 +61,7 @@ bitKatalogView::bitKatalogView(QWidget *parent)
     mCatalog=NULL;
     top_layout->addWidget(mListView);
     
-    //openURL(QString("a.xml"));
-    
     /*
-    // we want to look for all components that satisfy our needs.  the
-    // trader will actually search through *all* registered KDE
-    // applications and components -- not just KParts.  So we have to
-    // specify two things: a service type and a constraint
-    //
-    // the service type is like a mime type.  we say that we want all
-    // applications and components that can handle HTML -- 'text/html'
-    //
-    // however, by itself, this will return such things as Netscape..
-    // not what we wanted.  so we constrain it by saying that the
-    // string 'KParts/ReadOnlyPart' must be found in the ServiceTypes
-    // field.  with this, only components of the type we want will be
-    // returned.
-    KService::List offers = KMimeTypeTrader::self()->query("text/html", "KParts/ReadOnlyPart");
-
-    KLibFactory *factory = 0;
-    // in theory, we only care about the first one.. but let's try all
-    // offers just in case the first can't be loaded for some reason
-    KService::List::Iterator it(offers.begin());
-    for( ; it != offers.end(); ++it)
-    {
-        KService::Ptr ptr = (*it);
-
-        // we now know that our offer can handle HTML and is a part.
-        // since it is a part, it must also have a library... let's try to
-        // load that now
-        factory = KLibLoader::self()->factory( ptr->library() );
-        if (factory)
-        {
-            m_html = static_cast<KParts::ReadOnlyPart *>(factory->create(this, ptr->name().toAscii().constData(), QStringList("KParts::ReadOnlyPart")));
-            break;
-        }
-    }
-
-    // if our factory is invalid, then we never found our component
-    // and we might as well just exit now
-    if (!factory)
-    {
-        KMessageBox::error(this, i18n("Could not find a suitable HTML component"));
-        return;
-    }
-
     connect(m_html, SIGNAL(setWindowCaption(const QString&)),
             this,   SLOT(slotSetTitle(const QString&)));
     connect(m_html, SIGNAL(setStatusBarText(const QString&)),
@@ -288,26 +244,21 @@ bitKatalogView::verifyDisk() throw()
     std::string lCompletePath;
     std::string lS;
     unsigned int ui;
-    
-    if(mCatalog==NULL)
-    {
-        KMessageBox::error(this, "No catalog!");
-        return;
-    }
-
-    lpItem=mpCurrentItem;
-    lCompletePath=mCurrentItemPath;
-
     std::vector<std::string> lOnlyInCatalog;
     std::vector<std::string> lOnlyOnDisk;
     std::vector<std::string> lWrongSum;
     std::vector<std::string> lDifferent;
-
+    
+    if (mCatalog==NULL) {
+        KMessageBox::error(this, "No catalog!");
+        return;
+    }
+    lpItem=mpCurrentItem;
+    lCompletePath=mCurrentItemPath;
     KMessageBox::information(this, "Not properly tested (and size is not checked)");
 
     QString lDir = KFileDialog::getExistingDirectory(KUrl("/"), this, QString("Path to verify"));
-
-    if("" == lDir) // cancel
+    if ("" == lDir) // cancel
         return;
     
     VerifyThread *lpVerifyThread=new VerifyThread(
@@ -319,7 +270,7 @@ bitKatalogView::verifyDisk() throw()
     lpProgress->progressBar()->setRange(0, 0);
     //lpProgress->progressBar()->setPercentageVisible(false);
     lpProgress->progressBar()->setTextVisible(false);
-    lpProgress->setMinimumDuration(1);
+    lpProgress->setMinimumDuration(2000);
     lpProgress->setAutoClose(true);
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
@@ -327,7 +278,6 @@ bitKatalogView::verifyDisk() throw()
     int i=0;
 
     lpVerifyThread->start();
-    
     while (!lpVerifyThread->isFinished()) {
         std::string lLabel;
         std::string lOldLabel;
@@ -347,7 +297,7 @@ bitKatalogView::verifyDisk() throw()
             KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
             lpProgress2->progressBar()->setRange(0, 0);
             lpProgress2->progressBar()->setTextVisible(false);
-            lpProgress2->setMinimumDuration(1);
+            lpProgress2->setMinimumDuration(2000);
             lpProgress2->setAutoClose(false);
             lpProgress2->setAllowCancel(false);
             lpProgress2->setLabelText(QString("Waiting for verify thread to finish"));
@@ -412,8 +362,7 @@ bitKatalogView::renameDisk() throw()
   std::string lCompletePath;
   QString oldName, newName;
   
-  if(mCatalog==NULL)
-  {
+  if (mCatalog==NULL) {
     KMessageBox::error(this, "No catalog!");
     return;
   }
@@ -441,7 +390,8 @@ bitKatalogView::renameDisk() throw()
 }
 
 
-void bitKatalogView::deleteDisk() throw()
+void
+bitKatalogView::deleteDisk() throw()
 {
   Q3ListViewItem *lpItem;
   std::string lCompletePath;
@@ -451,7 +401,6 @@ void bitKatalogView::deleteDisk() throw()
     KMessageBox::error(this, "No catalog!");
     return;
   }
-  
   lpItem=mpCurrentItem;
   lCompletePath=mCurrentItemPath;
   
@@ -460,25 +409,29 @@ void bitKatalogView::deleteDisk() throw()
 }
 
 
-Xfc* bitKatalogView::getCatalog()
+Xfc*
+bitKatalogView::getCatalog()
 {
     return mCatalog;
 }
 
 
-bool bitKatalogView::catalogWasModified() // :todo: - remove this function
+bool
+bitKatalogView::catalogWasModified() // :todo: - remove this function
 {
     return mModifiedCatalog;
 }
 
 
-void bitKatalogView::resetModifiedFlag() // :todo: - remove this function
+void
+bitKatalogView::resetModifiedFlag() // :todo: - remove this function
 {
     mModifiedCatalog=false;
 }
 
 
-void bitKatalogView::populateTree(Xfc *mpCatalog)
+void
+bitKatalogView::populateTree(Xfc *mpCatalog)
 {
     mListView->clear();
     mRootItem=new K3ListViewItem(mListView, "/"); // :fixme: - use catalog name?

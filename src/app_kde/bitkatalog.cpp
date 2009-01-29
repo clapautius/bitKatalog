@@ -121,8 +121,7 @@ void bitKatalog::load(const KUrl& url)
 
     #if 0
     // download the contents
-    if (KIO::NetAccess::download(url, target))
-    {
+    if (KIO::NetAccess::download(url, target)) {
         // set our caption
         setCaption(url);
 
@@ -271,38 +270,36 @@ void bitKatalog::fileOpen()
 void
 bitKatalog::fileSave()
 {
-    // this slot is called whenever the File->Save menu is selected,
-    // the Save shortcut is pressed (usually CTRL+S) or the Save toolbar
-    // button is clicked
+  // this slot is called whenever the File->Save menu is selected,
+  // the Save shortcut is pressed (usually CTRL+S) or the Save toolbar
+  // button is clicked
 
-    KMessageBox::error(this, "Bau");
-    
-    // save the current file
-    if (gCatalogState==1) {
-        Xfc *lpCatalog=m_view->getCatalog();
-        if(lpCatalog==NULL) {
-            KMessageBox::error(this, "No catalog! You should load a catalog from file or create a new one");
+  // save the current file
+  if (gCatalogState==1) {
+    Xfc *lpCatalog=m_view->getCatalog();
+    if(lpCatalog==NULL) {
+      KMessageBox::error(this, "No catalog! You should load a catalog from file or create a new one");
+    }
+    else {
+      if (mCatalogPath=="") {
+        fileSaveAs();
+      }
+      else {
+        try {
+          // :fixme: - check global config
+          createNumberedBackup(mCatalogPath);
+          lpCatalog->saveToFile(mCatalogPath, 1);
+          //m_view->resetModifiedFlag();
+          gCatalogState=2;
+          gpMainWindow->updateTitle(false);
+          KMessageBox::information(this, "File succesfully saved"); // :tmp:
         }
-        else {
-            if (mCatalogPath=="") {
-                fileSaveAs();
-            }
-            else {
-                try {
-                    // :fixme: - check global config
-                    createNumberedBackup(mCatalogPath);
-                    lpCatalog->saveToFile(mCatalogPath, 1);
-                    //m_view->resetModifiedFlag();
-                    gCatalogState=2;
-                    gpMainWindow->updateTitle(false);
-                    KMessageBox::information(this, "File succesfully saved"); // :tmp:
-                }
-                catch(std::string e) {
-                    KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
-                }
-            }
+        catch(std::string e) {
+          KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
         }
-    }            
+      }
+    }
+  }            
 }
 
 

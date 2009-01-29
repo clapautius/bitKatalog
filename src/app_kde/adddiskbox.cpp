@@ -123,21 +123,17 @@ void AddDiskBox::slotUser1()
         KMessageBox::error(this, "Invalid path");
         return;
     }
-    
     if (lDiskName=="") {
         KMessageBox::error(this, "Please enter a name for disk");
         return;
     }
-    
     if (mpCatalog->getNodeForPath(std::string("/")+lDiskName)!=NULL) {
         KMessageBox::error(this, "Disk already exists");
         return;
     }
-    
     if (!mpAddRootCheckBox->isChecked()) {
         lPath=lPath+"/";
     }
-
     if (mpDontComputeShaSumCheckBox->isChecked()) {
         dontComputeSha=true;
     }
@@ -154,14 +150,16 @@ void AddDiskBox::slotUser1()
     KProgressDialog *lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
     //lpProgress->progressBar()->setTotalSteps(0);
     lpProgress->progressBar()->setRange(0, 0);
-    //lpProgress->progressBar()->setPercentageVisible(false);
+    lpProgress->progressBar()->setValue(0);
+    lpProgress->progressBar()->reset();
     lpProgress->progressBar()->setTextVisible(false);
-    lpProgress->setMinimumDuration(1);
+    lpProgress->setMinimumDuration(2000);
     lpProgress->setAutoClose(true);
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
     int i=0;
-    
+
+    msgDebug("Add thread started, progress bar created, waiting for scan thread ...");
     while (!lpScanThread->isFinished()) {
         if (lpProgress->wasCancelled()) {
             if (KMessageBox::questionYesNo(this, "Are you sure?")==KMessageBox::Yes) {
@@ -173,7 +171,7 @@ void AddDiskBox::slotUser1()
                 lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
                 lpProgress->progressBar()->setTextVisible(false);
-                lpProgress->setMinimumDuration(1);
+                lpProgress->setMinimumDuration(2000);
                 lpProgress->setAutoClose(true);
                 lpProgress->setAllowCancel(true);
                 lpProgress->setButtonText("Stop");
@@ -185,7 +183,7 @@ void AddDiskBox::slotUser1()
                 lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
                 lpProgress->progressBar()->setTextVisible(false);
-                lpProgress->setMinimumDuration(1);
+                lpProgress->setMinimumDuration(2000);
                 lpProgress->setAutoClose(true);
                 lpProgress->setAllowCancel(true);
                 lpProgress->setButtonText("Stop");
@@ -195,6 +193,7 @@ void AddDiskBox::slotUser1()
         gpApplication->processEvents();
         usleep(250000);
     }
+    msgDebug("Scan thread finished");
 
     if (lpScanThread->returnValue()!=0) {        
         std::string err;

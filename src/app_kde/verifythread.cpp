@@ -46,14 +46,16 @@ VerifyThread::~VerifyThread()
 }
 
 
-void VerifyThread::run()
+void
+VerifyThread::run()
 {
   mResultCode=verifyDirectory(mCatalogPath, mDiskPath, mrOnlyInCatalog,
                               mrOnlyOnDisk, mrDifferent, mrWrongSum);
 }
 
 
-void VerifyThread::stopThread()
+void
+VerifyThread::stopThread()
 {
     mMutex.lock();
     mStopNow=true;
@@ -243,7 +245,8 @@ VerifyThread::getResultCode() const
 }
 
 
-std::string VerifyThread::getCurrentFile()
+std::string
+VerifyThread::getCurrentFile()
 {
     std::string lS;
     mMutex.lock();
@@ -253,7 +256,8 @@ std::string VerifyThread::getCurrentFile()
 }
 
 
-void VerifyThread::setCurrentFile(std::string lFile)
+void
+VerifyThread::setCurrentFile(std::string lFile)
 {
     mMutex.lock();
     mCurrentFile=lFile;
