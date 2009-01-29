@@ -83,10 +83,16 @@ msgInfo(std::string s, std::string s2, std::string s3)
 }
 
 
-void msgDebug(std::string s)
+void msgDebug(std::string s, std::string s2, std::string s3)
 {
-    if (gVerboseLevel>=3)
-        std::cout<<s<<std::endl;
+    if (gVerboseLevel>=3) {
+        std::cout<<s;
+        if (!s2.empty())
+            std::cout<<s2;
+        if (!s3.empty())
+            std::cout<<s3;
+        std::cout<<std::endl;
+    }
 }
 
 

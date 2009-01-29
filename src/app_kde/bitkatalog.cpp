@@ -443,6 +443,7 @@ void bitKatalog::changeCaption(const QString& text)
 void bitKatalog::search()
 {
     if (gCatalogState==1 || gCatalogState==2) {
+        msgDebug("Trying to search ...");
         SearchBox *lpSearchBox=new SearchBox(m_view->getCatalog());
         lpSearchBox->exec();
     }

@@ -100,6 +100,9 @@ void AddDiskBox::layout()
     mpDontComputeShaSumCheckBox=
         new QCheckBox("Don't compute sha1 sum for this disk", mpGroupBox);
     mpDontComputeShaSumCheckBox->setChecked(false);
+
+    // connect button
+    connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1())); // add
 } 
 
 
@@ -111,10 +114,10 @@ void AddDiskBox::slotUser1()
     std::string lDiskCDate;
     bool dontComputeSha;
     
-    lPath=QString2string(mpPathLabel->text());
-    lDiskName=QString2string(mpDiskNameEdit->text());
-    lDiskDescription=QString2string(mpDiskDescriptionEdit->text());
-    lDiskCDate=QString2string(mpDiskCDateEdit->text());
+    lPath=mpPathLabel->text().toStdString();
+    lDiskName=mpDiskNameEdit->text().toStdString();
+    lDiskDescription=mpDiskDescriptionEdit->text().toStdString();
+    lDiskCDate=mpDiskCDateEdit->text().toStdString();
     
     if (lPath=="") {
         KMessageBox::error(this, "Invalid path");
@@ -126,33 +129,23 @@ void AddDiskBox::slotUser1()
         return;
     }
     
-    if(mpCatalog->getNodeForPath(std::string("/")+lDiskName)!=NULL)
-    {
+    if (mpCatalog->getNodeForPath(std::string("/")+lDiskName)!=NULL) {
         KMessageBox::error(this, "Disk already exists");
         return;
     }
     
-    if(!mpAddRootCheckBox->isChecked())
-    {
+    if (!mpAddRootCheckBox->isChecked()) {
         lPath=lPath+"/";
     }
 
-    if(mpDontComputeShaSumCheckBox->isChecked())
-    {
+    if (mpDontComputeShaSumCheckBox->isChecked()) {
         dontComputeSha=true;
     }
-    else
-    {
+    else {
         dontComputeSha=false;
     }
 
-    // :tmp:    
-    //{
-    //    std::ostringstream lStrOut;
-    //    lStrOut<<"Adding "<<lPath.c_str()<<" with name "<<lDiskName.c_str();
-    //    KMessageBox::error(this, lStrOut.str().c_str());
-    //}
-    
+    msgDebug("Adding path to disk. Path=", lPath);
 
     ScanThread *lpScanThread=new ScanThread(mpCatalog, lPath, lDiskName, dontComputeSha);
     lpScanThread->start();
@@ -169,12 +162,9 @@ void AddDiskBox::slotUser1()
     lpProgress->setButtonText("Stop");
     int i=0;
     
-    while(!lpScanThread->isFinished())
-    {
-        if(lpProgress->wasCancelled())
-        {
-            if(KMessageBox::questionYesNo(this, "Are you sure?")==KMessageBox::Yes)
-            {
+    while (!lpScanThread->isFinished()) {
+        if (lpProgress->wasCancelled()) {
+            if (KMessageBox::questionYesNo(this, "Are you sure?")==KMessageBox::Yes) {
                 lpScanThread->stopThread();   
 
                 // :tmp:                
@@ -190,8 +180,7 @@ void AddDiskBox::slotUser1()
                 // end :tmp:
 
             }
-            else
-            {
+            else {
                 delete lpProgress;
                 lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
@@ -207,8 +196,7 @@ void AddDiskBox::slotUser1()
         usleep(250000);
     }
 
-    if(lpScanThread->returnValue()!=0)
-    {        
+    if (lpScanThread->returnValue()!=0) {        
         std::string err;
         err="Error adding path to catalog. ";
         err+=lpScanThread->getErrorMessage();
@@ -219,26 +207,20 @@ void AddDiskBox::slotUser1()
         return;
     }
 
-    if(lDiskDescription!="")
-    {
-        try
-        {
+    if (lDiskDescription!="") {
+        try {
             mpCatalog->setDescriptionOf(std::string("/")+lDiskName, lDiskDescription);
         }
-        catch(std::string e)
-        {
+        catch(std::string e) {
             KMessageBox::error(this, "Cannot add description to disk");
         }
     }
     
-    if(lDiskCDate!="")
-    {
-        try
-        {
+    if (lDiskCDate!="") {
+        try {
             mpCatalog->setCDate(lDiskName, lDiskCDate);
         }
-        catch(std::string e)
-        {
+        catch(std::string e) {
             KMessageBox::error(this, "Cannot set cdate for disk");
         }
     }
@@ -255,8 +237,7 @@ void AddDiskBox::browseButtonClicked()
 {
     QString lDir = KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
     // :todo: - replace '/'
-    if (lDir!="")
-    {
+    if (lDir!="") {
         mpPathLabel->setText(lDir);
     }
 } 

@@ -73,12 +73,13 @@ void SearchBox::layout()
     // page2
     //mpPage2=addPage(QString("Advanced search"));
 
+    connectButtons();
 }
 
 
 void SearchBox::connectButtons()
 {
-//    connect(this, SIGNAL(user1Clicked()), this, SLOT(search())); // search    
+    connect(this, SIGNAL(user1Clicked()), this, SLOT(search())); // search    
 }
 
 
@@ -88,26 +89,21 @@ void SearchBox::search()
     std::vector<std::string> lSearchResultsPaths;
     std::vector<xmlNodePtr> lSearchResultsNodes;
 
-//    KMessageBox::error(this, "Bau");
-    
     //QProgressDialog *lpProgress=new QProgressDialog("Searching ...", "Stop", 0, this, "Dialog", true);
     //lpProgress->setTotalSteps(0);
     //lpProgress->setMinimumDuration(1);
 
-    if(mpCatalog==NULL)
-    {
+    if (mpCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
         return;
     }
         
-    if(mpSimpleSearchEdit->text()=="")
-    {
+    if (mpSimpleSearchEdit->text()=="") {
         KMessageBox::error(this, "Search string is empty!");
         return;
     }
     
     mpSimpleSearchResults->clear();
-        
     mpProgress=new KProgressDialog(this, "Searching ...", "Searching");
     mpProgress->progressBar()->setRange(0, 0);
     mpProgress->setMinimumDuration(1);
@@ -116,16 +112,15 @@ void SearchBox::search()
     mpProgress->setButtonText("Stop");
     
     lSearchStruct.mpProgressDialog=mpProgress;
-    lSearchStruct.mpString=QString2string(mpSimpleSearchEdit->text());
+    lSearchStruct.mString=mpSimpleSearchEdit->text().toStdString();
     lSearchStruct.mpSearchResultsNodes=&lSearchResultsNodes;
     lSearchStruct.mpSearchResultsPaths=&lSearchResultsPaths;
-    
-    mpCatalog->parseFileTree(findInTree, (void*)&lSearchStruct);        
-        
+    msgDebug("Starting to search. Search string is: ", lSearchStruct.mString);
+    mpCatalog->parseFileTree(findInTree, (void*)&lSearchStruct);
     mpProgress->progressBar()->setValue(0);
     delete mpProgress;
+    msgDebug("Search finished");
     //lpProgress->setProgress(0);
-    
     for(int i=0;i<lSearchResultsPaths.size();i++)
         mpSimpleSearchResults->insertItem(lSearchResultsPaths[i].c_str());
 } 
@@ -143,20 +138,22 @@ int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lp
     static int lPosInProgressBar=1;
     std::string lName;
     SearchStruct *lpSearchStruct=(SearchStruct*)lpParam;
-    const char *lpPtr=lpSearchStruct->mpString;
+    const char *lpPtr=lpSearchStruct->mString.c_str();
     KProgressDialog *lpProgressDialog=lpSearchStruct->mpProgressDialog;
 
-    if(lpProgressDialog->wasCancelled())
+    if (lpProgressDialog->wasCancelled()) {
+        msgInfo("findInTree(): cancelled.");
         return -1;
+    }
         
     lName=lrXfc.getNameOfElement(lpNode); // :fixme: utf8 -> string ?
-    if(xmlStrcasestr((const xmlChar*)lName.c_str(),
-       (xmlChar*)lpPtr)!=NULL)
-    {
-#if defined(_debug_)
-        cout<<":debug: found matching node: path="<<lPath.c_str();
-        cout<<", name="<<lName.c_str()<<endl;
-#endif 
+    if (xmlStrcasestr((const xmlChar*)lName.c_str(), (xmlChar*)lpPtr)!=NULL) {
+        msgDebug("found matching node: path=", lPath);
+        msgDebug("  name=", lName);
+
+        // :tmp:
+        msgDebug("  str=", lpPtr);
+        
         lpSearchStruct->mpSearchResultsPaths->push_back(lPath+"/"+lName);
         lpSearchStruct->mpSearchResultsNodes->push_back(lpNode);
     }

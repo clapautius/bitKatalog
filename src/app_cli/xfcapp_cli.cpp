@@ -100,7 +100,6 @@ static int processCommand(std::vector<std::string> &rCmd)
     displayMessage("    depth= 1 - root dir and one level below");
     displayMessage("    depth=-1 - infinite");
     displayMessage("  save [ <pathToFile> ]");
-    displayMessage("  import <type> <pathToFile>; type=fdbbat");
     displayMessage("  new [<catalogName>]");
     displayMessage("  force_new [<catalogName>]");
     displayMessage("  show [ disks ]");
@@ -237,30 +236,6 @@ static int processCommand(std::vector<std::string> &rCmd)
     catch(std::string e)
     {
       displayError("Error saving file: ", e);
-    }
-  }
-  else if(rCmd[0]=="import")
-  {
-    if(rCmd.size()!=3) // invalid no of params
-    {
-      displayError("Usage: import <type> <pathToFile>");
-    }
-    else
-    {
-      if(rCmd[1]=="fdbbat")
-      {
-        try
-        {
-          importFdbbat(rCmd[2], gXfc);
-        }
-        catch (std::string e)
-        {
-          displayError("Error importing ", rCmd[2]);
-          displayError(e);
-        }
-      }
-      else
-        displayError("Unknonw type ", rCmd[1]);
     }
   }
   else if(rCmd[0]=="new")

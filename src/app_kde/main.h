@@ -50,7 +50,7 @@ extern int gCatalogState;
 
 void msgWarn(std::string, std::string="", std::string="");
 void msgInfo(std::string, std::string="", std::string="");
-void msgDebug(std::string);
+void msgDebug(std::string, std::string="", std::string="");
 
 //extern std::string gLastDir;
 

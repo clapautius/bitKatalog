@@ -137,7 +137,10 @@ EntityIterator::EntityIterator(Xfc &lrXfc, std::string lPath)
     : mrXfc(lrXfc)
 {
     mpParentNode=mrXfc.getNodeForPath(lPath);
-    mpCurrentNode=mpParentNode->xmlChildrenNode;
+    if (mpParentNode)
+        mpCurrentNode=mpParentNode->xmlChildrenNode;
+    else
+        mpCurrentNode=NULL;
 }    
 
 
@@ -163,8 +166,13 @@ bool EntityIterator::hasMoreChildren()
 
 XfcEntity EntityIterator::getNextChild()
 {
-  XfcEntity lEnt(mpCurrentNode, &mrXfc);
-  mpCurrentNode=mpCurrentNode->next;
-  hasMoreChildren(); // go to next child
-  return lEnt;
+    if (mpCurrentNode) {
+        XfcEntity lEnt(mpCurrentNode, &mrXfc);
+        mpCurrentNode=mpCurrentNode->next;
+        hasMoreChildren(); // go to next child
+        return lEnt;
+    }
+    else
+        // :fixme: - make o proper exception hierarchy
+        throw std::string("No more children in EntityIterator");
 }

@@ -76,18 +76,16 @@ xmlDocPtr Xfc::getXmlDocPtr() throw (std::string)
 } 
 
 
-void Xfc::parseFileTree(ParserFuncType callBackFunc,
-                        void *lpParam)
-        throw (std::string)
+void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
+    throw (std::string)
 {
     // :fixme: - check state
     xmlNodePtr lpChild;
     lpChild=xmlDocGetRootElement(mpDoc);
-    if(lpChild==NULL) // empty document
+    if (lpChild==NULL) // empty document
         return;
     lpChild=mpDoc->xmlChildrenNode;
-    while(lpChild!=NULL)
-    {
+    while (lpChild!=NULL) {
         parseRec(0, "/", lpChild, callBackFunc, lpParam);        
         lpChild=lpChild->next;
     }
@@ -129,8 +127,8 @@ std::vector<std::string> Xfc::getDiskList()
 
 
 void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
-              ParserFuncType callBackFunc, void *lpParam)
-        throw (std::string)
+                   ParserFuncType callBackFunc, void *lpParam)
+    throw (std::string)
 {
     int lRet;
     xmlNodePtr lpChild;
@@ -142,18 +140,16 @@ void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
     cout<<", path="<<lPath.c_str()<<", lpNode->name="<<lpNode->name<<endl;
 #endif
 
-    while(lpChild!=NULL)
-    {
+    while (lpChild!=NULL) {
 #if defined(XFC_DEBUG)
         std::cout<<":debug: child addr="<<lpChild<<endl;
 #endif 
-        if(isFileOrDir(lpChild) || isDisk(lpChild))
-        {
+        if (isFileOrDir(lpChild) || isDisk(lpChild)) {
             lRet=callBackFunc(lDepth, lPath, *this, lpChild, lpParam);
-            if(lRet==-1) // abandon
+            if (lRet==-1) // abandon
                 return;
             lS=getNameOfElement(lpChild);
-            if(lPath=="/")
+            if (lPath=="/")
                 parseRec(lDepth+1, "/"+lS, lpChild, callBackFunc, lpParam);
             else
                 parseRec(lDepth+1, lPath+"/"+lS, lpChild, callBackFunc, lpParam);
@@ -214,27 +210,23 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
         const throw (std::string)
 {
     // :fixme: - check state
-    
 #if defined(XFC_DEBUG)
     cout<<":debug: in getNameOfElement()"<<endl;
 #endif 
     std::string lS;
-    if(lpNode==NULL)
+    if (lpNode==NULL)
         lS=""; 
-    else
-    {
+    else {
         xmlNodePtr lNameNode;
         lNameNode=lpNode->xmlChildrenNode; 
 #if defined(XFC_DEBUG)
         cout<<"    :debug: searching name of element"<<endl;
 #endif 
-        while(lNameNode!=NULL)
-        {
+        while (lNameNode!=NULL) {
 #if defined(XFC_DEBUG)
             cout<<"    :debug: found "<<(const char*)lNameNode->name<<endl;
 #endif 
-            if(!strcmp((const char*)lNameNode->name, "name"))
-            {
+            if (!strcmp((const char*)lNameNode->name, "name")) {
                 xmlChar *lpStr;
                 lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
                 lS=(char*)lpStr;
@@ -329,46 +321,35 @@ std::string Xfc::getDescriptionOfNode(xmlNodePtr lpNode, xmlNodePtr* lpDescripti
 
 
 void
-Xfc::addPathToXmlTree(std::string lPath,
-                      int lMaxDepth, 
-                      std::string lDiskId,
-                      std::string lDiskCategory,
-                      std::string lDiskDescription,
-                      std::string lDiskLabel,
-                      bool dontComputeSha)
+Xfc::addPathToXmlTree(std::string lPath, int lMaxDepth, std::string lDiskId,
+                      std::string lDiskCategory, std::string lDiskDescription,
+                      std::string lDiskLabel, bool dontComputeSha)
   throw (std::string)
 {
     bool lSkipFirstLevel=false;
-    if(!isDirectory(lPath) && !isRegularFile(lPath))
-    {
+    if (!isDirectory(lPath) && !isRegularFile(lPath)) {
         throw std::string("Xfc::addDirToXmlTree(): Invalid path"); 
     }
     xmlNodePtr lpDisk;
     lpDisk=getNodeForPath(std::string("/")+lDiskId);
-    if(isDirectory(lPath) && lPath[lPath.size()-1]=='/') // add only the subdirs
-    {
+    if (isDirectory(lPath) && lPath[lPath.size()-1]=='/') { // add only the subdirs
         lSkipFirstLevel=true;
     }
     if(lpDisk==NULL)
         lpDisk=addNewDiskToXmlTree(lDiskId);
-    if(!isSymlink(lPath)) // :fixme: - do something with the symlinks
-    {
-        if(isRegularFile(lPath))
-        {
+    if(!isSymlink(lPath)) { // :fixme: - do something with the symlinks
+        if (isRegularFile(lPath)) {
             addFileToXmlTree(lpDisk, lPath, dontComputeSha);
         }
-        else if(isDirectory(lPath))
-        {
+        else if (isDirectory(lPath)) {
             recAddPathToXmlTree(lpDisk, lPath, 0, lMaxDepth, lSkipFirstLevel, dontComputeSha);
         }
     }
 } 
 
 
-xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName,
-                              std::string lDiskCategory,
-                              std::string lDiskDescription,
-                              std::string lDiskLabel,
+xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName, std::string lDiskCategory,
+                              std::string lDiskDescription, std::string lDiskLabel,
                               std::string lDiskCDate)
         throw (std::string)
         // :fixme: - check for duplicates
@@ -399,8 +380,7 @@ xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName,
 
 
 xmlNodePtr
-Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath,
-                      bool dontComputeSha)
+Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath, bool dontComputeSha)
   throw (std::string)
 {
     std::string lName=getLastComponentOfPath(lPath);
@@ -420,24 +400,19 @@ Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath,
     // name
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"name", (xmlChar*)lName.c_str()); // :bug:
     
-    // type
-    xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"type", (xmlChar*)"file");
-    
     // size
     FileSizeT lSize=getFileSize(lPath);
     std::ostringstream lStrOut;
     lStrOut<<lSize;
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"size", (xmlChar*)lStrOut.str().c_str()); // :bug:
 
-    if(!dontComputeSha)
-    {
+    if (!dontComputeSha) {
       // sha1
       std::string lSum=sha1sum(lPath, std::string("sha1sum"));
       lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"sum", 
                                    (xmlChar*)lSum.c_str());
       xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)"sha1");
     }
-    
     return lpNewNode;
 }    
 
@@ -453,7 +428,7 @@ xmlNodePtr Xfc::addDirToXmlTree(xmlNodePtr lpNode, std::string lPath)
     std::cout<<__FUNCTION__<<": adding dir "<<lPath<<" to xml tree"<<std::endl;
 #endif
 
-    lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"file", NULL); // :bug:
+    lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"dir", NULL); // :bug:
     if(lpNewNode==NULL)
         throw std::string("Xfc::addDirToXmlTree(): xmlNewTextChild() error");
     
@@ -462,26 +437,13 @@ xmlNodePtr Xfc::addDirToXmlTree(xmlNodePtr lpNode, std::string lPath)
     // name
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"name", (xmlChar*)lName.c_str()); // :bug:
     
-    // type
-    xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"type", (xmlChar*)"dir");
-       
     return lpNewNode;
 }    
 
 
-//std::string Xfc::getXmlDocPath() const throw (std::string)
-//{
-//    if(mState==1 || mState==2)
-//        return mFilePath;
-//    else
-//        throw std::string("Doc not initialized");
-//}
-
-
-void Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath, 
-                              int lLevel, int lMaxDepth,
-                              bool lSkipFirstLevel,
-                              bool dontComputeSha)
+void
+Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath, int lLevel,
+                         int lMaxDepth, bool lSkipFirstLevel, bool dontComputeSha)
   throw (std::string)
 {
     // lPath is a dir - check is done  before calling this functions
@@ -493,7 +455,7 @@ void Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath,
     std::cout<<__FUNCTION__<<": path="<<lPath<<", level="<<lLevel<<std::endl;
 #endif
     
-    if(!(lLevel==0 && lSkipFirstLevel))
+    if (!(lLevel==0 && lSkipFirstLevel))
         lpNode=addDirToXmlTree(lpCurrentNode, lPath);
     else
         lpNode=lpCurrentNode;
@@ -503,17 +465,13 @@ void Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath,
 
     std::vector<std::string> list=getFileListInDir(lPath);
     std::string tempStr;
-   
-    for(unsigned int i=0;i<list.size();i++)
-    {
+    for (unsigned int i=0;i<list.size();i++) {
         tempStr=lPath+"/"+list[i];
-        try
-        {
+        try {
             isDir=isDirectory(tempStr);
             isSym=isSymlink(tempStr);
         }
-        catch (std::string e)
-        {
+        catch (std::string e) {
             // :fixme: - do something?
             throw;
         }
@@ -548,9 +506,9 @@ xmlNodePtr Xfc::getNodeForPath(std::string lPath) const
 {
     xmlNodePtr lpRoot;
     lpRoot=xmlDocGetRootElement(mpDoc);
-    if(lpRoot==NULL)
+    if (lpRoot==NULL)
         return NULL;
-    if(lPath=="/")
+    if (lPath=="/")
         return lpRoot;
     return getNodeForPathRec(lPath, lpRoot);
 }
@@ -562,38 +520,30 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
     xmlNodePtr lNameNode;
     std::string lFileName;
     bool lLastComponent=false;
-    
-    if(lPath=="")
+    if (lPath=="")
         return NULL;
     unsigned int lSeparatorPos=lPath.find_first_of('/');
-    if(lSeparatorPos==std::string::npos) // last component
-    {
+    if (lSeparatorPos==std::string::npos) { // last component
         lFileName=lPath;
         lLastComponent=true;
     }
-    else if(lSeparatorPos==0)
-    {
+    else if (lSeparatorPos==0) {
         return getNodeForPathRec(lPath.substr(1), lpNode);
     }
-    else
-    {
+    else {
         lFileName=lPath.substr(0, lSeparatorPos);
     }
-
     lNameNode=lpNode->xmlChildrenNode;     
-    while(lNameNode!=NULL)
-    {
+    while (lNameNode!=NULL) {
         std::string lS;
-        if(!strcmp((const char*)lNameNode->name, "file") || 
-            !strcmp((const char*)lNameNode->name, "disk"))
-        {
-            if(!strcmp((const char*)lNameNode->name, "disk"))
+        if (!strcmp((const char*)lNameNode->name, "file") || 
+            !strcmp((const char*)lNameNode->name, "disk")) {
+            if (!strcmp((const char*)lNameNode->name, "disk"))
                 lS=getNameOfDisk(lNameNode);
             else
                 lS=getNameOfFile(lNameNode);
-            if(lS==lFileName)
-            {
-                if(lLastComponent)
+            if (lS==lFileName) {
+                if (lLastComponent)
                     return lNameNode;
                 else
                     return getNodeForPathRec(lPath.substr(lSeparatorPos+1), lNameNode);
@@ -607,8 +557,7 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 
 std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
 {
-    if(!isFileOrDir(lpNode) && !isDisk(lpNode))
-    {
+    if (!isFileOrDir(lpNode) && !isDisk(lpNode)) {
         throw std::string("Xfc::getDetailsForNode(): Node is not a file node");
     }
     std::vector<std::string> lVect;
@@ -616,18 +565,15 @@ std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::s
     xmlNodePtr lpDescription;
     // description
     lpDescription=getDescriptionNode(lpNode);
-    if(lpDescription==NULL)
-    {
+    if (lpDescription==NULL) {
         lVect.push_back(std::string(""));
     }
-    else
-    {
+    else {
         lVect.push_back(getValueOfNode(lpDescription));
     }
 
     // cdate
-    if(isDisk(lpNode))
-    {
+    if (isDisk(lpNode)) {
         std::string lS=getCDate(lpNode, NULL);
         lVect.push_back(lS);
     }
@@ -645,10 +591,8 @@ std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::s
     // labels
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
-        if(isLabel(lpChildNode))
-        {
+    while (lpChildNode!=NULL) {
+        if (isLabel(lpChildNode)) {
             lVect.push_back(getValueOfNode(lpChildNode));
         }
         lpChildNode=lpChildNode->next;
@@ -659,8 +603,7 @@ std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::s
 
 void Xfc::createNew(std::string lCatalogName) throw ()
 {
-    if(mState==1 || mState==2) // there is a catalog - must be deleted
-    {
+    if (mState==1 || mState==2) { // there is a catalog - must be deleted
         xmlFreeDoc(mpDoc);
     }  
     mpDoc=xmlNewDoc((const xmlChar*)"1.0"); // :fixme:
@@ -668,8 +611,7 @@ void Xfc::createNew(std::string lCatalogName) throw ()
     xmlNodePtr lpNewNode;
     lpNewNode=xmlNewNode(NULL, (const xmlChar*)"catalog"); // :fixme:
     xmlDocSetRootElement(mpDoc, lpNewNode);
-    if(lCatalogName!="")
-    {
+    if (lCatalogName!="") {
         lpNewNode=xmlDocGetRootElement(mpDoc);
         xmlNewProp(lpNewNode, (xmlChar*)"name", (xmlChar*)lCatalogName.c_str());
     }
@@ -689,9 +631,8 @@ xmlNodePtr Xfc::getFirstFileNode(xmlNodePtr lpNode)
 {
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
-        if(isFileOrDir(lpChildNode))
+    while (lpChildNode!=NULL) {
+        if (isFileOrDir(lpChildNode))
             return lpChildNode;
         lpChildNode=lpChildNode->next;
     }
@@ -704,9 +645,8 @@ xmlNodePtr Xfc::getFirstLabelNode(xmlNodePtr lpNode)
 {
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
-        if(isLabel(lpChildNode))
+    while (lpChildNode!=NULL) {
+        if (isLabel(lpChildNode))
             return lpChildNode;
         lpChildNode=lpChildNode->next;
     }
@@ -719,8 +659,7 @@ xmlNodePtr Xfc::getDescriptionNode(xmlNodePtr lpNode)
 {
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
+    while (lpChildNode!=NULL) {
         if(isDescription(lpChildNode))
             return lpChildNode;
         lpChildNode=lpChildNode->next;
@@ -734,9 +673,8 @@ xmlNodePtr Xfc::getNameNode(xmlNodePtr lpNode)
 {
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
-        if(!strcmp((const char*)lpChildNode->name, "name"))
+    while (lpChildNode!=NULL) {
+        if (!strcmp((const char*)lpChildNode->name, "name"))
             return lpChildNode;
         lpChildNode=lpChildNode->next;
     }
@@ -750,7 +688,7 @@ void Xfc::addLabelTo(std::string lPath,
 {
     xmlNodePtr lpNode;
     lpNode=getNodeForPath(lPath);
-    if(lpNode==NULL)
+    if (lpNode==NULL)
         throw std::string("No such node");
     xmlNodePtr lpNewNode;
     xmlNodePtr lpInsertBeforeNode;
@@ -758,8 +696,7 @@ void Xfc::addLabelTo(std::string lPath,
     // :fixme: - check ret value
 
     lpInsertBeforeNode=getFirstFileNode(lpNode);
-    if(lpInsertBeforeNode!=NULL)
-    {
+    if (lpInsertBeforeNode!=NULL) {
         if(xmlAddPrevSibling(lpInsertBeforeNode, lpNewNode)==NULL)
             throw std::string("Xfc::addLabelToNode() error - error in xmlAddPrevSibling()");
     }            
@@ -779,12 +716,9 @@ void Xfc::removeLabelFrom(std::string lPath,
     // labels
     xmlNodePtr lpChildNode;
     lpChildNode=lpNode->xmlChildrenNode; 
-    while(lpChildNode!=NULL)
-    {
-        if(isLabel(lpChildNode))
-        {
-            if(getValueOfNode(lpChildNode)==lLabel)
-            {
+    while (lpChildNode!=NULL) {
+        if (isLabel(lpChildNode)) {
+            if (getValueOfNode(lpChildNode)==lLabel) {
                 lFound=true;
                 xmlUnlinkNode(lpChildNode);
                 xmlFreeNode(lpChildNode);
@@ -807,12 +741,10 @@ void Xfc::setDescriptionOf(std::string lPath,
     if(lpNode==NULL)
         throw std::string("No such node");
     lS=getDescriptionOfNode(lpNode, &lpDescriptionNode);
-    if(lS!="") // there is already a description
-    {
+    if (lS!="") { // there is already a description
         xmlNodeSetContent(lpDescriptionNode, (xmlChar*)lDescription.c_str()); // :bug: - encoding
     }
-    else
-    {
+    else {
         xmlNodePtr lpNewNode;
         xmlNodePtr lpInsertBeforeNode;
         lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"description", 
@@ -820,16 +752,13 @@ void Xfc::setDescriptionOf(std::string lPath,
         // :fixme: - check ret value
 
         lpInsertBeforeNode=getFirstLabelNode(lpNode);
-        if(lpInsertBeforeNode!=NULL)
-        {
+        if (lpInsertBeforeNode!=NULL) {
             if(xmlAddPrevSibling(lpInsertBeforeNode, lpNewNode)==NULL)
                 throw std::string("Xfc::addLabelToNode() error - error in xmlAddPrevSibling()");
         }        
-        else
-        {
+        else {
             lpInsertBeforeNode=getFirstFileNode(lpNode);
-            if(lpInsertBeforeNode!=NULL)
-            {
+            if (lpInsertBeforeNode!=NULL) {
                 if(xmlAddPrevSibling(lpInsertBeforeNode, lpNewNode)==NULL)
                     throw std::string("Xfc::addLabelToNode() error - error in xmlAddPrevSibling()");
             }        
@@ -843,7 +772,7 @@ bool Xfc::isLabel(xmlNodePtr lpNode) const throw()
 #if defined(XFC_DEBUG)
     cout<<":debug: checking if it is a label: "<<lpNode->name<<endl;
 #endif 
-    if(!strcmp((const char*)lpNode->name, "label"))
+    if (!strcmp((const char*)lpNode->name, "label"))
         return true;
     else
         return false;
@@ -855,7 +784,7 @@ bool Xfc::isDescription(xmlNodePtr lpNode) const throw()
 #if defined(XFC_DEBUG)
     cout<<":debug: checking if it is a description: "<<lpNode->name<<endl;
 #endif 
-    if(!strcmp((const char*)lpNode->name, "description"))
+    if (!strcmp((const char*)lpNode->name, "description"))
         return true;
     else
         return false;
@@ -900,12 +829,10 @@ void Xfc::setCDate(std::string lDiskName, std::string lCDate)
         throw std::string("Date must be in iso format: YYYY-MM-DD");
         
     lS=getCDate(std::string("/")+lDiskName, &lpCDateNode);
-    if(lS!="") // there is already a description
-    {
+    if (lS!="") { // there is already a description
         xmlNodeSetContent(lpCDateNode, (xmlChar*)lCDate.c_str()); // :bug: - encoding
     }
-    else
-    {
+    else {
         xmlNodePtr lpNewNode;
         xmlNodePtr lpInsertAfterNode;
         lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"cdate", 
@@ -913,13 +840,11 @@ void Xfc::setCDate(std::string lDiskName, std::string lCDate)
         // :fixme: - check ret value
 
         lpInsertAfterNode=getNameNode(lpNode);
-        if(lpInsertAfterNode!=NULL)
-        {
+        if (lpInsertAfterNode!=NULL) {
             if(xmlAddNextSibling(lpInsertAfterNode, lpNewNode)==NULL)
                 throw std::string("Xfc::setCDate() error - error in xmlAddNextSibling()");
         }        
-        else
-        {
+        else {
             throw std::string("Xfc::setCDate() error - no 'name' node");
         }        
     }
@@ -945,20 +870,16 @@ throw (std::string)
 {
     std::string lS="";
     // :fixme: - check if is a disk
-    if(lpNode!=NULL)
-    {
+    if (lpNode!=NULL) {
         xmlNodePtr lNameNode;
         lNameNode=lpNode->xmlChildrenNode; 
-        while(lNameNode!=NULL)
-        {
-            if(!strcmp((const char*)lNameNode->name, "cdate"))
-            {
+        while (lNameNode!=NULL) {
+            if (!strcmp((const char*)lNameNode->name, "cdate")) {
                 xmlChar *lpStr;
                 lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
                 lS=(char*)lpStr;
                 xmlFree(lpStr);
-                if(lpCDateNode!=NULL)
-                {
+                if (lpCDateNode!=NULL) {
                     *lpCDateNode=lNameNode;
                 }
                 break;
@@ -993,10 +914,8 @@ throw (std::string)
     std::string lS="";
     xmlNodePtr lNameNode=lpNode;
     lNameNode=lpNode->xmlChildrenNode; 
-    while(lNameNode!=NULL)
-    {
-        if(!strcmp((const char*)lNameNode->name, "sum"))
-        {
+    while (lNameNode!=NULL) {
+        if (!strcmp((const char*)lNameNode->name, "sum")) {
             xmlChar *lpStr;
             lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
             lS=(char*)lpStr;

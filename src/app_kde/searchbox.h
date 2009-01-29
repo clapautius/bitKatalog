@@ -46,7 +46,6 @@ public:
 
 protected slots:  
     
-//    virtual void close();
     void search();
     
     virtual void slotUser1();
@@ -79,7 +78,7 @@ class SearchStruct
 {
 public:
     KProgressDialog *mpProgressDialog;
-    const char *mpString;
+    std::string mString;
     std::vector<std::string> *mpSearchResultsPaths;
     std::vector<xmlNodePtr> *mpSearchResultsNodes;
 };

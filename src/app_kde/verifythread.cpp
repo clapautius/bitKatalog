@@ -21,11 +21,8 @@
 #include "fs.h"
 #include "misc.h"
 #include "xfcEntity.h"
+#include "main.h"
 
-#if defined(MTP_DEBUG)
-#include <iostream>
-using namespace std;
-#endif
 
 VerifyThread::VerifyThread(Xfc* lpCatalog, 
                            std::string lCatalogPath, std::string lDiskPath,
@@ -53,8 +50,8 @@ VerifyThread::~VerifyThread()
 
 void VerifyThread::run()
 {
-  mResultCode=verifyDirectory( mCatalogPath, mDiskPath, mrOnlyInCatalog,
-                               mrOnlyOnDisk, mrDifferent, mrWrongSum);
+  mResultCode=verifyDirectory(mCatalogPath, mDiskPath, mrOnlyInCatalog,
+                              mrOnlyOnDisk, mrDifferent, mrWrongSum);
 }
 
 
@@ -74,19 +71,15 @@ void VerifyThread::stopThread()
   3 - there were differences, sha was present
   4 - there were differences, there were files without sha
 */
+/**
+ * @param[in] lDifferent - different size or smth. else (no sha)
+ * @param[in] lWrongSum - different sha
+ **/
 int
-VerifyThread::verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
-
-                              std::vector<std::string> &lOnlyInCatalog,
-
-                              std::vector<std::string> &lOnlyOnDisk,
-
-                              // different size or smth. else (no sha)
-                              std::vector<std::string> &lDifferent,
-
-                              // different sha
-                              std::vector<std::string> &lWrongSum
-  )
+VerifyThread::verifyDirectory(
+    std::string lCatalogPath, std::string lDiskPath, std::vector<std::string> &lOnlyInCatalog,
+    std::vector<std::string> &lOnlyOnDisk, std::vector<std::string> &lDifferent,
+    std::vector<std::string> &lWrongSum)
 {
     std::vector<std::string> lNamesInCatalog;
     std::vector<std::string> lShaSumsInCatalog;
@@ -101,14 +94,15 @@ VerifyThread::verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
     mMutex.lock();
     lStopNow=mStopNow;
     mMutex.unlock();
+
+    msgDebug("Verifying dir: ", lDiskPath);
+    msgDebug("Catalog path is: ", lCatalogPath);
     
     if(lStopNow)
         return 0;
         
     EntityIterator lEntIterator(*mpCatalog, lCatalogPath);
-    
-    while(lEntIterator.hasMoreChildren())
-    {
+    while (lEntIterator.hasMoreChildren()) {
         lEnt=lEntIterator.getNextChild();
         lNamesInCatalog.push_back(lEnt.getName());
         lEntityDetails=lEnt.getDetails();
@@ -144,93 +138,63 @@ VerifyThread::verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
                 i--;
             }
         }
-        
-    #if defined(MTP_DEBUG)
-    cout<<"verifyDirectory(): catalog path: "<<lCatalogPath.c_str()<<", disk path: "<<lDiskPath.c_str()<<endl;
-    #endif
 
-    for(unsigned int i=0;i<lNamesInCatalog.size();i++)
-    {
-        #if defined(MTP_DEBUG)
-        cout<<"verifyDirectory(): checking "<<lNamesInCatalog[i].c_str()<<" (catalog name)"<<endl;
-        #endif
+    for (unsigned int i=0;i<lNamesInCatalog.size();i++) {
+        msgDebug("verifyDirectory(): checking (catalog name): ", lNamesInCatalog[i]);
         bool lFound=false;
         bool lEqual=true;
         bool wrongSumFlag=false;
-        for(unsigned int j=0;j<lNamesOnDisk.size();j++)
-        {
+        for (unsigned int j=0;j<lNamesOnDisk.size();j++) {
             mMutex.lock();
             lStopNow=mStopNow;
             mMutex.unlock();
-            if(lStopNow)
+            if (lStopNow)
                 return 0;
-            if(lNamesInCatalog[i]==lNamesOnDisk[j])
-            {
-                #if defined(MTP_DEBUG)
-                cout<<"verifyDirectory(): comparing with "<<lNamesOnDisk[j].c_str()<<" (disk name)"<<endl;
-                #endif
+            if (lNamesInCatalog[i]==lNamesOnDisk[j]) {
+                msgDebug("verifyDirectory(): comparing with (disk name): ", lNamesOnDisk[j]);
                 lFound=true;
                 wrongSumFlag=false;
-                
                 std::string lDiskPathCurrent=lDiskPath+"/"+lNamesOnDisk[j];
-                if(!isDirectory(lDiskPathCurrent))
-                {
-                  // first check size
-                  // :todo:
-
-                  if(lEqual)
-                  {
-                    if(lShaSumsInCatalog[i]!="")
-                    {
-                      try
-                      {
-                        setCurrentFile( lDiskPathCurrent);
-                        lSum=sha1sum(lDiskPathCurrent, std::string("sha1sum"));
-                      }
-                      catch(std::string e)
-                      {
-                        lSum="invalid file"; // :fixme: - do something
-                      }
+                if (!isDirectory(lDiskPathCurrent)) {
+                    // first check size
+                    // :todo:
+                    
+                    if (lEqual) {
+                        if (lShaSumsInCatalog[i]!="") {
+                            try {
+                                setCurrentFile( lDiskPathCurrent);
+                                lSum=sha1sum(lDiskPathCurrent, std::string("sha1sum"));
+                            }
+                            catch(std::string e) {
+                                lSum="invalid file"; // :fixme: - do something
+                            }
+                        }
+                        else {
+                            shaWasMissing=true;
+                            lSum="";
+                        }
+                        if (lSum!=lShaSumsInCatalog[i]) {
+                            lEqual=false;
+                            wrongSumFlag=true;
+                        }
                     }
-                    else
-                    {
-                      shaWasMissing=true;
-                      lSum="";
-                    }
-                    if(lSum!=lShaSumsInCatalog[i])
-                    {
-                      lEqual=false;
-                      wrongSumFlag=true;
-                    }
-                  }
-
                 } // end file compare
-                    
                 lNamesOnDisk.erase(lNamesOnDisk.begin()+j);
-                    
                 break;
             }
         }
-        if(!lFound) // only in catalog
-        {
+        if (!lFound) { // only in catalog
             lOnlyInCatalog.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
         }
-        if(lFound && !lEqual) // wrong sum, size, etc.
-        {
-          if(wrongSumFlag)
-          {
-            lWrongSum.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
-#if defined(MTP_DEBUG)
-            cout<<"wrong sum for: "<<lNamesInCatalog[i]<<": "
-                <<lSum<<"/"<<lShaSumsInCatalog[i]<<endl;
-#endif
+        if (lFound && !lEqual) { // wrong sum, size, etc.
+          if (wrongSumFlag) {
+              lWrongSum.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
+              msgInfo("wrong sum for: ", lNamesInCatalog[i]);
+              msgInfo(lSum, " / ", lShaSumsInCatalog[i]);
           }
-          else
-          {
-            lDifferent.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
-#if defined(MTP_DEBUG)
-            cout<<"wrong something for: "<<lNamesInCatalog[i]<<endl;
-#endif
+          else {
+              lDifferent.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
+              msgInfo("wrong something for: ", lNamesInCatalog[i]);
           }
         }
     }
@@ -239,7 +203,7 @@ VerifyThread::verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
     for(unsigned int i=0;i<lNamesOnDisk.size();i++) 
       lOnlyOnDisk.push_back(lDiskPath+"/"+lNamesOnDisk[i]);
         
-    #if defined(MTP_DEBUG)
+#if defined(MTP_DEBUG)
     cout<<"verifyDirectory(): final report"<<endl;
     cout<<"  only in catalog"<<endl;
     for(int i=0;i<lOnlyInCatalog.size();i++)
@@ -260,15 +224,13 @@ VerifyThread::verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
     s2=lOnlyOnDisk.size();
     s3=lWrongSum.size();
     s4=lDifferent.size();
-    if(0 == s1 && 0 == s2 && 0 == s3 && 0 == s4)
-    {
+    if (0 == s1 && 0 == s2 && 0 == s3 && 0 == s4) {
       if(shaWasMissing)
         return 2;
       else
         return 1;
     }
-    else
-    {
+    else {
       if(shaWasMissing)
         return 4;
       else

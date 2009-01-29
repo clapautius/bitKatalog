@@ -20,6 +20,8 @@
 #ifndef XFC_H
 #define XFC_H
 
+#include <string.h>
+
 #include <string>
 #include <vector>
 
@@ -224,7 +226,5 @@ private:
     xmlDocPtr mpDoc;
 
 };
-
-
 
 #endif

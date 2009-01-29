@@ -80,7 +80,7 @@ void DetailsBox::addLabel()
     lS=KInputDialog::getText("New label", "Label: ", "", &lRetButton);
     //mpCatalog->addLabelTo(mCompletePath, lS);
     if(lRetButton)
-        mpLabels->insertItem(QString2string(lS));    
+        mpLabels->insertItem(lS);
 }
 
 
@@ -267,7 +267,7 @@ void DetailsBox::accept()
     if (lQString!=lDetails[0].c_str()) {
         //KMessageBox::error(this, "Description modified:");
         mpListItem->setText(DESCRIPTION_COLUMN, lQString);
-        mpCatalog->setDescriptionOf(mCompletePath, QString2string(lQString));
+        mpCatalog->setDescriptionOf(mCompletePath, lQString.toStdString());
         mCatalogWasModified=true;
     }
     
@@ -287,7 +287,7 @@ void DetailsBox::accept()
         
         // add new labels
         for(unsigned int i=0;i<mpLabels->count();i++)
-            mpCatalog->addLabelTo(mCompletePath, QString2string(mpLabels->text(i)));
+            mpCatalog->addLabelTo(mCompletePath, mpLabels->text(i).toStdString());
         
         mCatalogWasModified=true;
     }
@@ -297,7 +297,7 @@ void DetailsBox::accept()
       lQString=mpCdateEdit->text();
       if (lQString!=lDetails[1].c_str()) {
         try {
-            mpCatalog->setCDate(mCompletePath, QString2string(lQString));
+            mpCatalog->setCDate(mCompletePath, lQString.toStdString());
             mCatalogWasModified=true;
         }
         catch(...) {

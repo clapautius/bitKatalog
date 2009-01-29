@@ -40,13 +40,11 @@ ScanThread::~ScanThread()
 
 void ScanThread::run()
 {
-    try
-    {
+    try {
         mpCatalog->addPathToXmlTree(mPath, -1, mDiskName,
             "","","", mDontComputeSha);
     }
-    catch(std::string e)
-    {
+    catch(std::string e) {
         mReturnValue=1;
         mErrorMessage=e;
         return;
