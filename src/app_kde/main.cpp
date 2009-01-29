@@ -47,11 +47,9 @@ bitKatalog *gpMainWindow=NULL;
 
 int gCatalogState=0;
 
-//std::string gLastDir;
+static const char version[] = XFCAPP_VERSION;
 
-// :ver:
-static const char version[] = "0.4.0-alpha";
-
+// :release:
 static int gVerboseLevel=3;
 
 

@@ -153,7 +153,7 @@ void AddDiskBox::slotUser1()
     lpProgress->progressBar()->setValue(0);
     lpProgress->progressBar()->reset();
     lpProgress->progressBar()->setTextVisible(false);
-    lpProgress->setMinimumDuration(2000);
+    lpProgress->setMinimumDuration(1000);
     lpProgress->setAutoClose(true);
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
@@ -171,7 +171,7 @@ void AddDiskBox::slotUser1()
                 lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
                 lpProgress->progressBar()->setTextVisible(false);
-                lpProgress->setMinimumDuration(2000);
+                lpProgress->setMinimumDuration(1000);
                 lpProgress->setAutoClose(true);
                 lpProgress->setAllowCancel(true);
                 lpProgress->setButtonText("Stop");
@@ -183,7 +183,7 @@ void AddDiskBox::slotUser1()
                 lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
                 lpProgress->progressBar()->setTextVisible(false);
-                lpProgress->setMinimumDuration(2000);
+                lpProgress->setMinimumDuration(1000);
                 lpProgress->setAutoClose(true);
                 lpProgress->setAllowCancel(true);
                 lpProgress->setButtonText("Stop");

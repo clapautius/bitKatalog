@@ -30,8 +30,6 @@
 #include "bitkatalogview.h"
 #include "xfcapp.h"
 
-//#define CONFIG_FILE "/home/me/.axfck.rc"
-
 
 extern KSharedConfigPtr gpConfig;
 

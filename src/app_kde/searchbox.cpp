@@ -106,7 +106,7 @@ void SearchBox::search()
     mpSimpleSearchResults->clear();
     mpProgress=new KProgressDialog(this, "Searching ...", "Searching");
     mpProgress->progressBar()->setRange(0, 0);
-    mpProgress->setMinimumDuration(2000);
+    mpProgress->setMinimumDuration(1000);
     mpProgress->setAutoClose(true);
     mpProgress->setAllowCancel(true);
     mpProgress->setButtonText("Stop");

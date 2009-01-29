@@ -270,7 +270,7 @@ bitKatalogView::verifyDisk() throw()
     lpProgress->progressBar()->setRange(0, 0);
     //lpProgress->progressBar()->setPercentageVisible(false);
     lpProgress->progressBar()->setTextVisible(false);
-    lpProgress->setMinimumDuration(2000);
+    lpProgress->setMinimumDuration(1000);
     lpProgress->setAutoClose(true);
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
@@ -297,7 +297,7 @@ bitKatalogView::verifyDisk() throw()
             KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
             lpProgress2->progressBar()->setRange(0, 0);
             lpProgress2->progressBar()->setTextVisible(false);
-            lpProgress2->setMinimumDuration(2000);
+            lpProgress2->setMinimumDuration(1000);
             lpProgress2->setAutoClose(false);
             lpProgress2->setAllowCancel(false);
             lpProgress2->setLabelText(QString("Waiting for verify thread to finish"));

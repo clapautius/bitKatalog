@@ -1,2 +1,1 @@
-- autodetect libxml
-- autodetect libreadline
+- disable buttons in dlg. boxes after the start of a lengthy command;
