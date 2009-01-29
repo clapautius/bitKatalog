@@ -137,35 +137,28 @@ void bitKatalogView::openUrl(QString url)
 
 void bitKatalogView::openUrl(const KUrl& url)
 {
-   //m_html->openURL(url);
-        
+    //m_html->openURL(url);
     mCatalog=new Xfc;
-    
-    try
-    {
+    try {
         QString lPath=url.path();
-        if(lPath!=QString::null)
-            mCatalog->loadFile(url.path().toAscii().constData());
-        else
-        {
+        if (lPath!=QString::null)
+            mCatalog->loadFile(url.path().toStdString());
+        else {
             delete mCatalog;
             mCatalog=NULL;
             KMessageBox::error(this, QString("Invalid path: ")+lPath);
             return;
         }
     }
-    catch(std::string e)
-    {
+    catch (std::string e) {
         delete mCatalog;
         mCatalog=NULL;
         KMessageBox::error(this, QString("Error loading ")+url.path());
         return;
     }
-    
     XmlEntityItem::mspCatalog=mCatalog;
     populateTree(mCatalog);
-    if(mCatalog)
-    {
+    if (mCatalog) {
         gCatalogState=2;
         gpMainWindow->setCatalogPath(url.path());
         gpMainWindow->updateTitle(false);
@@ -219,13 +212,13 @@ void bitKatalogView::contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint 
         return;
     }
     
-    lCompletePath=mpCurrentItem->text(0).toAscii().constData();
+    lCompletePath=mpCurrentItem->text(0).toStdString();
     lpItem=mpCurrentItem;
     while(1) {
         lpItem=lpItem->parent();
         if(lpItem==NULL)
             break;
-        lS=lpItem->text(0).toAscii().constData();
+        lS=lpItem->text(0).toStdString();
         lS+="/";
         lS+=lCompletePath;
         lCompletePath=lS;
@@ -249,7 +242,7 @@ void bitKatalogView::contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint 
         pContextMenu->exec(p);
     }
     catch(std::string e) {
-        msgWarn("Hmmm, cannot display info about this item! completePath=", lCompletePath);
+        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", lCompletePath);
         KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
     }
 }
@@ -318,11 +311,9 @@ bitKatalogView::verifyDisk() throw()
         return;
     
     VerifyThread *lpVerifyThread=new VerifyThread(
-        mCatalog, lCompletePath, std::string(lDir.toAscii().constData()), lOnlyInCatalog,
+        mCatalog, lCompletePath, lDir.toStdString(), lOnlyInCatalog,
         lOnlyOnDisk, lWrongSum, lDifferent);
         
-    //verifyDirectory(lCompletePath, std::string((const char*)lDir), lOnlyInCatalog, lOnlyOnDisk, lWrongSum);
-    
     KProgressDialog *lpProgress=new KProgressDialog(this, "Verifying ...", "");
     //lpProgress->progressBar()->setTotalSteps(0);
     lpProgress->progressBar()->setRange(0, 0);
@@ -337,15 +328,12 @@ bitKatalogView::verifyDisk() throw()
 
     lpVerifyThread->start();
     
-    while(!lpVerifyThread->isFinished())
-    {
+    while (!lpVerifyThread->isFinished()) {
         std::string lLabel;
         std::string lOldLabel;
         lLabel=lpVerifyThread->getCurrentFile();
-        if(lLabel!=lOldLabel)
-        {
-            if(lLabel.size()>60)
-            {
+        if (lLabel!=lOldLabel) {
+            if (lLabel.size()>60) {
                 std::string lS=lLabel.substr(0, 28);
                 lS+="....";
                 lS+=lLabel.substr(lLabel.size()-28);
@@ -354,10 +342,8 @@ bitKatalogView::verifyDisk() throw()
             lpProgress->setLabelText(QString(lLabel.c_str()));
             lOldLabel=lLabel;
         }
-        if(lpProgress->wasCancelled())
-        {
+        if (lpProgress->wasCancelled()) {
             lpVerifyThread->stopThread();
-            
             KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
             lpProgress2->progressBar()->setRange(0, 0);
             lpProgress2->progressBar()->setTextVisible(false);
@@ -366,8 +352,7 @@ bitKatalogView::verifyDisk() throw()
             lpProgress2->setAllowCancel(false);
             lpProgress2->setLabelText(QString("Waiting for verify thread to finish"));
             int i=0;
-            while(!lpVerifyThread->isFinished())
-            {
+            while (!lpVerifyThread->isFinished()) {
                 lpProgress2->progressBar()->setValue(i+=10);
                 gpApplication->processEvents();
                 usleep(100000);
@@ -384,36 +369,31 @@ bitKatalogView::verifyDisk() throw()
 
     delete lpProgress;
     delete lpVerifyThread;
-    
     OutputWindow lResults;
     bool lAtLeastOneError=false;
 
     if(2 == rc || 4 == rc)
         KMessageBox::information(this, "Some (or all) files did not have sha1 sum.");
 
-    if(lOnlyInCatalog.size()>0)
-    {
+    if (lOnlyInCatalog.size()>0) {
         lAtLeastOneError=true;
         lResults.addText( std::string("Only in catalog (missing from disk):"));
         for(ui=0; ui<lOnlyInCatalog.size(); ui++)
             lResults.addText( lOnlyInCatalog[ui]);
     }
-    if(lOnlyOnDisk.size()>0)
-    {
+    if (lOnlyOnDisk.size()>0) {
         lAtLeastOneError=true;
         lResults.addText( std::string("Only on disk (missing from catalog):"));
         for(ui=0; ui<lOnlyOnDisk.size(); ui++)
             lResults.addText( lOnlyOnDisk[ui]);
     }
-    if(lDifferent.size()>0)
-    {
+    if (lDifferent.size()>0) {
         lAtLeastOneError=true;
         lResults.addText( std::string("Different"));
         for(ui=0; ui<lDifferent.size(); ui++)
             lResults.addText( lDifferent[ui]);
     }
-    if(lWrongSum.size()>0)
-    {
+    if (lWrongSum.size()>0) {
         lAtLeastOneError=true;
         lResults.addText( std::string("Wrong sum"));
         for(ui=0; ui<lWrongSum.size(); ui++)
@@ -448,7 +428,7 @@ bitKatalogView::renameDisk() throw()
     bool lRetButton;
     newName=KInputDialog::getText("Rename disk", "Name: ", oldName, &lRetButton);
     if (lRetButton && newName != oldName) {
-        lEnt.setName(newName.toAscii().constData());
+        lEnt.setName(newName.toStdString());
         lpItem->setText(NAME_COLUMN, newName);
         gCatalogState=1;
         gpMainWindow->updateTitle(true);

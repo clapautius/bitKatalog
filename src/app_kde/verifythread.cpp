@@ -24,17 +24,15 @@
 #include "main.h"
 
 
-VerifyThread::VerifyThread(Xfc* lpCatalog, 
-                           std::string lCatalogPath, std::string lDiskPath,
-                           std::vector<std::string> &lOnlyInCatalog,
-                           std::vector<std::string> &lOnlyOnDisk,
-                           std::vector<std::string> &lDifferent, 
-                           std::vector<std::string> &lWrongSum)        
-  : QThread(),
-    mrOnlyInCatalog(lOnlyInCatalog),
-    mrOnlyOnDisk(lOnlyOnDisk),
-    mrWrongSum(lWrongSum),
-    mrDifferent(lDifferent)
+VerifyThread::VerifyThread(
+    Xfc* lpCatalog, std::string lCatalogPath, std::string lDiskPath,
+    std::vector<std::string> &lOnlyInCatalog, std::vector<std::string> &lOnlyOnDisk,
+    std::vector<std::string> &lDifferent, std::vector<std::string> &lWrongSum)        
+    : QThread(),
+      mrOnlyInCatalog(lOnlyInCatalog),
+      mrOnlyOnDisk(lOnlyOnDisk),
+      mrWrongSum(lWrongSum),
+      mrDifferent(lDifferent)
 {
     mpCatalog=lpCatalog;
     mCatalogPath=lCatalogPath;
@@ -62,18 +60,17 @@ void VerifyThread::stopThread()
     mMutex.unlock();
 }
 
-/*
-  @return :
-  < 0 - failure
-  0 - stopped by user
-  1 - no differences, sha was present
-  2 - no differences, there were files without sha
-  3 - there were differences, sha was present
-  4 - there were differences, there were files without sha
-*/
+
 /**
  * @param[in] lDifferent - different size or smth. else (no sha)
  * @param[in] lWrongSum - different sha
+ *
+ * @retval < 0 - failure
+ * @retval 0 - stopped by user
+ * @retval 1 - no differences, sha was present
+ * @retval 2 - no differences, there were files without sha
+ * @retval 3 - there were differences, sha was present
+ * @retval 4 - there were differences, there were files without sha
  **/
 int
 VerifyThread::verifyDirectory(

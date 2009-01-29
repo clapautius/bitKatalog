@@ -247,12 +247,12 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
 void
 Xfc::setNameOfElement(xmlNodePtr pNode, std::string newName) throw (std::string)
 {
-  xmlNodePtr pNameNode;  
-  if( (pNameNode=getNameNode(pNode)) == NULL)
-    throw std::string("No name"); // :fixme: - should add it
-  xmlNodeSetContent(pNameNode, (xmlChar*)newName.c_str());
-  // :fixme: use xmlEncodeSpecialChars().
-  // :fixme: the old content ?
+    xmlNodePtr pNameNode;  
+    if ( (pNameNode=getNameNode(pNode)) == NULL)
+        throw std::string("No name"); // :fixme: - should add it
+    xmlNodeSetContent(pNameNode, (xmlChar*)newName.c_str());
+    // :fixme: use xmlEncodeSpecialChars().
+    // :fixme: the old content ?
 }
          
 
@@ -292,23 +292,18 @@ std::string Xfc::getDescriptionOfNode(xmlNodePtr lpNode, xmlNodePtr* lpDescripti
         const throw (std::string)
 // ret "" if no description
 {
-// :fixme: - check state
-    
+    // :fixme: - check state
     std::string lS="";
-    if(lpNode!=NULL)
-    {
+    if (lpNode!=NULL) {
         xmlNodePtr lNameNode;
         lNameNode=lpNode->xmlChildrenNode; 
-        while(lNameNode!=NULL)
-        {
-            if(!strcmp((const char*)lNameNode->name, "description"))
-            {
+        while (lNameNode!=NULL) {
+            if (!strcmp((const char*)lNameNode->name, "description")) {
                 xmlChar *lpStr;
                 lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
                 lS=(char*)lpStr;
                 xmlFree(lpStr);
-                if(lpDescriptionNode!=NULL)
-                {
+                if (lpDescriptionNode!=NULL) {
                     *lpDescriptionNode=lNameNode;
                 }
                 break;
@@ -536,9 +531,9 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
     lNameNode=lpNode->xmlChildrenNode;     
     while (lNameNode!=NULL) {
         std::string lS;
-        if (!strcmp((const char*)lNameNode->name, "file") || 
-            !strcmp((const char*)lNameNode->name, "disk")) {
-            if (!strcmp((const char*)lNameNode->name, "disk"))
+        ElementType type=getTypeOfElement(lNameNode);
+        if (eDisk==type || eDir==type || eFile==type) {
+            if (eDisk==type)
                 lS=getNameOfDisk(lNameNode);
             else
                 lS=getNameOfFile(lNameNode);
@@ -558,7 +553,7 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
 {
     if (!isFileOrDir(lpNode) && !isDisk(lpNode)) {
-        throw std::string("Xfc::getDetailsForNode(): Node is not a file node");
+        throw std::string("Xfc::getDetailsForNode(): Node is not a file/dir node");
     }
     std::vector<std::string> lVect;
     

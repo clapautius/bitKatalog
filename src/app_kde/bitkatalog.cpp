@@ -324,11 +324,11 @@ void bitKatalog::fileSaveAs()
         else {
             try {
                 // :fixme: - check global config
-                createNumberedBackup(file_url.path().toAscii().constData());
-                lpCatalog->saveToFile(file_url.path().toAscii().constData(), 1);
+                createNumberedBackup(file_url.path().toStdString());
+                lpCatalog->saveToFile(file_url.path().toStdString(), 1);
                 //m_view->resetModifiedFlag();
                 gCatalogState=2;
-                mCatalogPath=file_url.path().toAscii().constData();
+                mCatalogPath=file_url.path().toStdString();
                 gpMainWindow->updateTitle(false);
                 KMessageBox::information(this, "File succesfully saved"); // :tmp:
             }
@@ -506,7 +506,7 @@ bitKatalog::setCatalogPath(std::string lCatalogPath)
 void
 bitKatalog::setCatalogPath(QString catalogPath)
 {
-    mCatalogPath=catalogPath.toAscii().constData();
+    mCatalogPath=catalogPath.toStdString();
 }
 
 

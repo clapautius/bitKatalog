@@ -22,14 +22,13 @@
 
 #include <string>
 
-#include <qlayout.h>
-#include <kdialog.h>
+#include <kpagedialog.h>
 #include <ktextedit.h>
 
 /**
 	@author Tudor Pristavu <tudor.pristavu@gmail.com>
 */
-class OutputWindow : public KDialog
+class OutputWindow : public KPageDialog
 {
 public:
     OutputWindow();
@@ -44,8 +43,6 @@ private:
     
     KTextEdit *mpEditArea;
     
-    QVBoxLayout *mpLayout1; // on heap
-
 };
 
 #endif

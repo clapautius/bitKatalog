@@ -17,11 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <kvbox.h>
+
 #include "outputwindow.h"
 
 
 OutputWindow::OutputWindow()
-    : KDialog()
+    : KPageDialog()
 {
     setCaption("Result");
     setButtons(KDialog::Close);
@@ -38,13 +40,12 @@ OutputWindow::~OutputWindow()
 void OutputWindow::layout()
 {
     resize(800,450);
-    QWidget *pWidget=new QWidget(this);
-    mpLayout1 = new QVBoxLayout(pWidget);
+    KVBox *pBox1=new KVBox();
+    KPageWidgetItem *pPage1=addPage(pBox1, QString("Results"));
+    pPage1->setHeader(QString("Results"));
 
-    mpEditArea=new KTextEdit(pWidget);
+    mpEditArea=new KTextEdit(pBox1);
     mpEditArea->setReadOnly(true);
-    //mpSimpleSearchBox=new QHBox(mpPage1);
-    mpLayout1->addWidget(mpEditArea);    
 }
 
 
