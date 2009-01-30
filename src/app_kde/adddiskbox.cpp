@@ -33,13 +33,14 @@
 #include "adddiskbox.h"
 #include "main.h"
 #include "scanthread.h"
+#include "misc.h"
 
 
 AddDiskBox::AddDiskBox(Xfc *lpCatalog)
     : KPageDialog()
 {
     setButtons(KDialog::Close | KDialog::User1);
-    setCaption("Scan");
+    setCaption("Add disk");
     mpCatalog=lpCatalog;
     mCatalogWasModified=false;
     setModal(true);
@@ -97,9 +98,15 @@ void AddDiskBox::layout()
     mpAddRootCheckBox=new QCheckBox("Add also the root dir. to catalog", mpGroupBox);
     mpAddRootCheckBox->setChecked(false);
 
-    mpDontComputeShaSumCheckBox=
-        new QCheckBox("Don't compute sha1 sum for this disk", mpGroupBox);
-    mpDontComputeShaSumCheckBox->setChecked(false);
+    KHBox *pShaBox=new KHBox(mpGroupBox);
+    
+    mpComputeSha1SumCheckBox=
+        new QCheckBox("Compute sha1 sums for this disk", pShaBox);
+    mpComputeSha1SumCheckBox->setChecked(false);
+
+    mpComputeSha256SumCheckBox=
+        new QCheckBox("Compute sha256 sums for this disk", pShaBox);
+    mpComputeSha256SumCheckBox->setChecked(true);
 
     // connect button
     connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1())); // add
@@ -112,7 +119,7 @@ void AddDiskBox::slotUser1()
     std::string lDiskName;
     std::string lDiskDescription;
     std::string lDiskCDate;
-    bool dontComputeSha;
+    bool computeSha1=false, computeSha256=false;
     
     lPath=mpPathLabel->text().toStdString();
     lDiskName=mpDiskNameEdit->text().toStdString();
@@ -134,21 +141,15 @@ void AddDiskBox::slotUser1()
     if (!mpAddRootCheckBox->isChecked()) {
         lPath=lPath+"/";
     }
-    if (mpDontComputeShaSumCheckBox->isChecked()) {
-        dontComputeSha=true;
+    if (mpComputeSha1SumCheckBox->isChecked()) {
+        computeSha1=true;
     }
-    else {
-        dontComputeSha=false;
+    if (mpComputeSha256SumCheckBox->isChecked()) {
+        computeSha256=true;
     }
-
     msgDebug("Adding path to disk. Path=", lPath);
 
-    ScanThread *lpScanThread=new ScanThread(mpCatalog, lPath, lDiskName, dontComputeSha);
-    lpScanThread->start();
-    mCatalogWasModified=true;
-
     KProgressDialog *lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
-    //lpProgress->progressBar()->setTotalSteps(0);
     lpProgress->progressBar()->setRange(0, 0);
     lpProgress->progressBar()->setValue(0);
     lpProgress->progressBar()->reset();
@@ -158,6 +159,15 @@ void AddDiskBox::slotUser1()
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
     int i=0;
+
+    disableButtons();
+    ScanThread::ScanThreadParams params;
+    params.computeSha1=computeSha1;
+    params.computeSha256=computeSha256;
+    ScanThread *lpScanThread=new ScanThread(mpCatalog, lPath, lDiskName, params);
+    msgDebug("Start time: ", getTimeSinceMidnight());
+    lpScanThread->start();
+    mCatalogWasModified=true;
 
     msgDebug("Add thread started, progress bar created, waiting for scan thread ...");
     while (!lpScanThread->isFinished()) {
@@ -193,7 +203,7 @@ void AddDiskBox::slotUser1()
         gpApplication->processEvents();
         usleep(250000);
     }
-    msgDebug("Scan thread finished");
+    msgDebug("Finish time: ", getTimeSinceMidnight());
 
     if (lpScanThread->returnValue()!=0) {        
         std::string err;
@@ -263,4 +273,15 @@ void AddDiskBox::someDayCDateButtonClicked()
 bool AddDiskBox::catalogWasModified()
 {
     return mCatalogWasModified;
+}
+
+
+void
+AddDiskBox::disableButtons()
+{
+    enableButton(KDialog::Close, false);
+    enableButton(KDialog::User1, false);
+    mpTodayCDateButton->setEnabled(false);
+    mpBrowseButton->setEnabled(false);
+    mpSomeDayCDateButton->setEnabled(false);
 }

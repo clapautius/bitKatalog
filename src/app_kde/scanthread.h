@@ -41,11 +41,20 @@ private:
     
     bool mStopNow;
 
-    bool mDontComputeSha;
+    bool mComputeSha1;
+
+    bool mComputeSha256;
     
 public:
-    ScanThread(Xfc*, std::string, std::string,
-        bool dontComputeSha=false);
+
+    struct ScanThreadParams {
+        ScanThreadParams();
+        
+        bool computeSha1;
+        bool computeSha256;
+    };
+            
+    ScanThread(Xfc*, std::string, std::string, ScanThreadParams&);
 
     ~ScanThread();
     

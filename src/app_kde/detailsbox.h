@@ -103,7 +103,7 @@ private:
     
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
 
-    QLabel *mpShaLabel;
+    QLabel *mpSha1Label, *mpSha256Label, *mpSizeLabel;
     
     KLineEdit *mpDescriptionEdit; // on heap
     KLineEdit *mpCdateEdit;

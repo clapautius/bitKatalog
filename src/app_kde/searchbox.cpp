@@ -28,13 +28,13 @@
 #include <kvbox.h>
 
 #include "main.h"
+#include "misc.h"
 
 // :todo: - make a tabbed version
 
 SearchBox::SearchBox(Xfc *lpCatalog)
     : KPageDialog()
 {
-    //setFaceType(KPageDialog::Tabbed);
     setCaption(QString("Search"));
     setButtons(KDialog::Close | KDialog::User1);
     setModal(true);
@@ -97,13 +97,12 @@ void SearchBox::search()
         KMessageBox::error(this, "No catalog!");
         return;
     }
-        
     if (mpSimpleSearchEdit->text()=="") {
         KMessageBox::error(this, "Search string is empty!");
         return;
     }
     
-    mpSimpleSearchResults->clear();
+    // prepare progress dialog
     mpProgress=new KProgressDialog(this, "Searching ...", "Searching");
     mpProgress->progressBar()->setRange(0, 0);
     mpProgress->setMinimumDuration(1000);
@@ -115,14 +114,22 @@ void SearchBox::search()
     lSearchStruct.mString=mpSimpleSearchEdit->text().toStdString();
     lSearchStruct.mpSearchResultsNodes=&lSearchResultsNodes;
     lSearchStruct.mpSearchResultsPaths=&lSearchResultsPaths;
+    mpSimpleSearchResults->clear();
+    disableButtons();
     msgDebug("Starting to search. Search string is: ", lSearchStruct.mString);
+    msgDebug("Start time: ", getTimeSinceMidnight());
     mpCatalog->parseFileTree(findInTree, (void*)&lSearchStruct);
+    msgDebug("Finish time: ", getTimeSinceMidnight());
     mpProgress->progressBar()->setValue(0);
     delete mpProgress;
     msgDebug("Search finished");
-    //lpProgress->setProgress(0);
-    for(int i=0;i<lSearchResultsPaths.size();i++)
-        mpSimpleSearchResults->insertItem(lSearchResultsPaths[i].c_str());
+
+    if (lSearchResultsPaths.size()>0)
+        for (unsigned int i=0;i<lSearchResultsPaths.size();i++)
+            mpSimpleSearchResults->insertItem(lSearchResultsPaths[i].c_str());
+    else
+        mpSimpleSearchResults->insertItem("Nothing found!");
+    enableButtons();
 } 
 
 
@@ -132,8 +139,28 @@ void SearchBox::slotUser1()
 } 
 
 
-int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
-            void *lpParam)
+void
+SearchBox::enableButtons()
+{
+    enableButton(KDialog::Close, true);
+    enableButton(KDialog::User1, true);
+    mpSimpleSearchEdit->setEnabled(true);
+}
+
+
+void
+SearchBox::disableButtons()
+{
+    enableButton(KDialog::Close, false);
+    enableButton(KDialog::User1, false);
+    mpSimpleSearchEdit->setEnabled(false);
+}
+
+
+/// helper function
+int
+findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& lrXfc,
+           xmlNodePtr lpNode, void *lpParam)
 {
     static int lPosInProgressBar=1;
     std::string lName;

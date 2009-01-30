@@ -19,8 +19,8 @@
  ***************************************************************************/
 #include "plugins.h"
 
-#include <fstream>
-#include <sstream>
+#include <string>
+#include <vector>
 
 #if defined(XFC_DEBUG)
 #include <iostream>
@@ -29,3 +29,45 @@ using namespace std;
 
 #include "fs.h"
 #include "xfc.h"
+#include "misc.h"
+
+int
+sha1Callback(std::string fileName,
+             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs)
+{
+    int rc=-1;
+    std::string lSum=sha1sum(fileName, std::string("sha1sum"));
+    if (!lSum.empty()) {
+        xmlParam="sum";
+        xmlValue=lSum;
+        xmlAttrs.clear();
+        xmlAttrs.push_back("type");
+        xmlAttrs.push_back("sha1");
+        rc=0;
+    }
+    else {
+        rc=-1;
+    }
+    return rc;
+}
+
+
+int
+sha256Callback(std::string fileName,
+             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs)
+{
+    int rc=-1;
+    std::string lSum=sha1sum(fileName, std::string("sha256sum"));
+    if (!lSum.empty()) {
+        xmlParam="sum";
+        xmlValue=lSum;
+        xmlAttrs.clear();
+        xmlAttrs.push_back("type");
+        xmlAttrs.push_back("sha256");
+        rc=0;
+    }
+    else {
+        rc=-1;
+    }
+    return rc;
+}

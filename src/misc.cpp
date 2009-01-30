@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include <string>
 
@@ -130,3 +132,18 @@ std::string sha1sum(std::string lPath, std::string lShaProgramPath)
     return lSum.substr(0, lSum.find_first_of(' '));
 }
 
+
+std::string
+getTimeSinceMidnight()
+{
+    struct timeval currentTime;
+    unsigned long int days;
+    unsigned long int todaySecs;
+    char buffer[15];
+    gettimeofday(&currentTime, NULL);
+    days=currentTime.tv_sec/(3600*24);
+    todaySecs=currentTime.tv_sec-days*3600*24;
+    snprintf(buffer, 14, "%02lu:%02lu:%02lu.%03lu", todaySecs/3600,
+             (todaySecs%3600)/60, todaySecs%60, currentTime.tv_usec/1000);
+    return std::string(buffer);
+}

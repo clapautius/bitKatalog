@@ -74,24 +74,33 @@ bitKatalogView::~bitKatalogView()
 {
 }
 
-void bitKatalogView::print(QPainter *p, int height, int width)
+
+// QPainter *p, int height, int width)
+void
+bitKatalogView::print(QPainter *, int, int)
 {
     // do the actual printing, here
     // p->drawText(etc..)
 }
 
-QString bitKatalogView::currentUrl()
+
+QString
+bitKatalogView::currentUrl()
 {
     return m_html->url().url();
 }
 
-void bitKatalogView::openUrl(QString url)
+
+void
+bitKatalogView::openUrl(QString url)
 {
     openUrl(KUrl(url));
 
 }
 
-void bitKatalogView::openUrl(const KUrl& url)
+
+void
+bitKatalogView::openUrl(const KUrl& url)
 {
     //m_html->openURL(url);
     mCatalog=new Xfc;
@@ -148,7 +157,7 @@ bitKatalogView::setupListView()
 }    
 
 
-void bitKatalogView::contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint &p)
+void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &p)
 {
     std::string lCompletePath;
     std::string lS;
@@ -442,13 +451,14 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     lpIterator=new EntityIterator(*mpCatalog, lS);
     XfcEntity lEnt;
     XmlEntityItem *lpItem;
-    std::vector<std::string> lVect;
+    map<string, string> details;
     
     while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
-        lVect=lEnt.getDetails();
-        if (lVect.size()>0)
-            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), lVect[0].c_str());
+        details=lEnt.getDetails();
+        if (!details["description"].empty())
+            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(),
+                                     details["description"].c_str());
         else
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str());
         //lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str());

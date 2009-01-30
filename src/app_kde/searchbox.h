@@ -44,6 +44,11 @@ public:
 
     ~SearchBox();
 
+protected:
+
+    void disableButtons();
+    void enableButtons();
+    
 protected slots:  
     
     void search();

@@ -17,19 +17,22 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "scanthread.h"
-
 #include <kmessagebox.h>
 
+#include "scanthread.h"
+#include "plugins.h"
+
+
 ScanThread::ScanThread(Xfc *lpCatalog, std::string lPath, std::string lDiskName,
-            bool dontComputeSha)
+            ScanThreadParams &scanParams)
  : QThread()
 {
     mpCatalog=lpCatalog;
     mPath=lPath;
     mDiskName=lDiskName;
     mStopNow=false;
-    mDontComputeSha=dontComputeSha;
+    mComputeSha1=scanParams.computeSha1;
+    mComputeSha256=scanParams.computeSha256;
 }
 
 
@@ -38,11 +41,19 @@ ScanThread::~ScanThread()
 }
 
 
-void ScanThread::run()
+void
+ScanThread::run()
 {
+    std::vector<Xfc::XmlParamForFileCallback> cbList1;
+    std::vector<Xfc::XmlParamForFileChunkCallback> cbList2;
+
+    if (mComputeSha1)
+        cbList1.push_back(sha1Callback);
+    if (mComputeSha256)
+        cbList1.push_back(sha256Callback);
+        
     try {
-        mpCatalog->addPathToXmlTree(mPath, -1, mDiskName,
-            "","","", mDontComputeSha);
+        mpCatalog->addPathToXmlTree(mPath, -1, cbList1, cbList2, mDiskName, "","","");
     }
     catch(std::string e) {
         mReturnValue=1;
@@ -53,19 +64,28 @@ void ScanThread::run()
 }
 
 
-int ScanThread::returnValue()
+int
+ScanThread::returnValue()
 {
     return mReturnValue;
 } 
 
 
-void ScanThread::stopThread()
+void
+ScanThread::stopThread()
 {
     mStopNow=true;
 } 
 
 
-std::string ScanThread::getErrorMessage() const
+std::string
+ScanThread::getErrorMessage() const
 {
     return mErrorMessage;
+}
+
+
+ScanThread::ScanThreadParams::ScanThreadParams()
+{
+    computeSha1=computeSha256=false;
 }

@@ -9,7 +9,7 @@ if (NOT READLINE_LIB_DIR)
 endif (NOT READLINE_LIB_DIR)
 
 
-add_executable(bitKatalog_cli xfcapp_cli.cpp interface.cpp ../fs.cpp ../misc.cpp ../plugins.cpp)
+add_executable(bitKatalog_cli xfcapp_cli.cpp interface.cpp ../fs.cpp ../misc.cpp ../plugins.cpp ../sha1.c ../sha2.c)
 include_directories(${bitKatalog_SOURCE_DIR}/src ${bitKatalog_SOURCE_DIR}/src/xfclib ${READLINE_INCLUDE} ${LIBXML_INCLUDE})
 link_directories(${bitKatalog_BINARY_DIR}/xfclib ${READLINE_LIB_DIR} ${LIBXML_LIB_DIR})
 target_link_libraries(bitKatalog_cli xfc xml2 readline)

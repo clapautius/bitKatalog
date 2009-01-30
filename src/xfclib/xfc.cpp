@@ -28,8 +28,9 @@
 
 #if defined(XFC_DEBUG)
 #include <iostream>
-using namespace std;
 #endif
+
+using namespace std;
 
 
 Xfc::Xfc()
@@ -316,9 +317,10 @@ std::string Xfc::getDescriptionOfNode(xmlNodePtr lpNode, xmlNodePtr* lpDescripti
 
 
 void
-Xfc::addPathToXmlTree(std::string lPath, int lMaxDepth, std::string lDiskId,
-                      std::string lDiskCategory, std::string lDiskDescription,
-                      std::string lDiskLabel, bool dontComputeSha)
+Xfc::addPathToXmlTree(
+    std::string lPath, int lMaxDepth, std::vector<XmlParamForFileCallback> cbList1,
+    std::vector<XmlParamForFileChunkCallback> cbList2, std::string lDiskId,
+    std::string lDiskCategory, std::string lDiskDescription, std::string lDiskLabel)
   throw (std::string)
 {
     bool lSkipFirstLevel=false;
@@ -334,10 +336,10 @@ Xfc::addPathToXmlTree(std::string lPath, int lMaxDepth, std::string lDiskId,
         lpDisk=addNewDiskToXmlTree(lDiskId);
     if(!isSymlink(lPath)) { // :fixme: - do something with the symlinks
         if (isRegularFile(lPath)) {
-            addFileToXmlTree(lpDisk, lPath, dontComputeSha);
+            addFileToXmlTree(lpDisk, lPath, cbList1, cbList2);
         }
         else if (isDirectory(lPath)) {
-            recAddPathToXmlTree(lpDisk, lPath, 0, lMaxDepth, lSkipFirstLevel, dontComputeSha);
+            recAddPathToXmlTree(lpDisk, lPath, 0, lMaxDepth, cbList1, cbList2, lSkipFirstLevel);
         }
     }
 } 
@@ -375,7 +377,9 @@ xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName, std::string lDiskCate
 
 
 xmlNodePtr
-Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath, bool dontComputeSha)
+Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath,
+                      std::vector<XmlParamForFileCallback> cbList1,
+                      std::vector<XmlParamForFileChunkCallback> cbList2)
   throw (std::string)
 {
     std::string lName=getLastComponentOfPath(lPath);
@@ -401,6 +405,25 @@ Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath, bool dontComputeSha)
     lStrOut<<lSize;
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"size", (xmlChar*)lStrOut.str().c_str()); // :bug:
 
+    for (unsigned int i=0; i<cbList1.size(); i++) {
+        std::string xmlParam, xmlValue;
+        std::vector<std::string> xmlAttrs;
+        if (cbList1[i](lPath, xmlParam, xmlValue, xmlAttrs)>=0) {
+            lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)xmlParam.c_str(), 
+                                         (xmlChar*)xmlValue.c_str());
+            for (unsigned int j=0; j<xmlAttrs.size(); j+=2) {
+                xmlNewProp(lpNewNewNode, (xmlChar*)xmlAttrs[j].c_str(), (xmlChar*)xmlAttrs[j+1].c_str());
+            }
+        }
+        else
+            throw std::string("Error at callback :fixme:");
+    }
+
+    if (cbList2.size()>0) {
+        throw std::string("Not ready yet :fixme:");
+    }
+
+    /*
     if (!dontComputeSha) {
       // sha1
       std::string lSum=sha1sum(lPath, std::string("sha1sum"));
@@ -408,6 +431,8 @@ Xfc::addFileToXmlTree(xmlNodePtr lpNode, std::string lPath, bool dontComputeSha)
                                    (xmlChar*)lSum.c_str());
       xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)"sha1");
     }
+    */
+
     return lpNewNode;
 }    
 
@@ -437,9 +462,11 @@ xmlNodePtr Xfc::addDirToXmlTree(xmlNodePtr lpNode, std::string lPath)
 
 
 void
-Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath, int lLevel,
-                         int lMaxDepth, bool lSkipFirstLevel, bool dontComputeSha)
-  throw (std::string)
+Xfc::recAddPathToXmlTree(
+    xmlNodePtr lpCurrentNode, std::string lPath, int lLevel, int lMaxDepth,
+    std::vector<XmlParamForFileCallback> cbList1,
+    std::vector<XmlParamForFileChunkCallback> cbList2, bool lSkipFirstLevel)
+    throw (std::string)
 {
     // lPath is a dir - check is done  before calling this functions
     bool isDir;
@@ -484,11 +511,11 @@ Xfc::recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath, int lLevel
 
         if(!isSym) {
             if(isDir) {
-                recAddPathToXmlTree(lpNode, tempStr, lLevel+1, lMaxDepth,
-                                    lSkipFirstLevel, dontComputeSha);
+                recAddPathToXmlTree(lpNode, tempStr, lLevel+1, lMaxDepth, cbList1, cbList2,
+                                    lSkipFirstLevel);
             }    
             else if(isRegularFile(tempStr)) {
-                addFileToXmlTree(lpNode, tempStr, dontComputeSha);
+                addFileToXmlTree(lpNode, tempStr, cbList1, cbList2);
             }   
             // else just ignore it
         }
@@ -550,49 +577,63 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 }
 
 
-std::vector<std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
+std::map<std::string, std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
 {
+    std::map<std::string, std::string> details;
+    string str;
+    
     if (!isFileOrDir(lpNode) && !isDisk(lpNode)) {
         throw std::string("Xfc::getDetailsForNode(): Node is not a file/dir node");
     }
-    std::vector<std::string> lVect;
     
-    xmlNodePtr lpDescription;
     // description
-    lpDescription=getDescriptionNode(lpNode);
-    if (lpDescription==NULL) {
-        lVect.push_back(std::string(""));
-    }
-    else {
-        lVect.push_back(getValueOfNode(lpDescription));
+    xmlNodePtr pDescription;
+    if ((pDescription=getDescriptionNode(lpNode))) {
+        details.insert(pair<string, string>("description", getValueOfNode(pDescription)));
     }
 
     // cdate
     if (isDisk(lpNode)) {
-        std::string lS=getCDate(lpNode, NULL);
-        lVect.push_back(lS);
+        str=getCDate(lpNode, NULL);
+        if (!str.empty()) {
+            details.insert(pair<string, string>("cdate", str));
+            str.clear();
+        }
     }
-    else
-        lVect.push_back("");
-    
+
+    // size
+    if (isFileOrDir(lpNode)) {
+        str=getParamValueForNode(lpNode, "size");
+        if (!str.empty()) {
+            details.insert(pair<string, string>("size", str));
+            str.clear();
+        }
+    }
+
     // checksum
     std::string lS;
-    lS=getCheckSumOf(lpNode);
-    lVect.push_back(lS);
+    lS=getChecksumOf(lpNode, "sha256");
+    if (!lS.empty())
+        details.insert(pair<string, string>("sha256sum", lS));
+    lS=getChecksumOf(lpNode, "sha1");
+    if (!lS.empty())
+        details.insert(pair<string, string>("sha1sum", lS));
     
-    for(int i=3;i<=9;i++)
-        lVect.push_back(std::string(""));
-        
     // labels
-    xmlNodePtr lpChildNode;
-    lpChildNode=lpNode->xmlChildrenNode; 
-    while (lpChildNode!=NULL) {
-        if (isLabel(lpChildNode)) {
-            lVect.push_back(getValueOfNode(lpChildNode));
+    xmlNodePtr pChildNode;
+    char labelBuf[7] = { "label0" };
+    char c='1';
+    pChildNode=lpNode->xmlChildrenNode; 
+    while (pChildNode!=NULL) {
+        if (isLabel(pChildNode)) {
+            details.insert(pair<string, string>(labelBuf, getValueOfNode(pChildNode)));
+            if (c>'9')
+                throw std::string("Too many labels"); // :fixme: - do something useful
+            labelBuf[5]=c++;
         }
-        lpChildNode=lpChildNode->next;
-    }    
-    return lVect;
+        pChildNode=pChildNode->next;
+    }
+    return details;
 }
 
 
@@ -619,6 +660,22 @@ int Xfc::getState() const throw()
     return mState;
 } 
 
+
+string
+Xfc::getParamValueForNode(xmlNodePtr pNode, string param)
+{
+    string ret;
+    xmlNodePtr pChildNode;
+    pChildNode=pNode->xmlChildrenNode; 
+    while (pChildNode!=NULL) {
+        if (!strcmp((const char*)pChildNode->name, param.c_str())) {
+            ret=getValueOfNode(pChildNode);
+            break;
+        }
+        pChildNode=pChildNode->next;
+    }
+    return ret;
+}
 
 
 xmlNodePtr Xfc::getFirstFileNode(xmlNodePtr lpNode)
@@ -886,36 +943,44 @@ throw (std::string)
 }
 
 
-std::string Xfc::getCheckSumOf(std::string lPath)
-const
-throw (std::string)
+std::string
+Xfc::getChecksumOf(std::string lPath, std::string type)
+    const throw (std::string)
 {
-// :fixme: - check state
+    // :fixme: - check state
 
     xmlNodePtr lpNode;
     lpNode=getNodeForPath(lPath);
     if(lpNode==NULL)
         throw std::string("No such node: ")+lPath;
 
-    return getCheckSumOf(lpNode);
+    return getChecksumOf(lpNode, type);
 }
 
-std::string Xfc::getCheckSumOf(xmlNodePtr lpNode)
-const
-throw (std::string)
+
+std::string
+Xfc::getChecksumOf(xmlNodePtr lpNode, std::string type)
+    const throw (std::string)
 {
-// :fixme: - check state
-        
+    // :fixme: - check state
+
+    if (type.empty())
+        type="sha256";
+    
     std::string lS="";
     xmlNodePtr lNameNode=lpNode;
     lNameNode=lpNode->xmlChildrenNode; 
     while (lNameNode!=NULL) {
         if (!strcmp((const char*)lNameNode->name, "sum")) {
-            xmlChar *lpStr;
-            lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
-            lS=(char*)lpStr;
-            xmlFree(lpStr);
-            break;
+            xmlChar *pStr;
+            pStr=xmlGetProp(lNameNode, (const xmlChar*)"type");
+            if (pStr && type==(const char*)pStr) {
+                xmlFree(pStr);
+                pStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
+                lS=(char*)pStr;
+                xmlFree(pStr);
+                break;
+            }
         }
         lNameNode=lNameNode->next;
     }

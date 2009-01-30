@@ -48,6 +48,10 @@ public:
     ~AddDiskBox();
     
     bool catalogWasModified();
+
+protected:
+
+    void disableButtons();
     
 protected slots:  
     
@@ -83,8 +87,8 @@ private:
     KHBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3,
         *mpLayoutBox4; // on heap
 
-    KPushButton *mpBrowseButton, 
-        *mpTodayCDateButton, *mpSomeDayCDateButton; // on heap
+    // on heap
+    KPushButton *mpBrowseButton, *mpTodayCDateButton, *mpSomeDayCDateButton;
             
     KProgressDialog *mpProgress;
     
@@ -94,7 +98,7 @@ private:
         *mpDiskCDateEdit;
     
     QCheckBox *mpAddRootCheckBox;
-    QCheckBox *mpDontComputeShaSumCheckBox;
+    QCheckBox *mpComputeSha1SumCheckBox, *mpComputeSha256SumCheckBox;
     
     KDatePicker *mpCDatePicker;
 

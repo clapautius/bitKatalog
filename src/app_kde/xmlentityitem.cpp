@@ -50,7 +50,7 @@ void XmlEntityItem::setXmlNode(xmlNodePtr lpNode)
 
 void XmlEntityItem::setOpen(bool lOpen)
 {
-    std::vector<std::string> lVect;
+    map<string, string> details;
     if(lOpen && !mAlreadyOpened)
     {
         XfcEntity lEnt;
@@ -60,9 +60,9 @@ void XmlEntityItem::setOpen(bool lOpen)
         while(lpIterator->hasMoreChildren())
         {
             lEnt=lpIterator->getNextChild();
-            lVect=lEnt.getDetails();
-            if(lVect.size()>0)
-                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), lVect[0].c_str());
+            details=lEnt.getDetails();
+            if( !details["description"].empty())
+                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), details["description"].c_str());
             else
                 lpItem=new XmlEntityItem(this, lEnt.getName().c_str());
             lpItem->setXmlNode(lEnt.getXmlNode());

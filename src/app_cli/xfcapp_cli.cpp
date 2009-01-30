@@ -189,10 +189,14 @@ static int processCommand(std::vector<std::string> &rCmd)
       {
         try
         {
+            // :tmp:
+            /*
           if(rCmd[0]=="add")
             gXfc.addPathToXmlTree(rCmd[1], lMaxDepth, rCmd[2]);
           else
-            gXfc.addPathToXmlTree(rCmd[1], lMaxDepth, rCmd[2], "", "", "", true);
+            gXfc.addPathToXmlTree(rCmd[1], lMaxDepth, rCmd[2], "", "", "",
+            true);
+            */
         }
         catch(std::string e)
         {
@@ -385,7 +389,9 @@ static int processCommand(std::vector<std::string> &rCmd)
       {
         try
         {
+            /* :todo:
           lVect=gXfc.getDetailsForNode(lpNode);
+            */
           displayMessage("Description: ", lVect[0]);
           if(lVect[1]!="")
             displayMessage("Creation date: ", lVect[1]);

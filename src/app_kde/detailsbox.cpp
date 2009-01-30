@@ -137,7 +137,7 @@ void DetailsBox::layout()
     pPage1->setHeader(QString("General"));
     
     QFont lFont;
-    std::vector<std::string> lDetails;
+    map<string, string> details;
     QSize lSize;
     QFontMetrics *lpFontMetrics;
     
@@ -157,8 +157,8 @@ void DetailsBox::layout()
     //top_layout1->addWidget(mpDescriptionBox);
     mpTmpLabel1=new QLabel("Description: ", pDescriptionBox);
     mpDescriptionEdit=new KLineEdit(pDescriptionBox);
-    lDetails=mpXmlItem->getDetails();
-    mpDescriptionEdit->setText(lDetails[0].c_str());
+    details=mpXmlItem->getDetails();
+    mpDescriptionEdit->setText(details["description"].c_str());
     //top_layout->addWidget(lpDescription);
     //mpDescription=new QLabel(lDetails[0].c_str(), this);
     //mpDescription->setAlignment(Qt::AlignHCenter);
@@ -181,9 +181,12 @@ void DetailsBox::layout()
     //QSize lSize;
     //lSize=mpLabels->size();
     //mpLabels->resize(lSize.width(), 50);
-    
-    for (unsigned int i=10;i<lDetails.size();i++) {
-        mpLabels->insertItem(lDetails[i].c_str());
+
+    char labelsBuf[7]= { "labelX" };
+    for (char i='0'; i<='9'; i++) {
+        labelsBuf[5]=i;
+        if (!details[labelsBuf].empty())
+            mpLabels->insertItem(details[labelsBuf].c_str());
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
@@ -220,33 +223,40 @@ void DetailsBox::layout()
       if (0 == fileType) // not good
         ;
       else if (1 == fileType) {
-          KVBox *pBox2= new KVBox();
+          pBox2= new KVBox();
           pPage2=addPage(pBox2, QString("File details"));
           pPage2->setHeader(QString("File details"));
           KVBox *pLayoutBox2=new KVBox(pBox2);
           str="Sha1 sum: ";
-          if ("" == lDetails[2])
+          if (details["sha1sum"].empty())
               str+="-";
           else
-              str+=lDetails[2];
-          mpShaLabel=new QLabel(str.c_str(), pLayoutBox2);
+              str+=details["sha1sum"];
+          mpSha1Label=new QLabel(str.c_str(), pLayoutBox2);
+          str="Sha256 sum: ";
+          if (details["sha256sum"].empty())
+              str+="-";
+          else
+              str+=details["sha256sum"];
+          mpSha256Label=new QLabel(str.c_str(), pLayoutBox2);
+          str="Size: ";
+          str+=details["size"];
+          mpSizeLabel=new QLabel(str.c_str(), pLayoutBox2);
       }
       else if (2 == fileType) {
-          KVBox *pBox2= new KVBox();
+          pBox2= new KVBox();
           pPage2=addPage(pBox2, QString("Directory details"));
           pPage2->setHeader(QString("Directory details"));
-          KVBox *pLayoutBox2=new KVBox(pBox2);
       }
     }
     else { // disk
-        KVBox *pBox2= new KVBox();
+        pBox2= new KVBox();
         pPage2=addPage(pBox2, QString("Disk details"));
         pPage2->setHeader(QString("Disk details"));
-        KVBox *pLayoutBox2=new KVBox(pBox2);
         mpCdateBox=new KHBox(pBox2);
         pTmpLabel=new QLabel("Creation date: ", mpCdateBox);
         mpCdateEdit=new KLineEdit(mpCdateBox);
-        mpCdateEdit->setText(lDetails[1].c_str());
+        mpCdateEdit->setText(details["cdate"].c_str());
     }
 
     // page3
@@ -257,45 +267,49 @@ void DetailsBox::layout()
 void DetailsBox::accept()
 {
     QString lQString;
-    std::vector<std::string> lDetails;
+    //std::vector<std::string> lDetails;
+    map<string, string> details;
     bool lModifiedLabels=false;
     
-    lDetails=mpXmlItem->getDetails();
+    details=mpXmlItem->getDetails();
     
     // update description
     lQString=mpDescriptionEdit->text();
-    if (lQString!=lDetails[0].c_str()) {
-        //KMessageBox::error(this, "Description modified:");
+    if (lQString!=details["description"].c_str()) {
         mpListItem->setText(DESCRIPTION_COLUMN, lQString);
         mpCatalog->setDescriptionOf(mCompletePath, lQString.toStdString());
         mCatalogWasModified=true;
     }
-    
+
+    vector<string> labels;
+    char labelBuf[7] = { "labelX" };
+    for (char c='0'; c<='9'; c++) {
+        labelBuf[5]=c;
+        if (!details[labelBuf].empty())
+            labels.push_back(details[labelBuf]);
+    }
     // check labels and update if modified
-    if(mpLabels->count()!=lDetails.size()-10)
+    if (mpLabels->count()!=labels.size())
         lModifiedLabels=true;
     else
-        for(unsigned int i=0;i<mpLabels->count() && !lModifiedLabels;i++)
-        {
-            if(mpLabels->text(i)!=lDetails[i+10].c_str())
+        for (unsigned int i=0;i<mpLabels->count() && !lModifiedLabels;i++) {
+            if(mpLabels->text(i)!=labels[i].c_str())
                 lModifiedLabels=true;
         }
     if (lModifiedLabels) {
         // remove all labels
-        for(unsigned int i=1;i<lDetails.size();i++)
-            mpCatalog->removeLabelFrom(mCompletePath, lDetails[i]);
-        
+        for(unsigned int i=0; i<labels.size(); i++)
+            mpCatalog->removeLabelFrom(mCompletePath, labels[i]);
         // add new labels
         for(unsigned int i=0;i<mpLabels->count();i++)
             mpCatalog->addLabelTo(mCompletePath, mpLabels->text(i).toStdString());
-        
         mCatalogWasModified=true;
     }
 
     if (mpXmlItem->isDisk()) {
       // update cdate
       lQString=mpCdateEdit->text();
-      if (lQString!=lDetails[1].c_str()) {
+      if (lQString!=details["cdate"].c_str()) {
         try {
             mpCatalog->setCDate(mCompletePath, lQString.toStdString());
             mCatalogWasModified=true;

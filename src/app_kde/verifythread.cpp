@@ -83,7 +83,7 @@ VerifyThread::verifyDirectory(
     std::vector<std::string> lNamesInCatalog;
     std::vector<std::string> lShaSumsInCatalog;
     std::vector<std::string> lNamesOnDisk;
-    std::vector<std::string> lEntityDetails; // :fixme: optimize me - replace getDetails with getShaSum
+    map<string, string> details;
     XfcEntity lEnt;
     std::string lSum="";    
     bool lStopNow;
@@ -104,8 +104,8 @@ VerifyThread::verifyDirectory(
     while (lEntIterator.hasMoreChildren()) {
         lEnt=lEntIterator.getNextChild();
         lNamesInCatalog.push_back(lEnt.getName());
-        lEntityDetails=lEnt.getDetails();
-        lShaSumsInCatalog.push_back(lEntityDetails[2]);
+        details=lEnt.getDetails();
+        lShaSumsInCatalog.push_back(details["sha256"]); // :fixme: - what about sha1?
     }
     
     try {

@@ -17,6 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <map>
+
 #include "xfcEntity.h"
 #include "xfc.h"
 
@@ -105,7 +107,7 @@ XfcEntity::getTypeOfFile() const
 }
 
 
-std::vector<std::string>
+std::map<std::string, std::string>
 XfcEntity::getDetails() 
 {
   checkValidData();

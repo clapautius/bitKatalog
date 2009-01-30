@@ -9,3 +9,9 @@ files and files had different types: 'file' or 'dir'. That was unintuitive
 
   In order to convert old xml files to the new structure, an xslt file is
 provided (xfc0ToXfc.xsl).
+
+** Checksums **
+
+The project uses sources from PolarSSL library (http://polarssl.org) for sha1 &
+sha256 checksums.
+

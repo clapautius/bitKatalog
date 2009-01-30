@@ -205,7 +205,7 @@ void bitKatalog::dragEnterEvent(QDragEnterEvent *event)
 
 
 void
-bitKatalog::dropEvent(QDropEvent *event)
+bitKatalog::dropEvent(QDropEvent *)
 {
     // this is a very simplistic implementation of a drop event.  we
     // will only accept a dropped URL.  the Qt dnd code can do *much*

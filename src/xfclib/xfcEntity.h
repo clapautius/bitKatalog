@@ -22,10 +22,14 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <libxml/parser.h>
 
 #include "xfc.h"
+
+
+using namespace std;
 
 
 /// wrapper class for an xml item from the catalog
@@ -57,12 +61,8 @@ public:
   // 0 - regular file
   // 1 - directory
   
-  std::vector<std::string> getDetails();
-  // v[0] - description
-  // v[1] - cdate ("" for none)
-  // v[2..9] - reserved
-  // v[10..] - labels
-  
+  map<string, string> getDetails();
+
   void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool lIsDisk=false);
   
 private:
@@ -78,12 +78,6 @@ private:
   //bool mIsFile;
   
   //bool mIsDisk;
-  
-  //std::vector<std::string> mDetails;
-  // v[0] - description
-  // v[1] - cdate ("" for none)
-  // v[2..9] - reserved
-  // v[10..] - labels
   
 };
 

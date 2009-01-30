@@ -24,9 +24,11 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <libxml/parser.h>
 
+using namespace std;
 
 /**
 @author Tudor Marian Pristavu
@@ -52,6 +54,14 @@ public:
         eDir
     } ElementType;
 
+    typedef int (*XmlParamForFileCallback)(
+        std::string fileName,
+        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+
+    typedef int (*XmlParamForFileChunkCallback)(
+        const char *buf, unsigned int bufLen, bool isFirstChunk, bool isLastChunk,
+        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+    
     static std::string getVersionString();
   
     friend class EntityIterator;
@@ -106,14 +116,12 @@ public:
     // ret "" if no description
     // if lpDescriptionNode!=NULL - lpDescriptionNode will have the address of descr. node
         
-    void addPathToXmlTree(std::string lPath,
-                          int lMaxDepth,
-                          std::string lDiskId,
-                          std::string lDiskCategory="",
-                          std::string lDiskDescription="",
-                          std::string lDiskLabel="",
-                          bool dontComputeSha=false
-      ) throw (std::string);
+    void addPathToXmlTree(
+        std::string lPath, int lMaxDepth,
+        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
+        std::string lDiskId, std::string lDiskCategory="", std::string lDiskDescription="",
+        std::string lDiskLabel="")
+        throw (std::string);
     // maxDepth - -1 
     
     //std::string getXmlDocPath() const throw (std::string);
@@ -122,50 +130,42 @@ public:
     // path is '/disk/file1/file2/...'
     // return NULL if it doesnt exist
     // path may or may not start with '/'
-    
-    std::vector<std::string> getDetailsForNode(xmlNodePtr lpNode) throw (std::string);
-    // get details for node
-    // node must be a file or a disk
-    // v[0] - description
-    // v[1] - cdate ("" for none)
-    // v[2] - checksum ("" for none)
-    // v[3..9] - reserved
-    // v[10..] - labels
 
-    xmlNodePtr addNewDiskToXmlTree(std::string lDiskName,
-                                   std::string lDiskCategory="",
-                                   std::string lDiskDescription="",
-                                   std::string lDiskLabel="",
-                                   std::string lDiskCDate="")
-            throw (std::string);
-    
-    void addLabelTo(std::string lPath,
-                        std::string lLabel)
-            throw (std::string);
-    
-    void removeLabelFrom(std::string lPath,
-                         std::string lLabel)
-            throw (std::string);
+    /**
+     * Get all the details of a node.
+     * The node must be a file, dir ar disk.
+     *
+     * Map keys: description, size, cdate, sha1sum, sha256sum,
+     * label0, label1, ..., label9.
+     **/
+    std::map<std::string, std::string> getDetailsForNode(xmlNodePtr lpNode) throw (std::string);
 
-    void setDescriptionOf(std::string lPath,
-                        std::string lDescription)
-            throw (std::string);
+    xmlNodePtr addNewDiskToXmlTree(
+        std::string diskName, std::string diskCategory="", std::string diskDescription="",
+        std::string diskLabel="", std::string diskCDate="")
+        throw (std::string);
+    
+    void addLabelTo(std::string lPath, std::string lLabel)
+        throw (std::string);
+    
+    void removeLabelFrom(std::string lPath, std::string lLabel)
+        throw (std::string);
+
+    void setDescriptionOf(std::string lPath, std::string lDescription)
+        throw (std::string);
             
     std::string getCDate(std::string lDiskName, xmlNodePtr *lpCDateNode=NULL)
-        const
-        throw (std::string);
+        const throw (std::string);
     
     void setCDate(std::string lDiskName, std::string lCDate)
         throw (std::string);
     
-    std::string getCheckSumOf(std::string lPath)
-        const
-        throw (std::string);
+    std::string getChecksumOf(std::string lPath, std::string sumType="")
+        const throw (std::string);
     // ret "" if no shasum
     
-    std::string getCheckSumOf(xmlNodePtr lpNode)
-    const
-    throw (std::string);
+    std::string getChecksumOf(xmlNodePtr lpNode, std::string sumType="")
+        const throw (std::string);
     // ret "" if no shasum
 
     XfcEntity getEntityFromNode(xmlNodePtr lpNode) throw (std::string);
@@ -174,9 +174,10 @@ private:
 
     std::string getValueOfNode(xmlNodePtr) throw (std::string);
     
-    xmlNodePtr addFileToXmlTree(xmlNodePtr lpParent, std::string lPath,
-                                bool dontComputeSha)
-      throw (std::string);
+    xmlNodePtr addFileToXmlTree(
+        xmlNodePtr lpParent, std::string lPath,
+        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>)
+        throw (std::string);
     // lPath - fs path
 
     xmlNodePtr addDirToXmlTree(xmlNodePtr lpParent, std::string lPath)
@@ -187,16 +188,18 @@ private:
                   ParserFuncType lFunc, void *lpParam)
             throw (std::string);               
     
-    void recAddPathToXmlTree(xmlNodePtr lpCurrentNode, std::string lPath,
-                             int lLevel, int lMaxDepth,
-                             bool lSkipFirstLevel=false,
-                             bool dontComputeSha=false)
-            throw (std::string);
+    void recAddPathToXmlTree(
+        xmlNodePtr lpCurrentNode, std::string lPath, int lLevel, int lMaxDepth,
+        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
+        bool lSkipFirstLevel=false)
+        throw (std::string);
     // root level is 0
     // maxDepth = -1 -> ignore max depth
     
     xmlNodePtr getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
             throw ();
+
+    string getParamValueForNode(xmlNodePtr pNode, string param);
     
     xmlNodePtr getFirstFileNode(xmlNodePtr lpNode);
     // ret null if no such node

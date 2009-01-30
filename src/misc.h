@@ -20,13 +20,14 @@
 #if !defined(_misc_h_)
 #define _misc_h_
 
-std::string executeCommand(const char *lpPrg, const char *lpArg1=NULL, 
-                                        const char *lpArg2=NULL,
-                                        const char *lpArg3=NULL,
-                                        const char *lpArg4=NULL)
-                                       throw (std::string);
+std::string executeCommand(
+    const char *lpPrg, const char *lpArg1=NULL, const char *lpArg2=NULL,
+    const char *lpArg3=NULL, const char *lpArg4=NULL)
+throw (std::string);
 
 std::string sha1sum(std::string lPath, std::string lShaProgramPath)
         throw (std::string);  
+
+std::string getTimeSinceMidnight();
 
 #endif
