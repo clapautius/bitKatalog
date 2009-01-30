@@ -1,3 +1,7 @@
+2009-01-30  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
+	* src/xfcapp.h: porting to KDE4 finished, releasing 0.4.0;
+
 2009-01-27  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* data/xfc.dtd: changed xfc DTD. Directories are no more a special type

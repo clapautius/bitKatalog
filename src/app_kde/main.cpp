@@ -50,7 +50,7 @@ int gCatalogState=0;
 static const char version[] = XFCAPP_VERSION;
 
 // :release:
-static int gVerboseLevel=3;
+static int gVerboseLevel=0;
 
 
 void
