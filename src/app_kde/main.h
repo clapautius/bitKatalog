@@ -48,10 +48,31 @@ extern int gCatalogState;
 
 void msgWarn(std::string, std::string="", std::string="");
 void msgInfo(std::string, std::string="", std::string="");
-void msgDebug(std::string, std::string="", std::string="");
+void msgDebug(std::string, std::string="", std::string="", std::string="");
 
 //extern std::string gLastDir;
 
 //void runningForTheFirstTime();
- 
+
+typedef enum {
+    eDiffIdentical,
+    eDiffOnlyInCatalog,
+    eDiffOnlyOnDisk,
+    eDiffSize,
+    eDiffSha1Sum,
+    eDiffSha256Sum,
+    eDiffError
+} EntityDiffType;
+
+
+struct EntityDiff
+{
+    EntityDiffType type;
+    std::string name;
+    std::string catalogValue;
+    std::string diskValue;
+
+    EntityDiff();
+};
+
 #endif

@@ -46,6 +46,9 @@
 #include "misc.h"
 #include "xfcEntity.h"
 
+// :tmp:
+#include <sstream>
+
 #if defined(MTP_DEBUG)
 #include <iostream>
 using namespace std;
@@ -252,11 +255,8 @@ bitKatalogView::verifyDisk() throw()
     Q3ListViewItem *lpItem;
     std::string lCompletePath;
     std::string lS;
-    unsigned int ui;
-    std::vector<std::string> lOnlyInCatalog;
-    std::vector<std::string> lOnlyOnDisk;
-    std::vector<std::string> lWrongSum;
-    std::vector<std::string> lDifferent;
+    bool abortOperation=false;
+    vector<EntityDiff> differences;
     
     if (mCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
@@ -264,15 +264,18 @@ bitKatalogView::verifyDisk() throw()
     }
     lpItem=mpCurrentItem;
     lCompletePath=mCurrentItemPath;
-    KMessageBox::information(this, "Not properly tested (and size is not checked)");
 
     QString lDir = KFileDialog::getExistingDirectory(KUrl("/"), this, QString("Path to verify"));
     if ("" == lDir) // cancel
         return;
+
+    // :tmp:
+    ostringstream ostr;
+    ostr<<"differences addr="<<&differences<<endl;
+    msgDebug(ostr.str());
     
     VerifyThread *lpVerifyThread=new VerifyThread(
-        mCatalog, lCompletePath, lDir.toStdString(), lOnlyInCatalog,
-        lOnlyOnDisk, lWrongSum, lDifferent);
+        mCatalog, lCompletePath, lDir.toStdString(), &abortOperation, differences);
         
     KProgressDialog *lpProgress=new KProgressDialog(this, "Verifying ...", "");
     //lpProgress->progressBar()->setTotalSteps(0);
@@ -302,7 +305,7 @@ bitKatalogView::verifyDisk() throw()
             lOldLabel=lLabel;
         }
         if (lpProgress->wasCancelled()) {
-            lpVerifyThread->stopThread();
+            abortOperation=true;
             KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
             lpProgress2->progressBar()->setRange(0, 0);
             lpProgress2->progressBar()->setTextVisible(false);
@@ -325,42 +328,39 @@ bitKatalogView::verifyDisk() throw()
     }
 
     int rc=lpVerifyThread->getResultCode();
-
     delete lpProgress;
     delete lpVerifyThread;
-    OutputWindow lResults;
-    bool lAtLeastOneError=false;
+    if(2 == rc)
+        KMessageBox::information(this, "Some (or all) files did not have checksums.");
 
-    if(2 == rc || 4 == rc)
-        KMessageBox::information(this, "Some (or all) files did not have sha1 sum.");
-
-    if (lOnlyInCatalog.size()>0) {
-        lAtLeastOneError=true;
-        lResults.addText( std::string("Only in catalog (missing from disk):"));
-        for(ui=0; ui<lOnlyInCatalog.size(); ui++)
-            lResults.addText( lOnlyInCatalog[ui]);
+    if (differences.size()>0) {
+        DiffOutputWindow *pResults=new DiffOutputWindow(differences.size());
+        for (unsigned int i=0; i<differences.size(); i++) {
+            switch (differences[i].type) {
+            case eDiffOnlyInCatalog:
+                pResults->addText(differences[i].name, "!", "");
+                break;
+            case eDiffOnlyOnDisk:
+                pResults->addText("", "!", differences[i].name);
+                break;
+            case eDiffSize:
+                pResults->addText(differences[i].name, " ! size ", differences[i].name);
+                break;
+            case eDiffSha256Sum:
+                pResults->addText(differences[i].name, " ! sha256 ", differences[i].name);
+                break;
+            case eDiffSha1Sum:
+                pResults->addText(differences[i].name, " ! sha1 ", differences[i].name);
+                break;
+            default:
+                pResults->addText(differences[i].name, " ! ", differences[i].name);
+                break;
+            }                
+        }                
     }
-    if (lOnlyOnDisk.size()>0) {
-        lAtLeastOneError=true;
-        lResults.addText( std::string("Only on disk (missing from catalog):"));
-        for(ui=0; ui<lOnlyOnDisk.size(); ui++)
-            lResults.addText( lOnlyOnDisk[ui]);
+    else {
+        KMessageBox::information(this, "Disk OK");
     }
-    if (lDifferent.size()>0) {
-        lAtLeastOneError=true;
-        lResults.addText( std::string("Different"));
-        for(ui=0; ui<lDifferent.size(); ui++)
-            lResults.addText( lDifferent[ui]);
-    }
-    if (lWrongSum.size()>0) {
-        lAtLeastOneError=true;
-        lResults.addText( std::string("Wrong sum"));
-        for(ui=0; ui<lWrongSum.size(); ui++)
-            lResults.addText( lWrongSum[ui]);
-    }
-    if(!lAtLeastOneError)
-        lResults.addText( "Disk OK");
-    lResults.exec();
 }
 
 

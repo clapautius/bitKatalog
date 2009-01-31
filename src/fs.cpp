@@ -28,34 +28,25 @@
 #include <dirent.h>
 
 
-struct stat getStatOfFile(std::string lPath) throw (std::string)
+FileStatType
+getStatOfFile(std::string path) throw (std::string)
 {
-    struct stat lStat;
-    int lRet;
-    lRet=lstat(lPath.c_str(), &lStat);
-    if(lRet==0)
-        return lStat;
-    throw std::string("getStatOfFile(): stat() error for file: ")+lPath+
+    FileStatType statVal;
+    int ret;
+    ret=lstat64(path.c_str(), &statVal);
+    if(ret==0)
+        return statVal;
+    throw std::string("getStatOfFile(): stat() error for file: ")+path+
         ", error="+strerror(errno);
 }
     
 
-bool isDirectory(std::string lPath) throw (std::string)
+bool
+isDirectory(std::string path) throw (std::string)
 {
-    struct stat lStat;
-    lStat=getStatOfFile(lPath);
-    if(S_ISDIR(lStat.st_mode))
-        return true;
-    else
-        return false;
-}
-
-
-bool isRegularFile(std::string lPath) throw (std::string)
-{
-    struct stat lStat;
-    lStat=getStatOfFile(lPath);
-    if(S_ISREG(lStat.st_mode))
+    FileStatType statVal;
+    statVal=getStatOfFile(path);
+    if(S_ISDIR(statVal.st_mode))
         return true;
     else
         return false;
@@ -63,103 +54,115 @@ bool isRegularFile(std::string lPath) throw (std::string)
 
 
 bool
-isSymlink(std::string lPath) throw (std::string)
+isRegularFile(std::string path) throw (std::string)
 {
-    struct stat lStat;
-    lStat=getStatOfFile(lPath);
-    if(S_ISLNK(lStat.st_mode))
+    FileStatType statVal;
+    statVal=getStatOfFile(path);
+    if(S_ISREG(statVal.st_mode))
         return true;
     else
         return false;
 }
 
 
-std::vector<std::string> getFileListInDir(std::string lPath) 
-        throw (std::string)
+bool
+isSymlink(std::string path) throw (std::string)
 {
-    DIR *lpDir;
-    std::vector<std::string> lFileList;
-    struct dirent *lpDirEnt;
-    lpDir=opendir(lPath.c_str());
-    if(lpDir==NULL)
-    {
-        throw std::string("getFileListInDir(): error in opendir");
-    }   
-    lpDirEnt=readdir(lpDir); 
-    while(lpDirEnt!=NULL)
-    {
-        if(strcmp(lpDirEnt->d_name, ".") && strcmp(lpDirEnt->d_name, ".."))
-        {
-            lFileList.push_back(lpDirEnt->d_name);
-        }
-        lpDirEnt=readdir(lpDir);
-    }
-    closedir(lpDir);
-    return lFileList;
+    FileStatType statVal;
+    statVal=getStatOfFile(path);
+    if(S_ISLNK(statVal.st_mode))
+        return true;
+    else
+        return false;
 }
 
 
-std::string getLastComponentOfPath(std::string lPath)
+std::vector<std::string>
+getFileListInDir(std::string path) 
+    throw (std::string)
 {
-    unsigned int lPos;
-    lPos=lPath.find_last_of('/');
-    if(lPos==std::string::npos)
-        return lPath;
-    else
-    {
-        if(lPos<lPath.size()-1)
-            return lPath.substr(lPos+1);
+    DIR *pDir=NULL;
+    std::vector<std::string> fileList;
+    struct dirent *pDirEnt=NULL;
+    pDir=opendir(path.c_str());
+    if (pDir==NULL) {
+        throw std::string("getFileListInDir(): error in opendir");
+    }   
+    pDirEnt=readdir(pDir); 
+    while (pDirEnt!=NULL) {
+        if (strcmp(pDirEnt->d_name, ".") && strcmp(pDirEnt->d_name, "..")) {
+            fileList.push_back(pDirEnt->d_name);
+        }
+        pDirEnt=readdir(pDir);
+    }
+    closedir(pDir);
+    return fileList;
+}
+
+
+std::string
+getLastComponentOfPath(std::string path)
+{
+    unsigned int pos;
+    pos=path.find_last_of('/');
+    if (pos==std::string::npos)
+        return path;
+    else {
+        if (pos<path.size()-1)
+            return path.substr(pos+1);
         else
             return std::string("");
     }
 }
 
 
-FileSizeT getFileSize(std::string lPath)
-        throw (std::string)
+FileSizeType
+getFileSize(std::string path)
+    throw (std::string)
 {
-    struct stat lStat;
-    lStat=getStatOfFile(lPath);
-    return lStat.st_size;
+    FileStatType statVal;
+    statVal=getStatOfFile(path);
+    return statVal.st_size;
 } 
 
 
-bool fileExists(std::string lPath)
+bool
+fileExists(std::string path)
 {
-    if(access(lPath.c_str(), 0)==0)
+    if (access(path.c_str(), 0)==0)
         return true;
     else
         return false;
 } 
 
-void rename(std::string lOldFile, std::string lNewFile)
-        throw (std::string)
+
+void
+rename(std::string oldFile, std::string newFile)
+    throw (std::string)
 {
-    if(rename(lOldFile.c_str(), lNewFile.c_str())==0)
+    if (rename(oldFile.c_str(), newFile.c_str())==0)
         return;
     else 
         throw std::string("rename(): rename error");
 } 
 
 
-std::vector<std::string> tokenizePath(std::string lPath)
+std::vector<std::string>
+tokenizePath(std::string path)
 {
-    std::vector<std::string> lTokens;
-    std::string lToken;
-    for(unsigned int i=0;i<lPath.size();i++) 
-    {
-        if(lPath[i]=='/')
-        {
-            if(lToken!="")
-            {
-                lTokens.push_back(lToken);
-                lToken="";
+    std::vector<std::string> tokens;
+    std::string token;
+    for (unsigned int i=0;i<path.size();i++)  {
+        if (path[i]=='/') {
+            if (token!="") {
+                tokens.push_back(token);
+                token="";
             }     
         } 
-       else
-           lToken+=lPath[i];
+        else
+            token+=path[i];
     }  
-    if(lToken!="")
-        lTokens.push_back(lToken);
-    return lTokens;
+    if(token!="")
+        tokens.push_back(token);
+    return tokens;
 }  

@@ -49,18 +49,16 @@ bitKatalogPreferences::bitKatalogPreferences()
     */
 }
 
+
 bitKatalogPrefPageOne::bitKatalogPrefPageOne(QWidget *parent)
     : QFrame(parent)
 {
-    QHBoxLayout *layout = new QHBoxLayout(this);
-
     new QLabel(i18n("Add something here"), this);
 }
+
 
 bitKatalogPrefPageTwo::bitKatalogPrefPageTwo(QWidget *parent)
     : QFrame(parent)
 {
-    QHBoxLayout *layout = new QHBoxLayout(this);
-
     new QLabel(i18n("Add something here"), this);
 }

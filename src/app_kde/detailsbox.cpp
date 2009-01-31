@@ -228,16 +228,16 @@ void DetailsBox::layout()
           pPage2->setHeader(QString("File details"));
           KVBox *pLayoutBox2=new KVBox(pBox2);
           str="Sha1 sum: ";
-          if (details["sha1sum"].empty())
+          if (details[SHA1LABEL].empty())
               str+="-";
           else
-              str+=details["sha1sum"];
+              str+=details[SHA1LABEL];
           mpSha1Label=new QLabel(str.c_str(), pLayoutBox2);
           str="Sha256 sum: ";
-          if (details["sha256sum"].empty())
+          if (details[SHA256LABEL].empty())
               str+="-";
           else
-              str+=details["sha256sum"];
+              str+=details[SHA256LABEL];
           mpSha256Label=new QLabel(str.c_str(), pLayoutBox2);
           str="Size: ";
           str+=details["size"];

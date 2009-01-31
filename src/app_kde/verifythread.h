@@ -25,19 +25,13 @@
 
 #include "xfcapp.h"
 #include "xfc.h"
+#include "main.h"
 
-/**
-	@author Tudor Pristavu <tudor.pristavu@gmail.com>
-*/
 class VerifyThread : public QThread
 {
 public:
-    VerifyThread(Xfc*, 
-                 std::string lCatalogPath, std::string lDiskPath,
-                 std::vector<std::string> &lOnlyInCatalog,
-                 std::vector<std::string> &lOnlyOnDisk,
-                 std::vector<std::string> &lDifferent, 
-                 std::vector<std::string> &lWrongSum);
+    VerifyThread(Xfc*, string catalogPath, string diskPath,
+                 volatile const bool *pAbortFlag, vector<EntityDiff> &);
 
     ~VerifyThread();
     
@@ -45,8 +39,6 @@ public:
     
     int returnValue();
     
-    void stopThread();
-
     std::string getCurrentFile();
     
     void setCurrentFile(std::string);
@@ -54,26 +46,25 @@ public:
     int getResultCode() const;
     
 private:
-    int verifyDirectory(std::string lCatalogPath, std::string lDiskPath,
-                        std::vector<std::string> &lOnlyInCatalog,
-                        std::vector<std::string> &lOnlyOnDisk,
-                        std::vector<std::string> &lDifferent, 
-                        std::vector<std::string> &lWrongSum);
+
+    int verifyDirectory(string catalogPath, string diskPath);
+
+    EntityDiff compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
+                            bool &rShaWasMissing);
 
     Xfc* mpCatalog;
     
     std::string mCatalogPath, mDiskPath;
-    
-    std::vector<std::string> &mrOnlyInCatalog, &mrOnlyOnDisk,
-      &mrWrongSum, &mrDifferent;
-    
+
+    vector<EntityDiff> mrDifferences;
+
     std::string mCurrentFile;
     
     QMutex mMutex;
     
-    bool mStopNow;
-
     int mResultCode;
+
+    volatile const bool *mpAbortFlag;
 };
 
 #endif

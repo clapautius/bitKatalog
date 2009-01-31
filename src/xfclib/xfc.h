@@ -30,10 +30,8 @@
 
 using namespace std;
 
-/**
-@author Tudor Marian Pristavu
-*/
-
+#define SHA256LABEL "sha256"
+#define SHA1LABEL "sha1"
 
 class XfcEntity;
 class Xfc;
@@ -56,11 +54,13 @@ public:
 
     typedef int (*XmlParamForFileCallback)(
         std::string fileName,
-        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+        volatile const bool *pAbortFlag);
 
     typedef int (*XmlParamForFileChunkCallback)(
         const char *buf, unsigned int bufLen, bool isFirstChunk, bool isLastChunk,
-        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+        volatile const bool *pAbortFlag);
     
     static std::string getVersionString();
   
@@ -117,7 +117,7 @@ public:
     // if lpDescriptionNode!=NULL - lpDescriptionNode will have the address of descr. node
         
     void addPathToXmlTree(
-        std::string lPath, int lMaxDepth,
+        std::string lPath, int lMaxDepth, volatile const bool *pAbortFlag,
         std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
         std::string lDiskId, std::string lDiskCategory="", std::string lDiskDescription="",
         std::string lDiskLabel="")
@@ -176,7 +176,8 @@ private:
     
     xmlNodePtr addFileToXmlTree(
         xmlNodePtr lpParent, std::string lPath,
-        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>)
+        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
+        volatile const bool *pAbortFlag)
         throw (std::string);
     // lPath - fs path
 
@@ -190,6 +191,7 @@ private:
     
     void recAddPathToXmlTree(
         xmlNodePtr lpCurrentNode, std::string lPath, int lLevel, int lMaxDepth,
+        volatile const bool *pAbortFlag,
         std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
         bool lSkipFirstLevel=false)
         throw (std::string);

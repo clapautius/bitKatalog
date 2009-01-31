@@ -33,16 +33,18 @@ using namespace std;
 
 int
 sha1Callback(std::string fileName,
-             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs)
+             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+             volatile const bool *pAbortFlag)
 {
     int rc=-1;
-    std::string lSum=sha1sum(fileName, std::string("sha1sum"));
+    // the second string is the name of the binary
+    std::string lSum=execChecksum(fileName, std::string("sha1sum"), pAbortFlag);
     if (!lSum.empty()) {
         xmlParam="sum";
         xmlValue=lSum;
         xmlAttrs.clear();
         xmlAttrs.push_back("type");
-        xmlAttrs.push_back("sha1");
+        xmlAttrs.push_back(SHA1LABEL);
         rc=0;
     }
     else {
@@ -54,16 +56,18 @@ sha1Callback(std::string fileName,
 
 int
 sha256Callback(std::string fileName,
-             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs)
+               std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+               volatile const bool *pAbortFlag)
 {
     int rc=-1;
-    std::string lSum=sha1sum(fileName, std::string("sha256sum"));
+    // the second string is the name of the binary
+    std::string lSum=execChecksum(fileName, std::string("sha256sum"), pAbortFlag);
     if (!lSum.empty()) {
         xmlParam="sum";
         xmlValue=lSum;
         xmlAttrs.clear();
         xmlAttrs.push_back("type");
-        xmlAttrs.push_back("sha256");
+        xmlAttrs.push_back(SHA256LABEL);
         rc=0;
     }
     else {

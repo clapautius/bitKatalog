@@ -81,7 +81,7 @@ msgInfo(std::string s, std::string s2, std::string s3)
 }
 
 
-void msgDebug(std::string s, std::string s2, std::string s3)
+void msgDebug(std::string s, std::string s2, std::string s3, std::string s4)
 {
     if (gVerboseLevel>=3) {
         std::cout<<s;
@@ -89,6 +89,8 @@ void msgDebug(std::string s, std::string s2, std::string s3)
             std::cout<<s2;
         if (!s3.empty())
             std::cout<<s3;
+        if (!s4.empty())
+            std::cout<<s4;
         std::cout<<std::endl;
     }
 }
@@ -172,6 +174,11 @@ void startUp()
     //runningForTheFirstTime();
 }
 
+
+EntityDiff::EntityDiff()
+{
+    type=eDiffIdentical;
+}
 
 /*
 void runningForTheFirstTime()

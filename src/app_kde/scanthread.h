@@ -44,7 +44,9 @@ private:
     bool mComputeSha1;
 
     bool mComputeSha256;
-    
+
+    volatile const bool *mpAbortFlag;
+
 public:
 
     struct ScanThreadParams {
@@ -52,6 +54,8 @@ public:
         
         bool computeSha1;
         bool computeSha256;
+
+        volatile const bool *pAbortFlag;
     };
             
     ScanThread(Xfc*, std::string, std::string, ScanThreadParams&);

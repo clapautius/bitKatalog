@@ -4,5 +4,6 @@
 // :release:
 #define XFCAPP_NAME "bitKatalog"
 #define XFCAPP_VERSION "0.4.1-alpha"
+#define XFC_DEBUG
 
 #endif

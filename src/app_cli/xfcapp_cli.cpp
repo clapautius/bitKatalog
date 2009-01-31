@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <map>
 
 #include "xfcapp.h"
 #include "interface.h"
@@ -377,7 +378,6 @@ static int processCommand(std::vector<std::string> &rCmd)
     else
     {
       std::string lPath;
-      std::vector<std::string> lVect;
       lPath=rCmd[1];
                 
       xmlNodePtr lpNode=gXfc.getNodeForPath(lPath);
@@ -389,17 +389,22 @@ static int processCommand(std::vector<std::string> &rCmd)
       {
         try
         {
-            /* :todo:
-          lVect=gXfc.getDetailsForNode(lpNode);
-            */
-          displayMessage("Description: ", lVect[0]);
-          if(lVect[1]!="")
-            displayMessage("Creation date: ", lVect[1]);
-          if(lVect[2]!="")
-            displayMessage("Checksum: ", lVect[2]);
-                            
-          for(unsigned short i=10;i<lVect.size();i++)
-            displayMessage("Label: ", lVect[i]);
+            map<string, string> details;
+            details=gXfc.getDetailsForNode(lpNode);
+            displayMessage("Description: ", details["description"]);
+            if (!details["cdate"].empty())
+                displayMessage("Creation date: ", details["cdate"]);
+            if (!details[SHA256LABEL].empty())
+                displayMessage("sha256sum: ", details[SHA256LABEL]);
+            if (!details[SHA1LABEL].empty())
+                displayMessage("sha1sum: ", details[SHA1LABEL]);
+
+            char labelsBuf[7]= { "labelX" };
+            for (char i='0'; i<='9'; i++) {
+                labelsBuf[5]=i;
+                if (!details[labelsBuf].empty())
+                    displayMessage("Label: ", details[labelsBuf]);
+            }
         }
         catch(std::string e)
         {

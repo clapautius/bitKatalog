@@ -23,7 +23,7 @@
 #include "plugins.h"
 
 
-ScanThread::ScanThread(Xfc *lpCatalog, std::string lPath, std::string lDiskName,
+ScanThread::ScanThread(Xfc *lpCatalog, string lPath, string lDiskName,
             ScanThreadParams &scanParams)
  : QThread()
 {
@@ -33,6 +33,7 @@ ScanThread::ScanThread(Xfc *lpCatalog, std::string lPath, std::string lDiskName,
     mStopNow=false;
     mComputeSha1=scanParams.computeSha1;
     mComputeSha256=scanParams.computeSha256;
+    mpAbortFlag=scanParams.pAbortFlag;
 }
 
 
@@ -44,8 +45,8 @@ ScanThread::~ScanThread()
 void
 ScanThread::run()
 {
-    std::vector<Xfc::XmlParamForFileCallback> cbList1;
-    std::vector<Xfc::XmlParamForFileChunkCallback> cbList2;
+    vector<Xfc::XmlParamForFileCallback> cbList1;
+    vector<Xfc::XmlParamForFileChunkCallback> cbList2;
 
     if (mComputeSha1)
         cbList1.push_back(sha1Callback);
@@ -53,7 +54,7 @@ ScanThread::run()
         cbList1.push_back(sha256Callback);
         
     try {
-        mpCatalog->addPathToXmlTree(mPath, -1, cbList1, cbList2, mDiskName, "","","");
+        mpCatalog->addPathToXmlTree(mPath, -1, mpAbortFlag, cbList1, cbList2, mDiskName, "","","");
     }
     catch(std::string e) {
         mReturnValue=1;
@@ -88,4 +89,5 @@ ScanThread::getErrorMessage() const
 ScanThread::ScanThreadParams::ScanThreadParams()
 {
     computeSha1=computeSha256=false;
+    pAbortFlag=NULL;
 }

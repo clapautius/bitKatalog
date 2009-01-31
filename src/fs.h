@@ -19,8 +19,8 @@
  ***************************************************************************/
 // File system stuff
 
-#if !defined(_fs_h_)
-#define _fs_h_
+#if !defined(FS_H)
+#define FS_H
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -29,9 +29,11 @@
 #include <vector>
 #include <string>
 
-typedef off_t FileSizeT;
+typedef off64_t FileSizeType;
 
-struct stat getStatOfFile(std::string lPath) throw (std::string);
+typedef struct stat64 FileStatType;
+
+FileStatType getStatOfFile(std::string lPath) throw (std::string);
 
 bool isDirectory(std::string lPath) throw (std::string);
 
@@ -43,7 +45,7 @@ std::vector<std::string> getFileListInDir(std::string lPath) throw (std::string)
 
 std::string getLastComponentOfPath(std::string lPath);
 
-FileSizeT getFileSize(std::string lPath) throw (std::string);
+FileSizeType getFileSize(std::string lPath) throw (std::string);
 
 bool fileExists(std::string lPath);
 

@@ -24,10 +24,9 @@
 
 #include <kpagedialog.h>
 #include <ktextedit.h>
+#include <QTableWidget>
 
-/**
-	@author Tudor Pristavu <tudor.pristavu@gmail.com>
-*/
+
 class OutputWindow : public KPageDialog
 {
 public:
@@ -42,6 +41,28 @@ private:
     void layout();
     
     KTextEdit *mpEditArea;
+    
+};
+
+
+class DiffOutputWindow : public KPageDialog
+{
+public:
+    DiffOutputWindow(int);
+
+    ~DiffOutputWindow();
+    
+    void addText(std::string, std::string, std::string);
+
+private:
+
+    void layout();
+
+    unsigned int mRows;
+
+    unsigned int mCurrentRow;
+    
+    QTableWidget *mpList;
     
 };
 

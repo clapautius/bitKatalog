@@ -17,6 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <sstream>
+
 #include "verifythread.h"
 #include "fs.h"
 #include "misc.h"
@@ -25,19 +27,15 @@
 
 
 VerifyThread::VerifyThread(
-    Xfc* lpCatalog, std::string lCatalogPath, std::string lDiskPath,
-    std::vector<std::string> &lOnlyInCatalog, std::vector<std::string> &lOnlyOnDisk,
-    std::vector<std::string> &lDifferent, std::vector<std::string> &lWrongSum)        
+    Xfc* pCatalog, string catalogPath, string diskPath, volatile const bool *pAbortFlag,
+    vector<EntityDiff> &differences)
     : QThread(),
-      mrOnlyInCatalog(lOnlyInCatalog),
-      mrOnlyOnDisk(lOnlyOnDisk),
-      mrWrongSum(lWrongSum),
-      mrDifferent(lDifferent)
+      mrDifferences(differences)
 {
-    mpCatalog=lpCatalog;
-    mCatalogPath=lCatalogPath;
-    mDiskPath=lDiskPath;
-    mStopNow=false;
+    mpCatalog=pCatalog;
+    mCatalogPath=catalogPath;
+    mDiskPath=diskPath;
+    mpAbortFlag=pAbortFlag;
 }
 
 
@@ -49,192 +47,204 @@ VerifyThread::~VerifyThread()
 void
 VerifyThread::run()
 {
-  mResultCode=verifyDirectory(mCatalogPath, mDiskPath, mrOnlyInCatalog,
-                              mrOnlyOnDisk, mrDifferent, mrWrongSum);
-}
-
-
-void
-VerifyThread::stopThread()
-{
-    mMutex.lock();
-    mStopNow=true;
-    mMutex.unlock();
+    mResultCode=verifyDirectory(mCatalogPath, mDiskPath);
 }
 
 
 /**
- * @param[in] lDifferent - different size or smth. else (no sha)
- * @param[in] lWrongSum - different sha
- *
+ * helper function
+ **/
+EntityDiff
+VerifyThread::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
+                           bool &rShaWasMissing)
+{
+    EntityDiff diff;
+    string str;
+    map<string, string> details;
+    details=rEnt.getDetails();
+    ostringstream ostr;
+    msgDebug("comparing items with name ", catalogName);
+
+    if (!isDirectory(diskPath)) {
+        // first check size
+        ostr<<getFileSize(diskPath);
+        if (ostr.str() != details["size"]) {
+            diff.type=eDiffSize;
+            msgDebug("different sizes for ", catalogName);
+            msgDebug("catalog value=", details["size"], ", disk value=", ostr.str());
+            return diff;
+        }
+
+        if (details[SHA256LABEL].empty() && details[SHA1LABEL].empty())
+            rShaWasMissing=true;
+
+        // sha256
+        if (!details[SHA256LABEL].empty()) {
+            try {
+                setCurrentFile(diskPath);
+                str=execChecksum(diskPath, std::string("sha256sum"), mpAbortFlag);
+            }
+            catch(std::string e) {
+                diff.type=eDiffError;
+            }
+        }
+        if (str!=details[SHA256LABEL]) {
+            diff.type=eDiffSha256Sum;
+            msgDebug("different sha256 for ", catalogName);
+            msgDebug("catalog value=", details[SHA256LABEL], ", disk value=", str);
+            return diff;
+        }
+
+        // sha1
+        if (!details[SHA1LABEL].empty()) {
+            try {
+                setCurrentFile(diskPath);
+                str=execChecksum(diskPath, std::string("sha1sum"), mpAbortFlag);
+            }
+            catch(std::string e) {
+                diff.type=eDiffError;
+            }
+        }
+        if (str!=details[SHA1LABEL]) {
+            diff.type=eDiffSha1Sum;
+            msgDebug("different sha1 for ", catalogName);
+            msgDebug("catalog value=", details[SHA1LABEL], ", disk value=", str);
+            return diff;
+        }
+    } // end file compare
+
+    return diff;
+}
+
+
+/**
  * @retval < 0 - failure
  * @retval 0 - stopped by user
- * @retval 1 - no differences, sha was present
- * @retval 2 - no differences, there were files without sha
- * @retval 3 - there were differences, sha was present
- * @retval 4 - there were differences, there were files without sha
+ * @retval 1 - ok, checksums were present
+ * @retval 2 - ok, some checksums were missing
  **/
 int
-VerifyThread::verifyDirectory(
-    std::string lCatalogPath, std::string lDiskPath, std::vector<std::string> &lOnlyInCatalog,
-    std::vector<std::string> &lOnlyOnDisk, std::vector<std::string> &lDifferent,
-    std::vector<std::string> &lWrongSum)
+VerifyThread::verifyDirectory(string catalogPath, string diskPath)
 {
-    std::vector<std::string> lNamesInCatalog;
-    std::vector<std::string> lShaSumsInCatalog;
-    std::vector<std::string> lNamesOnDisk;
+    vector<string> namesInCatalog;
     map<string, string> details;
-    XfcEntity lEnt;
-    std::string lSum="";    
-    bool lStopNow;
-
+    vector<string> lShaSumsInCatalog;
+    vector<string> namesOnDisk;
+    XfcEntity ent;
+    EntityDiff diff;
+    bool stopNow;
     bool shaWasMissing=false;
     
     mMutex.lock();
-    lStopNow=mStopNow;
+    stopNow=*mpAbortFlag;
     mMutex.unlock();
 
-    msgDebug("Verifying dir: ", lDiskPath);
-    msgDebug("Catalog path is: ", lCatalogPath);
-    
-    if(lStopNow)
+    msgDebug("Verifying dir: ", diskPath);
+    msgDebug("Catalog path is: ", catalogPath);
+
+    // :tmp:
+    ostringstream ostr;
+    ostr<<"differences addr="<<&mrDifferences<<endl;
+    msgDebug(ostr.str());
+
+    if (stopNow) {
+        msgInfo(__FUNCTION__, ": stopped by user");
         return 0;
-        
-    EntityIterator lEntIterator(*mpCatalog, lCatalogPath);
-    while (lEntIterator.hasMoreChildren()) {
-        lEnt=lEntIterator.getNextChild();
-        lNamesInCatalog.push_back(lEnt.getName());
-        details=lEnt.getDetails();
-        lShaSumsInCatalog.push_back(details["sha256"]); // :fixme: - what about sha1?
+    }
+    
+    EntityIterator entIterator(*mpCatalog, catalogPath);
+    while (entIterator.hasMoreChildren()) {
+        ent=entIterator.getNextChild();
+        namesInCatalog.push_back(ent.getName());
+        details=ent.getDetails();
     }
     
     try {
-        lNamesOnDisk=getFileListInDir(lDiskPath);
+        namesOnDisk=getFileListInDir(diskPath);
     }
     catch(std::string e) {
         // do something (add this to error list?) :fixme:
+        msgWarn(__FUNCTION__, ": error in getFileListInDir()");
         return -1;
     }
     
-    for (unsigned int i=0;i<lNamesOnDisk.size();i++)
-        if (isDirectory(lDiskPath+"/"+lNamesOnDisk[i])) {
-            bool lFound=true;
+    for (unsigned int i=0;i<namesOnDisk.size();i++)
+        if (isDirectory(diskPath+"/"+namesOnDisk[i])) {
+            bool found=true;
             // check if it exists in catalog
-            for (unsigned int j=0;j<lNamesInCatalog.size();j++)
-                if (lNamesInCatalog[j]==lNamesOnDisk[i]) {
-                    lFound=true;
+            for (unsigned int j=0;j<namesInCatalog.size();j++)
+                if (namesInCatalog[j]==namesOnDisk[i]) {
+                    found=true;
                     break;
                 }
-            if (lFound) {
-              verifyDirectory(lCatalogPath+"/"+lNamesOnDisk[i],
-                              lDiskPath+"/"+lNamesOnDisk[i],
-                              lOnlyInCatalog, lOnlyOnDisk,
-                              lDifferent, lWrongSum);
+            if (found) {
+                verifyDirectory(catalogPath+"/"+namesOnDisk[i],
+                                diskPath+"/"+namesOnDisk[i]);
             }
             else {
-                lOnlyOnDisk.push_back(lNamesOnDisk[i]);
-                lNamesOnDisk.erase(lNamesOnDisk.begin()+i);
+                diff.type=eDiffOnlyOnDisk;
+                diff.name=namesOnDisk[i];
+                mrDifferences.push_back(diff);
+                msgInfo("Difference (only on disk) for: ", namesOnDisk[i]);
+                namesOnDisk.erase(namesOnDisk.begin()+i);
                 i--;
             }
         }
 
-    for (unsigned int i=0;i<lNamesInCatalog.size();i++) {
-        msgDebug("verifyDirectory(): checking (catalog name): ", lNamesInCatalog[i]);
-        bool lFound=false;
-        bool lEqual=true;
-        bool wrongSumFlag=false;
-        for (unsigned int j=0;j<lNamesOnDisk.size();j++) {
+    // :tmp:
+    for (unsigned int i=0; i<namesOnDisk.size(); i++) {
+        msgDebug(__FUNCTION__, ": a name on disk: ", namesOnDisk[i]);
+    }
+    
+    for (unsigned int i=0;i<namesInCatalog.size();i++) {
+        msgDebug(__FUNCTION__, ": checking (catalog name): ", namesInCatalog[i]);
+        bool found=false;
+        for (unsigned int j=0;j<namesOnDisk.size();j++) {
             mMutex.lock();
-            lStopNow=mStopNow;
+            stopNow=*mpAbortFlag;
             mMutex.unlock();
-            if (lStopNow)
+            if (stopNow) {
+                msgInfo(__FUNCTION__, ": stopped by user");
                 return 0;
-            if (lNamesInCatalog[i]==lNamesOnDisk[j]) {
-                msgDebug("verifyDirectory(): comparing with (disk name): ", lNamesOnDisk[j]);
-                lFound=true;
-                wrongSumFlag=false;
-                std::string lDiskPathCurrent=lDiskPath+"/"+lNamesOnDisk[j];
-                if (!isDirectory(lDiskPathCurrent)) {
-                    // first check size
-                    // :todo:
-                    
-                    if (lEqual) {
-                        if (lShaSumsInCatalog[i]!="") {
-                            try {
-                                setCurrentFile( lDiskPathCurrent);
-                                lSum=sha1sum(lDiskPathCurrent, std::string("sha1sum"));
-                            }
-                            catch(std::string e) {
-                                lSum="invalid file"; // :fixme: - do something
-                            }
-                        }
-                        else {
-                            shaWasMissing=true;
-                            lSum="";
-                        }
-                        if (lSum!=lShaSumsInCatalog[i]) {
-                            lEqual=false;
-                            wrongSumFlag=true;
-                        }
+            }
+            if (namesInCatalog[i]==namesOnDisk[j]) {
+                msgDebug("verifyDirectory(): comparing with (disk name): ", namesOnDisk[j]);
+                found=true;
+                std::string diskPathCurrent=diskPath+"/"+namesOnDisk[j];
+                diff=compareItems(namesInCatalog[i], ent, diskPathCurrent, shaWasMissing);
+                if (eDiffIdentical != diff.type) {
+                    if (eDiffError == diff.type) {
+                        throw std::string("Error comparing")+namesInCatalog[i];
                     }
-                } // end file compare
-                lNamesOnDisk.erase(lNamesOnDisk.begin()+j);
+                    else {
+                        msgInfo("Difference (?) for: ", diff.name);
+                        mrDifferences.push_back(diff);
+                    }
+                }
+                namesOnDisk.erase(namesOnDisk.begin()+j);
                 break;
             }
         }
-        if (!lFound) { // only in catalog
-            lOnlyInCatalog.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
-        }
-        if (lFound && !lEqual) { // wrong sum, size, etc.
-          if (wrongSumFlag) {
-              lWrongSum.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
-              msgInfo("wrong sum for: ", lNamesInCatalog[i]);
-              msgInfo(lSum, " / ", lShaSumsInCatalog[i]);
-          }
-          else {
-              lDifferent.push_back(lCatalogPath+"/"+lNamesInCatalog[i]);
-              msgInfo("wrong something for: ", lNamesInCatalog[i]);
-          }
+        if (!found) { // only in catalog
+            diff.type=eDiffOnlyInCatalog;
+            diff.name=catalogPath+"/"+namesInCatalog[i];
+            msgInfo("Difference (only in catalog) for: ", diff.name);
+            mrDifferences.push_back(diff);
         }
     }
 
     // the remaining elements are only on disk
-    for(unsigned int i=0;i<lNamesOnDisk.size();i++) 
-      lOnlyOnDisk.push_back(lDiskPath+"/"+lNamesOnDisk[i]);
-        
-#if defined(MTP_DEBUG)
-    cout<<"verifyDirectory(): final report"<<endl;
-    cout<<"  only in catalog"<<endl;
-    for(int i=0;i<lOnlyInCatalog.size();i++)
-        cout<<lOnlyInCatalog[i]<<endl;
-    cout<<"  only on disk"<<endl;
-    for(int i=0;i<lOnlyOnDisk.size();i++)
-        cout<<lOnlyOnDisk[i]<<endl;
-    cout<<"  wrong sum"<<endl;
-    for(int i=0;i<lWrongSum.size();i++)
-        cout<<lWrongSum[i]<<endl;
-    cout<<"  wrong something"<<endl;
-    for(int i=0;i<lDifferent.size();i++)
-      cout<<lDifferent[i]<<endl;
-#endif
-
-    int s1,s2,s3,s4;
-    s1=lOnlyInCatalog.size();
-    s2=lOnlyOnDisk.size();
-    s3=lWrongSum.size();
-    s4=lDifferent.size();
-    if (0 == s1 && 0 == s2 && 0 == s3 && 0 == s4) {
-      if(shaWasMissing)
-        return 2;
-      else
-        return 1;
+    diff.type=eDiffOnlyOnDisk;
+    for (unsigned int i=0;i<namesOnDisk.size();i++)  {
+        diff.name=diskPath+"/"+namesOnDisk[i];
+        msgInfo("Difference (only on disk) for: ", diff.name);
+        mrDifferences.push_back(diff);
     }
-    else {
-      if(shaWasMissing)
-        return 4;
-      else
-        return 3;
-    }      
+
+    if (shaWasMissing)
+        return 2;
+    else
+        return 1;
 }
 
 

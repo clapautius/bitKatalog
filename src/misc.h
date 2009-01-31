@@ -17,16 +17,20 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#if !defined(_misc_h_)
-#define _misc_h_
+#if !defined(MISC_H)
+#define MISC_H
+
+#include "xfcapp.h"
 
 std::string executeCommand(
-    const char *lpPrg, const char *lpArg1=NULL, const char *lpArg2=NULL,
+    const char *lpPrg, volatile const bool*,
+    const char *lpArg1=NULL, const char *lpArg2=NULL,
     const char *lpArg3=NULL, const char *lpArg4=NULL)
 throw (std::string);
 
-std::string sha1sum(std::string lPath, std::string lShaProgramPath)
-        throw (std::string);  
+std::string execChecksum(std::string lPath, std::string lShaProgramPath,
+                         volatile const bool*)
+throw (std::string);  
 
 std::string getTimeSinceMidnight();
 

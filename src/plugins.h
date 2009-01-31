@@ -26,9 +26,11 @@ void importFdbbat(std::string lPathToFile, Xfc &lrXfc)
     throw (std::string);
 
 int sha1Callback(std::string fileName,
-                 std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+                 std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+                 volatile const bool *pAbortFlag);
 
 int sha256Callback(std::string fileName,
-                   std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs);
+                   std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+                   volatile const bool *pAbortFlag);
  
 #endif

@@ -120,6 +120,7 @@ void AddDiskBox::slotUser1()
     std::string lDiskDescription;
     std::string lDiskCDate;
     bool computeSha1=false, computeSha256=false;
+    volatile bool abortScan=false;
     
     lPath=mpPathLabel->text().toStdString();
     lDiskName=mpDiskNameEdit->text().toStdString();
@@ -164,6 +165,7 @@ void AddDiskBox::slotUser1()
     ScanThread::ScanThreadParams params;
     params.computeSha1=computeSha1;
     params.computeSha256=computeSha256;
+    params.pAbortFlag=&abortScan;
     ScanThread *lpScanThread=new ScanThread(mpCatalog, lPath, lDiskName, params);
     msgDebug("Start time: ", getTimeSinceMidnight());
     lpScanThread->start();
@@ -173,20 +175,16 @@ void AddDiskBox::slotUser1()
     while (!lpScanThread->isFinished()) {
         if (lpProgress->wasCancelled()) {
             if (KMessageBox::questionYesNo(this, "Are you sure?")==KMessageBox::Yes) {
-                lpScanThread->stopThread();   
-
-                // :tmp:                
-                KMessageBox::error(this, "Not implemented yet");
+                abortScan=true;
+                msgInfo("Waiting for scanthread to finish");
+                while (!lpScanThread->isFinished())
+                    usleep(250000);
+                msgInfo("Scanthread is finished");
                 delete lpProgress;
-                lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
-                lpProgress->progressBar()->setRange(0, 0);
-                lpProgress->progressBar()->setTextVisible(false);
-                lpProgress->setMinimumDuration(1000);
-                lpProgress->setAutoClose(true);
-                lpProgress->setAllowCancel(true);
-                lpProgress->setButtonText("Stop");
-                // end :tmp:
-
+                lpProgress=NULL;
+                KMessageBox::information(
+                    this, "Scanning was cancelled. You should not save this catalog!");
+                break;
             }
             else {
                 delete lpProgress;
@@ -204,7 +202,6 @@ void AddDiskBox::slotUser1()
         usleep(250000);
     }
     msgDebug("Finish time: ", getTimeSinceMidnight());
-
     if (lpScanThread->returnValue()!=0) {        
         std::string err;
         err="Error adding path to catalog. ";
@@ -215,7 +212,6 @@ void AddDiskBox::slotUser1()
         close();
         return;
     }
-
     if (lDiskDescription!="") {
         try {
             mpCatalog->setDescriptionOf(std::string("/")+lDiskName, lDiskDescription);
@@ -224,7 +220,6 @@ void AddDiskBox::slotUser1()
             KMessageBox::error(this, "Cannot add description to disk");
         }
     }
-    
     if (lDiskCDate!="") {
         try {
             mpCatalog->setCDate(lDiskName, lDiskCDate);
@@ -233,7 +228,6 @@ void AddDiskBox::slotUser1()
             KMessageBox::error(this, "Cannot set cdate for disk");
         }
     }
-    
     gCatalogState=1;
     gpMainWindow->updateTitle(true);
     delete lpProgress;
