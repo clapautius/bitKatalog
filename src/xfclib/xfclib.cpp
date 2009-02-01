@@ -1,7 +1,6 @@
 #include "xfclib.h"
 
-static int gXfcVerboseLevel=3;
-
+using namespace std;
 
 XfcLogger&
 xfcWarn(XfcLogger &rLogger)
@@ -48,18 +47,25 @@ XfcLogger::setLevel(int level)
 }
 
 
-XfcLogger&
-XfcLogger::operator<<(XfcLogger& (*pFunc)(XfcLogger&))
+void
+XfcLogger::setVerboseLevel(int level)
 {
-    return *this;
+    mVerbLevel=level;
 }
 
 
 XfcLogger&
-XfcLogger::operator<<(string s)
+XfcLogger::operator<<(XfcLogger& (*pFunc)(XfcLogger&))
 {
-    if (mCurrentLevel>=mVerbLevel)
-        cout<<s;
+    return pFunc(*this);
+}
+
+
+XfcLogger&
+XfcLogger::operator<<(std::string s)
+{
+    if (mVerbLevel>=mCurrentLevel)
+        std::cout<<s;
     return *this;
 }
 
@@ -67,10 +73,9 @@ XfcLogger::operator<<(string s)
 XfcLogger&
 XfcLogger::operator<<(int i)
 {
-    if (mCurrentLevel>=mVerbLevel)
-        cout<<i;
+    if (mVerbLevel>=mCurrentLevel)
+        std::cout<<i;
     return *this;
 }
 
-
-XfcLogger gLog(3);
+XfcLogger gLog;

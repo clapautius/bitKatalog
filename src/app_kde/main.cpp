@@ -53,6 +53,9 @@ static const char version[] = XFCAPP_VERSION;
 static int gVerboseLevel=3;
 
 
+XfcLogger gkLog;
+
+
 void
 msgWarn(std::string s, std::string s2, std::string s3)
 {
@@ -96,7 +99,7 @@ void msgDebug(std::string s, std::string s2, std::string s3, std::string s4)
 }
 
 
-void startUp();
+void startUp(KCmdLineArgs *);
 
 
 int main(int argc, char **argv)
@@ -115,23 +118,26 @@ int main(int argc, char **argv)
 
     KCmdLineArgs::init(argc, argv, &about);
     KCmdLineOptions options;
+    options.add("verbose-level <argument>", ki18n("Verbose level (0-3)"), "0");
+    options.add("xfclib-verbose-level <argument>", ki18n("Verbose level for xfclib (0-3)"), "0");
     options.add("+[URL]", ki18n("Document to open"));
     KCmdLineArgs::addCmdLineOptions(options);
+    KCmdLineArgs *pArgs=KCmdLineArgs::parsedArgs();
     KApplication app;
+
+    startUp(pArgs);
 
     // try to find a suitable window icon
     KIconLoader *pIconLoader=KIconLoader::global();
     QIcon windowIcon=pIconLoader->loadIconSet("bitKatalog", KIconLoader::NoGroup, 0, true);
     if (windowIcon.isNull()) {
-        msgInfo("Couldn't find bitKatalog icon");
+        gkLog<<xfcInfo<<"Couldn't find bitKatalog icon"<<eol;
         //delete pWindowIcon;
         windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
         if (windowIcon.isNull())
-            msgWarn("Couldn't find media-optical icon");
+            gkLog<<xfcWarn<<"Couldn't find media-optical icon"<<eol;
     }
     app.setWindowIcon(windowIcon);
-
-    startUp();
 
     // see if we are starting with session management
     if (app.isSessionRestored()) {
@@ -158,7 +164,7 @@ int main(int argc, char **argv)
 }
 
 
-void startUp()
+void startUp(KCmdLineArgs *pArgs)
 {
     KIconLoader *pIconLoader=KIconLoader::global();
     gpDiskPixmap=new QPixmap(pIconLoader->loadIcon("media-optical", KIconLoader::Small));
@@ -168,6 +174,12 @@ void startUp()
     xmlIndentTreeOutput=1;
     xmlKeepBlanksDefault(0);
 
+    gkLog.setVerboseLevel(pArgs->getOption("verbose-level").toInt());
+    gLog.setVerboseLevel(pArgs->getOption("xfclib-verbose-level").toInt());
+
+    gkLog<<xfcInfo<<"kde app verbose level: "<<gkLog.getVerboseLevel()<<eol;
+    gkLog<<xfcInfo<<"xfc lib verbose level: "<<gLog.getVerboseLevel()<<eol;
+    
     //gpConfig=gpApplication->sessionConfig();
     gpConfig=KGlobal::config();
     //gpConfig->setReadOnly(false);
@@ -179,27 +191,3 @@ EntityDiff::EntityDiff()
 {
     type=eDiffIdentical;
 }
-
-/*
-void runningForTheFirstTime()
-{
-    std::ostringstream lOut;
-    std::ofstream lFout;
-    if(!fileExists(CONFIG_FILE))
-    {
-        lFout.open(CONFIG_FILE);
-        if(!lFout.good())
-        {
-            KMessageBox::error(NULL, "Cannot create config file");
-        }
-        else
-        {
-            lFout.close();
-            KMessageBox::information(NULL, "Default config file created");
-        }
-    }
-        
-    
-    gLastDir=gpConfig->readEntry("lastDir", ".").ascii();
-}
-*/

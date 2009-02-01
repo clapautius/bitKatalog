@@ -30,8 +30,7 @@
 class VerifyThread : public QThread
 {
 public:
-    VerifyThread(Xfc*, string catalogPath, string diskPath,
-                 volatile const bool *pAbortFlag, vector<EntityDiff> &);
+    VerifyThread(Xfc*, string catalogPath, string diskPath, vector<EntityDiff> *);
 
     ~VerifyThread();
     
@@ -44,6 +43,8 @@ public:
     void setCurrentFile(std::string);
 
     int getResultCode() const;
+
+    void stopThread();
     
 private:
 
@@ -56,7 +57,7 @@ private:
     
     std::string mCatalogPath, mDiskPath;
 
-    vector<EntityDiff> mrDifferences;
+    vector<EntityDiff> *mpDifferences;
 
     std::string mCurrentFile;
     
@@ -64,7 +65,8 @@ private:
     
     int mResultCode;
 
-    volatile const bool *mpAbortFlag;
+    volatile bool mAbortFlag;
+    
 };
 
 #endif

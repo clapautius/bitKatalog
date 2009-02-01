@@ -99,14 +99,14 @@ void AddDiskBox::layout()
     mpAddRootCheckBox->setChecked(false);
 
     KHBox *pShaBox=new KHBox(mpGroupBox);
-    
-    mpComputeSha1SumCheckBox=
-        new QCheckBox("Compute sha1 sums for this disk", pShaBox);
-    mpComputeSha1SumCheckBox->setChecked(false);
 
     mpComputeSha256SumCheckBox=
         new QCheckBox("Compute sha256 sums for this disk", pShaBox);
     mpComputeSha256SumCheckBox->setChecked(true);
+
+    mpComputeSha1SumCheckBox=
+        new QCheckBox("Compute sha1 sums for this disk", pShaBox);
+    mpComputeSha1SumCheckBox->setChecked(false);
 
     // connect button
     connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1())); // add

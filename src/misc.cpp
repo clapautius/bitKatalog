@@ -25,14 +25,12 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include <iostream>
 #include <string>
 
 #include "misc.h"
 
-#if defined(XFC_DEBUG)
-#include <iostream>
 using namespace std;
-#endif
 
 
 /**

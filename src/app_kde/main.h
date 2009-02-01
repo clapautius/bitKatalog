@@ -28,6 +28,7 @@
 
 #include "bitkatalog.h"
 #include "bitkatalogview.h"
+#include "xfclib.h"
 #include "xfcapp.h"
 
 
@@ -45,6 +46,9 @@ extern int gCatalogState;
 // 0 - not loaded
 // 1 - modified
 // 2 - not modified
+
+
+extern XfcLogger gkLog;
 
 void msgWarn(std::string, std::string="", std::string="");
 void msgInfo(std::string, std::string="", std::string="");

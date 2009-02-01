@@ -52,8 +52,10 @@ public:
 
     ~DiffOutputWindow();
     
-    void addText(std::string, std::string, std::string);
+    void addText(std::string, std::string, std::string, unsigned int lines=1);
 
+    void finishedText();
+    
 private:
 
     void layout();

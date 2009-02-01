@@ -18,8 +18,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include <kvbox.h>
+#include <QHeaderView>
 
 #include "outputwindow.h"
+#include "main.h"
+
+using namespace std;
 
 
 OutputWindow::OutputWindow()
@@ -65,6 +69,7 @@ DiffOutputWindow::DiffOutputWindow(int rows)
     setModal(true);
     mCurrentRow=0;
     layout();
+    gkLog<<xfcInfo<<"Created new diff output window. No. of rows="<<rows<<eol;
 }
 
 
@@ -79,18 +84,40 @@ void DiffOutputWindow::layout()
     KVBox *pBox1=new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Results"));
     pPage1->setHeader(QString("Results"));
+    mpList=new QTableWidget(mRows, 3, pBox1);
+    QStringList headers;
+    headers<<"Catalog"<<""<<"Disk";
+    mpList->setHorizontalHeaderLabels(headers);
+    mpList->setStyleSheet("QTableWidgetItem { border-style: none solid; }");
 }
 
 
 void
-DiffOutputWindow::addText(std::string s1, std::string s2, std::string s3)
+DiffOutputWindow::addText(string s1, string s2, string s3, unsigned int lines)
 {
-    mpList->setCurrentCell(mCurrentRow, 0);
-    mpList->setCurrentItem(new QTableWidgetItem(s1.c_str()));
-    mpList->setCurrentCell(mCurrentRow, 1);
-    mpList->setCurrentItem(new QTableWidgetItem(s2.c_str()));
-    mpList->setCurrentCell(mCurrentRow, 2);
-    mpList->setCurrentItem(new QTableWidgetItem(s3.c_str()));
+    gkLog<<xfcDebug<<"Adding text to current row: "<<s1<<", "<<s2<<", "<<s3<<eol;
+    gkLog<<"Current row is "<<mCurrentRow<<eol;
+    string verticalHeader;
+    if (lines>1) {
+        for (unsigned int i=1; i<lines; i++)
+            verticalHeader+="\n";
+    }
+    mpList->setVerticalHeaderItem(mCurrentRow, new QTableWidgetItem(verticalHeader.c_str()));
+    QTableWidgetItem *pItem=new QTableWidgetItem(s1.c_str());
+    pItem->setFlags(Qt::ItemIsEnabled);
+    mpList->setItem(mCurrentRow, 0, pItem);
+    pItem=new QTableWidgetItem(s2.c_str());
+    pItem->setFlags(Qt::ItemIsEnabled);
+    mpList->setItem(mCurrentRow, 1, pItem);
+    pItem=new QTableWidgetItem(s3.c_str());
+    pItem->setFlags(Qt::ItemIsEnabled);
+    mpList->setItem(mCurrentRow, 2, pItem);
     mCurrentRow++;
 }
 
+
+void
+DiffOutputWindow::finishedText()
+{
+    mpList->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
+}

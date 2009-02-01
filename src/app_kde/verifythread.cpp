@@ -27,15 +27,14 @@
 
 
 VerifyThread::VerifyThread(
-    Xfc* pCatalog, string catalogPath, string diskPath, volatile const bool *pAbortFlag,
-    vector<EntityDiff> &differences)
+    Xfc* pCatalog, string catalogPath, string diskPath, vector<EntityDiff> *pDifferences)
     : QThread(),
-      mrDifferences(differences)
+      mpDifferences(pDifferences)
 {
     mpCatalog=pCatalog;
     mCatalogPath=catalogPath;
     mDiskPath=diskPath;
-    mpAbortFlag=pAbortFlag;
+    mAbortFlag=false;
 }
 
 
@@ -70,6 +69,9 @@ VerifyThread::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
         ostr<<getFileSize(diskPath);
         if (ostr.str() != details["size"]) {
             diff.type=eDiffSize;
+            diff.name=catalogName;
+            diff.catalogValue=details["size"];
+            diff.diskValue=ostr.str();
             msgDebug("different sizes for ", catalogName);
             msgDebug("catalog value=", details["size"], ", disk value=", ostr.str());
             return diff;
@@ -82,34 +84,42 @@ VerifyThread::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
         if (!details[SHA256LABEL].empty()) {
             try {
                 setCurrentFile(diskPath);
-                str=execChecksum(diskPath, std::string("sha256sum"), mpAbortFlag);
+                str=execChecksum(diskPath, std::string("sha256sum"), &mAbortFlag);
+                if (str!=details[SHA256LABEL]) {
+                    diff.type=eDiffSha256Sum;
+                    diff.name=catalogName;
+                    diff.catalogValue=details[SHA256LABEL];
+                    diff.diskValue=str;
+                    msgDebug("different sha256 for ", catalogName);
+                    msgDebug("catalog value=", details[SHA256LABEL], ", disk value=", str);
+                    return diff;
+                }
             }
             catch(std::string e) {
                 diff.type=eDiffError;
+                diff.name=catalogName;
             }
-        }
-        if (str!=details[SHA256LABEL]) {
-            diff.type=eDiffSha256Sum;
-            msgDebug("different sha256 for ", catalogName);
-            msgDebug("catalog value=", details[SHA256LABEL], ", disk value=", str);
-            return diff;
         }
 
         // sha1
         if (!details[SHA1LABEL].empty()) {
             try {
                 setCurrentFile(diskPath);
-                str=execChecksum(diskPath, std::string("sha1sum"), mpAbortFlag);
+                str=execChecksum(diskPath, std::string("sha1sum"), &mAbortFlag);
+                if (str!=details[SHA1LABEL]) {
+                    diff.type=eDiffSha1Sum;
+                    diff.name=catalogName;
+                    diff.catalogValue=details[SHA1LABEL];
+                    diff.diskValue=str;
+                    msgDebug("different sha1 for ", catalogName);
+                    msgDebug("catalog value=", details[SHA1LABEL], ", disk value=", str);
+                    return diff;
+                }
             }
             catch(std::string e) {
                 diff.type=eDiffError;
+                diff.name=catalogName;
             }
-        }
-        if (str!=details[SHA1LABEL]) {
-            diff.type=eDiffSha1Sum;
-            msgDebug("different sha1 for ", catalogName);
-            msgDebug("catalog value=", details[SHA1LABEL], ", disk value=", str);
-            return diff;
         }
     } // end file compare
 
@@ -136,16 +146,11 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
     bool shaWasMissing=false;
     
     mMutex.lock();
-    stopNow=*mpAbortFlag;
+    stopNow=mAbortFlag;
     mMutex.unlock();
 
     msgDebug("Verifying dir: ", diskPath);
     msgDebug("Catalog path is: ", catalogPath);
-
-    // :tmp:
-    ostringstream ostr;
-    ostr<<"differences addr="<<&mrDifferences<<endl;
-    msgDebug(ostr.str());
 
     if (stopNow) {
         msgInfo(__FUNCTION__, ": stopped by user");
@@ -184,7 +189,7 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
             else {
                 diff.type=eDiffOnlyOnDisk;
                 diff.name=namesOnDisk[i];
-                mrDifferences.push_back(diff);
+                mpDifferences->push_back(diff);
                 msgInfo("Difference (only on disk) for: ", namesOnDisk[i]);
                 namesOnDisk.erase(namesOnDisk.begin()+i);
                 i--;
@@ -201,7 +206,7 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
         bool found=false;
         for (unsigned int j=0;j<namesOnDisk.size();j++) {
             mMutex.lock();
-            stopNow=*mpAbortFlag;
+            stopNow=mAbortFlag;
             mMutex.unlock();
             if (stopNow) {
                 msgInfo(__FUNCTION__, ": stopped by user");
@@ -217,8 +222,9 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
                         throw std::string("Error comparing")+namesInCatalog[i];
                     }
                     else {
-                        msgInfo("Difference (?) for: ", diff.name);
-                        mrDifferences.push_back(diff);
+                        gkLog<<xfcInfo<<"Difference (type="<<(int)diff.type<<") for: "<<diff.name<<eol;
+                        gkLog<<"  catalog value="<<diff.catalogValue<<", disk value="<<diff.diskValue<<eol;
+                        mpDifferences->push_back(diff);
                     }
                 }
                 namesOnDisk.erase(namesOnDisk.begin()+j);
@@ -229,7 +235,7 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
             diff.type=eDiffOnlyInCatalog;
             diff.name=catalogPath+"/"+namesInCatalog[i];
             msgInfo("Difference (only in catalog) for: ", diff.name);
-            mrDifferences.push_back(diff);
+            mpDifferences->push_back(diff);
         }
     }
 
@@ -238,7 +244,7 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
     for (unsigned int i=0;i<namesOnDisk.size();i++)  {
         diff.name=diskPath+"/"+namesOnDisk[i];
         msgInfo("Difference (only on disk) for: ", diff.name);
-        mrDifferences.push_back(diff);
+        mpDifferences->push_back(diff);
     }
 
     if (shaWasMissing)
@@ -271,5 +277,14 @@ VerifyThread::setCurrentFile(std::string lFile)
 {
     mMutex.lock();
     mCurrentFile=lFile;
+    mMutex.unlock();
+}
+
+
+void
+VerifyThread::stopThread()
+{
+    mMutex.lock();
+    mAbortFlag=true;
     mMutex.unlock();
 }

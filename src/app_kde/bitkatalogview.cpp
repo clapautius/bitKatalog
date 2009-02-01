@@ -255,7 +255,6 @@ bitKatalogView::verifyDisk() throw()
     Q3ListViewItem *lpItem;
     std::string lCompletePath;
     std::string lS;
-    bool abortOperation=false;
     vector<EntityDiff> differences;
     
     if (mCatalog==NULL) {
@@ -269,13 +268,8 @@ bitKatalogView::verifyDisk() throw()
     if ("" == lDir) // cancel
         return;
 
-    // :tmp:
-    ostringstream ostr;
-    ostr<<"differences addr="<<&differences<<endl;
-    msgDebug(ostr.str());
-    
     VerifyThread *lpVerifyThread=new VerifyThread(
-        mCatalog, lCompletePath, lDir.toStdString(), &abortOperation, differences);
+        mCatalog, lCompletePath, lDir.toStdString(), &differences);
         
     KProgressDialog *lpProgress=new KProgressDialog(this, "Verifying ...", "");
     //lpProgress->progressBar()->setTotalSteps(0);
@@ -305,7 +299,7 @@ bitKatalogView::verifyDisk() throw()
             lOldLabel=lLabel;
         }
         if (lpProgress->wasCancelled()) {
-            abortOperation=true;
+            lpVerifyThread->stopThread();
             KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
             lpProgress2->progressBar()->setRange(0, 0);
             lpProgress2->progressBar()->setTextVisible(false);
@@ -334,29 +328,45 @@ bitKatalogView::verifyDisk() throw()
         KMessageBox::information(this, "Some (or all) files did not have checksums.");
 
     if (differences.size()>0) {
+        string str1, str2;
         DiffOutputWindow *pResults=new DiffOutputWindow(differences.size());
         for (unsigned int i=0; i<differences.size(); i++) {
             switch (differences[i].type) {
             case eDiffOnlyInCatalog:
-                pResults->addText(differences[i].name, "!", "");
+                pResults->addText(differences[i].name, "!", "-");
                 break;
             case eDiffOnlyOnDisk:
-                pResults->addText("", "!", differences[i].name);
+                pResults->addText("-", "!", differences[i].name);
                 break;
             case eDiffSize:
-                pResults->addText(differences[i].name, " ! size ", differences[i].name);
+                str1=differences[i].name+"\n (size: "+differences[i].catalogValue+")";
+                str2=differences[i].name+"\n (size: "+differences[i].diskValue+")";
+                pResults->addText(str1, " ! size ", str2, 2);
+                str1.clear();
+                str2.clear();
                 break;
             case eDiffSha256Sum:
-                pResults->addText(differences[i].name, " ! sha256 ", differences[i].name);
+                str1=differences[i].name+"\n (sha256: "+differences[i].catalogValue+")";
+                str2=differences[i].name+"\n (sha256: "+differences[i].diskValue+")";
+                pResults->addText(str1, " ! sha256 ", str2, 2);
+                str1.clear();
+                str2.clear();
                 break;
             case eDiffSha1Sum:
-                pResults->addText(differences[i].name, " ! sha1 ", differences[i].name);
+                str1=differences[i].name+"\n (sha1: "+differences[i].catalogValue+")";
+                str2=differences[i].name+"\n (sha1: "+differences[i].diskValue+")";
+                pResults->addText(str1, " ! sha1 ", str2, 2);
+                str1.clear();
+                str2.clear();
                 break;
             default:
                 pResults->addText(differences[i].name, " ! ", differences[i].name);
                 break;
             }                
-        }                
+        }
+        pResults->finishedText();
+        pResults->setModal(true);
+        pResults->show();
     }
     else {
         KMessageBox::information(this, "Disk OK");

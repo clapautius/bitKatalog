@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 class XfcLogger;
 
 XfcLogger& xfcWarn(XfcLogger&);
@@ -17,8 +15,15 @@ class XfcLogger
 {
 public:
     
-    XfcLogger(int verboseLevel);
+    XfcLogger(int verboseLevel=0);
 
+    void setVerboseLevel(int);
+
+    int getVerboseLevel() const
+    {
+        return mVerbLevel;
+    }
+    
     void setLevel(int);
 
     XfcLogger& operator<<(XfcLogger& (*)(XfcLogger&));
