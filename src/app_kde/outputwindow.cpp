@@ -85,6 +85,7 @@ void DiffOutputWindow::layout()
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Results"));
     pPage1->setHeader(QString("Results"));
     mpList=new QTableWidget(mRows, 3, pBox1);
+    mpList->setShowGrid(false);
     QStringList headers;
     headers<<"Catalog"<<""<<"Disk";
     mpList->setHorizontalHeaderLabels(headers);
@@ -103,14 +104,22 @@ DiffOutputWindow::addText(string s1, string s2, string s3, unsigned int lines)
             verticalHeader+="\n";
     }
     mpList->setVerticalHeaderItem(mCurrentRow, new QTableWidgetItem(verticalHeader.c_str()));
+    QColor background;
+    if (mCurrentRow%2)
+        background=QApplication::palette().color(QPalette::AlternateBase);
+    else
+        background=QApplication::palette().color(QPalette::Base);
     QTableWidgetItem *pItem=new QTableWidgetItem(s1.c_str());
     pItem->setFlags(Qt::ItemIsEnabled);
+    pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 0, pItem);
     pItem=new QTableWidgetItem(s2.c_str());
     pItem->setFlags(Qt::ItemIsEnabled);
+    pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 1, pItem);
     pItem=new QTableWidgetItem(s3.c_str());
     pItem->setFlags(Qt::ItemIsEnabled);
+    pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 2, pItem);
     mCurrentRow++;
 }

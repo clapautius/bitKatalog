@@ -49,73 +49,61 @@ int gCatalogState=0;
 
 static const char version[] = XFCAPP_VERSION;
 
-// :release:
-static int gVerboseLevel=3;
-
-
 XfcLogger gkLog;
 
 
 void
 msgWarn(std::string s, std::string s2, std::string s3)
 {
-    if (gVerboseLevel>=1) {
-        std::cout<<s;
-        if (!s2.empty())
-            std::cout<<s2;
-        if (!s3.empty())
-            std::cout<<s3;
-        std::cout<<std::endl;
-    }
+    gkLog<<xfcWarn<<s;
+    if (!s2.empty())
+        gkLog<<s2;
+    if (!s3.empty())
+        gkLog<<s3;
+    gkLog<<eol;
 }
 
 
 void
 msgInfo(std::string s, std::string s2, std::string s3)
 {
-    if (gVerboseLevel>=2) {
-        std::cout<<s;
-        if (!s2.empty())
-            std::cout<<s2;
-        if (!s3.empty())
-            std::cout<<s3;
-        std::cout<<std::endl;
-    }
+    gkLog<<xfcWarn<<s;
+    if (!s2.empty())
+        gkLog<<s2;
+    if (!s3.empty())
+        gkLog<<s3;
+    gkLog<<eol;
 }
 
 
 void msgDebug(std::string s, std::string s2, std::string s3, std::string s4)
 {
-    if (gVerboseLevel>=3) {
-        std::cout<<s;
-        if (!s2.empty())
-            std::cout<<s2;
-        if (!s3.empty())
-            std::cout<<s3;
-        if (!s4.empty())
-            std::cout<<s4;
-        std::cout<<std::endl;
-    }
+    gkLog<<xfcWarn<<s;
+    if (!s2.empty())
+        gkLog<<s2;
+    if (!s3.empty())
+        gkLog<<s3;
+    if (!s4.empty())
+        gkLog<<s4;
+    gkLog<<eol;
 }
 
 
-void startUp(KCmdLineArgs *);
+static void
+startUp(KCmdLineArgs *);
 
 
 int main(int argc, char **argv)
 {
     std::string otherText;
-    KAboutData about(QByteArray("bitKatalog"), QByteArray("bitKatalog"), ki18n("bitKatalog"), QByteArray(version), ki18n("A KDE file & disk catalog that uses plain-text XML to store catalog information."),  KAboutData::License_GPL);
+    KAboutData about(
+        QByteArray("bitKatalog"), QByteArray("bitKatalog"), ki18n("bitKatalog"),
+        QByteArray(version),
+        ki18n("A KDE file & disk catalog that uses plain-text XML to store catalog information."),
+        KAboutData::License_GPL_V2, ki18n("(C) 2009 Tudor Marian Pristavu"));
 
-    // :fixme: - kde4
-    //KAboutData::License_GPL, "(C) 2009 Tudor Pristavu", 0, 0, "clapautiusAtGmailDotCom");
-
-    // :fixme: - kde4
-    //about.addAuthor( "Tudor Pristavu", 0, "tudor.pristavu@gmail.com" );
-    //otherText="Using libaxfc version: ";
-    //otherText+=Xfc::getVersionString();
-    //about.setOtherText(otherText.c_str());
-
+    about.addAuthor(ki18n("Tudor Marian Pristavu"), ki18n(""), QByteArray("clapautiuAtGmaliDotCom") );
+    
     KCmdLineArgs::init(argc, argv, &about);
     KCmdLineOptions options;
     options.add("verbose-level <argument>", ki18n("Verbose level (0-3)"), "0");

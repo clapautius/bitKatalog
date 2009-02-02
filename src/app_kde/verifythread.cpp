@@ -197,9 +197,9 @@ VerifyThread::verifyDirectory(string catalogPath, string diskPath)
         }
 
     // :tmp:
-    for (unsigned int i=0; i<namesOnDisk.size(); i++) {
-        msgDebug(__FUNCTION__, ": a name on disk: ", namesOnDisk[i]);
-    }
+    //for (unsigned int i=0; i<namesOnDisk.size(); i++) {
+    //    msgDebug(__FUNCTION__, ": a name on disk: ", namesOnDisk[i]);
+    //}
     
     for (unsigned int i=0;i<namesInCatalog.size();i++) {
         msgDebug(__FUNCTION__, ": checking (catalog name): ", namesInCatalog[i]);
