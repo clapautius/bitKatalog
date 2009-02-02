@@ -594,5 +594,4 @@ void initStuff()
 {
     xmlIndentTreeOutput=1;
     xmlKeepBlanksDefault(0);
-    gLog.setVerboseLevel(3);
 }
