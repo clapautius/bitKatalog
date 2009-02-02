@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,9 +43,6 @@ class Kurl;
  * This class serves as the main window for bitKatalog.  It handles the
  * menus, toolbars, and status bars.
  *
- * @short Main window class
- * @author Tudor Pristavu <clapautiuAtGmaliDotCom>
- * @version 0.1
  */
 class bitKatalog : public KXmlGuiWindow
 {

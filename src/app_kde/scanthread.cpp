@@ -48,11 +48,14 @@ ScanThread::run()
     vector<Xfc::XmlParamForFileCallback> cbList1;
     vector<Xfc::XmlParamForFileChunkCallback> cbList2;
 
-    if (mComputeSha1)
-        cbList1.push_back(sha1Callback);
-    if (mComputeSha256)
-        cbList1.push_back(sha256Callback);
-        
+    if (mComputeSha1) {
+        //cbList1.push_back(sha1Callback); // - used for testing
+        cbList2.push_back(sha1UsingBufCallback);
+    }
+    if (mComputeSha256) {
+        //cbList1.push_back(sha256Callback); // - used for testing
+        cbList2.push_back(sha256UsingBufCallback);
+    }        
     try {
         mpCatalog->addPathToXmlTree(mPath, -1, mpAbortFlag, cbList1, cbList2, mDiskName, "","","");
     }

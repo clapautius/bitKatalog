@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -292,7 +292,7 @@ bitKatalog::fileSave()
           //m_view->resetModifiedFlag();
           gCatalogState=2;
           gpMainWindow->updateTitle(false);
-          KMessageBox::information(this, "File succesfully saved"); // :tmp:
+          //KMessageBox::information(this, "File succesfully saved");
         }
         catch(std::string e) {
           KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
@@ -327,7 +327,7 @@ void bitKatalog::fileSaveAs()
                 gCatalogState=2;
                 mCatalogPath=file_url.path().toStdString();
                 gpMainWindow->updateTitle(false);
-                KMessageBox::information(this, "File succesfully saved"); // :tmp:
+                //KMessageBox::information(this, "File succesfully saved");
             }
             catch(std::string e) {
                 KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));

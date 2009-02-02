@@ -20,17 +20,21 @@
 #if !defined(_plugins_h_)
 #define _plugins_h_
 
-#include "xfc.h"
+#include <string>
 
-void importFdbbat(std::string lPathToFile, Xfc &lrXfc)
-    throw (std::string);
+using namespace std;
 
-int sha1Callback(std::string fileName,
-                 std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
-                 volatile const bool *pAbortFlag);
 
-int sha256Callback(std::string fileName,
-                   std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
-                   volatile const bool *pAbortFlag);
- 
+int sha1Callback(string fileName, string *pParam, string *pValue,
+                 volatile const bool *pAbortFlag=NULL);
+
+int sha256Callback(string fileName, string *pParam, string *pValue,
+                   volatile const bool *pAbortFlag=NULL);
+
+int sha1UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
+                         string *, string *, volatile const bool *pAbortFlag=NULL);
+
+int sha256UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
+                           string *, string *, volatile const bool *pAbortFlag=NULL);
+
 #endif

@@ -17,34 +17,50 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "plugins.h"
-
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
-#if defined(XFC_DEBUG)
-#include <iostream>
-using namespace std;
-#endif
-
+#include "plugins.h"
+#include "sha1.h"
+#include "sha2.h"
 #include "fs.h"
 #include "xfc.h"
 #include "misc.h"
 
+using namespace std;
+
+
+/// not used anymore
 int
-sha1Callback(std::string fileName,
-             std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
-             volatile const bool *pAbortFlag)
+sha1Callback(string fileName, string *pParam, string *pValue, volatile const bool *pAbortFlag)
 {
     int rc=-1;
     // the second string is the name of the binary
     std::string lSum=execChecksum(fileName, std::string("sha1sum"), pAbortFlag);
     if (!lSum.empty()) {
-        xmlParam="sum";
-        xmlValue=lSum;
-        xmlAttrs.clear();
-        xmlAttrs.push_back("type");
-        xmlAttrs.push_back(SHA1LABEL);
+        *pParam=SHA1LABEL;
+        *pValue=lSum;
+        rc=0;
+    }
+    else {
+        rc=-1;
+    }
+    return rc;
+}
+
+
+/// not used anymore
+int
+sha256Callback(string fileName, string *pParam, string *pValue, volatile const bool *pAbortFlag)
+{
+    int rc=-1;
+    // the second string is the name of the binary
+    std::string lSum=execChecksum(fileName, std::string("sha256sum"), pAbortFlag);
+    if (!lSum.empty()) {
+        *pParam=SHA256LABEL;
+        *pValue=lSum;
         rc=0;
     }
     else {
@@ -55,23 +71,56 @@ sha1Callback(std::string fileName,
 
 
 int
-sha256Callback(std::string fileName,
-               std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
-               volatile const bool *pAbortFlag)
+sha1UsingBufCallback(
+    const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
+    string *pParam, string *pValue,
+    volatile const bool *pAbortFlag __attribute__((unused)))
 {
-    int rc=-1;
-    // the second string is the name of the binary
-    std::string lSum=execChecksum(fileName, std::string("sha256sum"), pAbortFlag);
-    if (!lSum.empty()) {
-        xmlParam="sum";
-        xmlValue=lSum;
-        xmlAttrs.clear();
-        xmlAttrs.push_back("type");
-        xmlAttrs.push_back(SHA256LABEL);
-        rc=0;
+    static sha1_context ctx;
+    if (isFirstChunk) {
+        bzero(&ctx, sizeof(ctx));
+        sha1_starts(&ctx);
     }
-    else {
-        rc=-1;
+    if (bufLen>0) {
+        sha1_update(&ctx, (unsigned char*)buf, bufLen);
     }
-    return rc;
+    if (isLastChunk) {
+        unsigned char hash[20];
+        ostringstream ostr;
+        ostr<<hex<<setfill('0');
+        sha1_finish(&ctx, hash);
+        for (unsigned int i=0;i<20;i++)
+            ostr<<setw(2)<<(int)hash[i];
+        *pParam=SHA1LABEL;
+        *pValue=string(ostr.str());
+    }
+    return 0;
+}
+
+
+int
+sha256UsingBufCallback(
+    const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
+    string *pParam, string *pValue,
+    volatile const bool *pAbortFlag __attribute__((unused)))
+{
+    static sha2_context ctx;
+    if (isFirstChunk) {
+        bzero(&ctx, sizeof(ctx));
+        sha2_starts(&ctx, 0);
+    }
+    if (bufLen>0) {
+        sha2_update(&ctx, (unsigned char*)buf, bufLen);
+    }
+    if (isLastChunk) {
+        unsigned char hash[32];
+        ostringstream ostr;
+        ostr<<hex<<setfill('0');
+        sha2_finish(&ctx, hash);
+        for (unsigned int i=0;i<32;i++)
+            ostr<<setw(2)<<(int)hash[i];
+        *pParam=SHA256LABEL;
+        *pValue=string(ostr.str());
+    }
+    return 0;
 }

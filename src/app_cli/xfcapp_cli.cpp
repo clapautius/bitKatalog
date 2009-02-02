@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009 by Tudor Pristavu                                  *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -525,10 +525,10 @@ cmdVerifyDisk(std::vector<std::string> cmd)
             }                
         }
     }
-    else {
+    else if(0 != rc) {
         displayMessage("Disk OK");
     }
-
+    // else stopped by user
 }
 
 

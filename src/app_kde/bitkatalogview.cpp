@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,15 +17,10 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
-
-#include "bitkatalogview.h"
-
 #include <Qt/qpainter.h>
 #include <Qt/qlayout.h>
 
 #include <kurl.h>
-
 #include <kmimetypetrader.h>
 #include <klibloader.h>
 #include <kmessagebox.h>
@@ -45,14 +40,6 @@
 #include "fs.h"
 #include "misc.h"
 #include "xfcEntity.h"
-
-// :tmp:
-#include <sstream>
-
-#if defined(MTP_DEBUG)
-#include <iostream>
-using namespace std;
-#endif
 
 
 bitKatalogView::bitKatalogView(QWidget *parent)
@@ -375,9 +362,10 @@ bitKatalogView::verifyDisk() throw()
         pResults->setModal(true);
         pResults->show();
     }
-    else {
+    else if(0 != rc) {
         KMessageBox::information(this, "Disk OK");
     }
+    // else stopped by user
 }
 
 
@@ -439,20 +427,6 @@ Xfc*
 bitKatalogView::getCatalog()
 {
     return mCatalog;
-}
-
-
-bool
-bitKatalogView::catalogWasModified() // :todo: - remove this function
-{
-    return mModifiedCatalog;
-}
-
-
-void
-bitKatalogView::resetModifiedFlag() // :todo: - remove this function
-{
-    mModifiedCatalog=false;
 }
 
 

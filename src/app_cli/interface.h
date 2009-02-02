@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2004 by Tudor Marian Pristavu                           *
- *   tudor.mp@home.ro                                                      *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *

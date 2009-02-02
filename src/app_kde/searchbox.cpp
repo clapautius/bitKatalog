@@ -169,18 +169,14 @@ findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& l
     KProgressDialog *lpProgressDialog=lpSearchStruct->mpProgressDialog;
 
     if (lpProgressDialog->wasCancelled()) {
-        msgInfo("findInTree(): cancelled.");
+        gkLog<<xfcInfo<<__FUNCTION__<<": cancelled."<<eol;
         return -1;
     }
         
     lName=lrXfc.getNameOfElement(lpNode); // :fixme: utf8 -> string ?
     if (xmlStrcasestr((const xmlChar*)lName.c_str(), (xmlChar*)lpPtr)!=NULL) {
-        msgDebug("found matching node: path=", lPath);
-        msgDebug("  name=", lName);
-
-        // :tmp:
-        msgDebug("  str=", lpPtr);
-        
+        gkLog<<xfcDebug<<__FUNCTION__<<": found matching node: path="<<lPath;
+        gkLog<<__FUNCTION__<<":  name="<<lName<<eol;
         lpSearchStruct->mpSearchResultsPaths->push_back(lPath+"/"+lName);
         lpSearchStruct->mpSearchResultsNodes->push_back(lpNode);
     }

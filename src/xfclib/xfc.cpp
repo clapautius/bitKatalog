@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include <string.h>
 #include <sstream>
+#include <fstream>
 
 #include "xfcapp.h"
 #include "xfclib.h"
@@ -26,6 +27,7 @@
 #include "xfcEntity.h"
 #include "fs.h"
 #include "misc.h"
+#include "plugins.h"
 
 #if defined(XFC_DEBUG)
 #include <iostream>
@@ -379,17 +381,69 @@ xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName, std::string lDiskCate
 }
 
 
+/**
+ * helper function
+ **/
+map<string, string>
+Xfc::bufferCallbacks(string path, vector<XmlParamForFileChunkCallback> &cbList2,
+                     volatile const bool *pAbortFlag)
+{
+    ifstream fin;
+    bool firstTime=true;
+    bool lastTime=false;
+    map<string, string> params;
+    string s1, s2;
+    char readBuf[READ_BUF_LEN];
+    gLog<<xfcDebug<<"trying to open "<<path<<" ... ";
+    fin.open(path.c_str(), ios::binary);
+    if (!fin.good()) {
+        gLog<<eol<<xfcWarn<<"error opening "<<path<<eol;
+        throw std::string("error opening file")+path;
+    }
+    gLog<<"ok"<<eol;
+    while (fin.good()) {
+        fin.read(readBuf, READ_BUF_LEN);
+        if (fin.eof())
+            lastTime=true;
+        // :debug:
+        //gLog<<xfcDebug<<": new iteration: file pos="<<fin.tellg()<<", gcount=";
+        //gLog<<fin.gcount()<<", firstTime="<<firstTime<<", lastTime="<<lastTime<<eol;
+        for (unsigned int i=0; i<cbList2.size(); i++) {
+            if (cbList2[i](readBuf, fin.gcount(), firstTime, lastTime, &s1, &s2,
+                           pAbortFlag)>=0) {
+                if (lastTime) {  // final iteration, add xml elements
+                    gLog<<xfcDebug<<__FUNCTION__<<": adding param. "<<s1;
+                    gLog<<" with value "<<s2<<eol;
+                    params.insert(pair<string, string>(s1, s2));
+                }
+            } // error at some iteration
+            else
+                throw string("error at some callback function");
+        } // end for
+        firstTime=false;
+
+        // user abort
+        if (pAbortFlag && *pAbortFlag)
+            break;
+    } // end while(fin.good())
+    fin.close();
+    return params;
+}
+
+
+/**
+ **/
 xmlNodePtr
 Xfc::addFileToXmlTree(
-    xmlNodePtr lpNode, string lPath,
+    xmlNodePtr lpNode, string path,
     vector<XmlParamForFileCallback> cbList1, vector<XmlParamForFileChunkCallback> cbList2,
     volatile const bool *pAbortFlag)
   throw (std::string)
 {
-    std::string lName=getLastComponentOfPath(lPath);
+    std::string lName=getLastComponentOfPath(path);
     xmlNodePtr lpNewNode;
     xmlNodePtr lpNewNewNode;
-    gLog<<xfcDebug<<__FUNCTION__<<": adding file "<<lPath<<" to xml tree"<<eol;
+    gLog<<xfcDebug<<__FUNCTION__<<": adding file "<<path<<" to xml tree"<<eol;
     
     lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"file", NULL); // :bug:
     if(lpNewNode==NULL)
@@ -401,27 +455,47 @@ Xfc::addFileToXmlTree(
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"name", (xmlChar*)lName.c_str()); // :bug:
     
     // size
-    FileSizeType lSize=getFileSize(lPath);
+    FileSizeType lSize=getFileSize(path);
     std::ostringstream lStrOut;
     lStrOut<<lSize;
     xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"size", (xmlChar*)lStrOut.str().c_str()); // :bug:
 
     for (unsigned int i=0; i<cbList1.size(); i++) {
+        string param, value;
         std::string xmlParam, xmlValue;
         std::vector<std::string> xmlAttrs;
-        if (cbList1[i](lPath, xmlParam, xmlValue, xmlAttrs, pAbortFlag)>=0) {
-            lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)xmlParam.c_str(), 
-                                         (xmlChar*)xmlValue.c_str());
-            for (unsigned int j=0; j<xmlAttrs.size(); j+=2) {
-                xmlNewProp(lpNewNewNode, (xmlChar*)xmlAttrs[j].c_str(), (xmlChar*)xmlAttrs[j+1].c_str());
+        if (cbList1[i](path, &param, &value, pAbortFlag)>=0) {
+            if (SHA256LABEL==param) {
+                lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"sum", 
+                                             (xmlChar*)value.c_str());
+                xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)SHA256LABEL);
+            }
+            else if (SHA1LABEL==param) {
+                lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"sum", 
+                                             (xmlChar*)value.c_str());
+                xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)SHA1LABEL);
             }
         }
         else
             throw std::string("Error at callback :fixme:");
     }
     if (cbList2.size()>0) {
-        throw std::string("Not ready yet :fixme:");
-    }
+        map<string, string> params;
+        params=bufferCallbacks(path, cbList2, pAbortFlag);
+        // check if we have sha1 sum
+        if (!params[SHA1LABEL].empty()) {
+            lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"sum",
+                                         (xmlChar*)params[SHA1LABEL].c_str());
+            xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)SHA1LABEL);
+        }
+        // check if we have sha256 sum
+        if (!params[SHA256LABEL].empty()) {
+            lpNewNewNode=xmlNewTextChild(lpNewNode, NULL, (xmlChar*)"sum",
+                                         (xmlChar*)params[SHA256LABEL].c_str());
+            xmlNewProp(lpNewNewNode, (xmlChar*)"type", (xmlChar*)SHA256LABEL);
+        }
+    } // end cbList2
+
     return lpNewNode;
 }    
 
@@ -987,6 +1061,10 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
     EntityDiff diff;
     string str;
     map<string, string> details;
+    map<string, string> diskDetails;
+    bool hasSha256=false, hasSha1=false;
+    bool openFile=false;
+    vector<XmlParamForFileChunkCallback> cbList;
     details=rEnt.getDetails();
     ostringstream ostr;
     gLog<<xfcDebug<<"comparing items with name "<<catalogName<<eol;
@@ -1007,49 +1085,53 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
         if (details[SHA256LABEL].empty() && details[SHA1LABEL].empty())
             rShaWasMissing=true;
 
-        // sha256
         if (!details[SHA256LABEL].empty()) {
+            hasSha256=true;
+            cbList.push_back(sha256UsingBufCallback);
+        }
+        if (!details[SHA1LABEL].empty()) {
+            hasSha1=true;
+            cbList.push_back(sha1UsingBufCallback);
+        }
+        openFile=hasSha1 || hasSha256;
+
+        if (openFile) {
             try {
-                str=execChecksum(diskPath, std::string("sha256sum"), pAbortFlag);
-                if (str!=details[SHA256LABEL]) {
+                diskDetails=bufferCallbacks(diskPath, cbList, pAbortFlag);
+            }
+            catch (string e) {
+                diff.type=eDiffErrorOnDisk;
+                diff.name=catalogName;
+                diff.diskValue=e;
+                return diff;
+            }
+            // sha256
+            if (hasSha256) {
+                if (diskDetails[SHA256LABEL]!=details[SHA256LABEL]) {
                     diff.type=eDiffSha256Sum;
                     diff.name=catalogName;
                     diff.catalogValue=details[SHA256LABEL];
-                    diff.diskValue=str;
+                    diff.diskValue=diskDetails[SHA256LABEL];
                     gLog<<xfcDebug<<"different sha256 for "<<catalogName<<eol;
-                    gLog<<"catalog val="<<details[SHA256LABEL]<<", disk val="<<str<<eol;
+                    gLog<<"catalog val="<<details[SHA256LABEL];
+                    gLog<<", disk val="<<diskDetails[SHA256LABEL]<<eol;
                     return diff;
                 }
             }
-            catch(std::string e) {
-                diff.type=eDiffErrorOnDisk;
-                diff.name=catalogName;
-                diff.diskValue=e;
-                return diff;
-            }
-        }
-
-        // sha1
-        if (!details[SHA1LABEL].empty()) {
-            try {
-                str=execChecksum(diskPath, std::string("sha1sum"), pAbortFlag);
-                if (str!=details[SHA1LABEL]) {
+            // sha1
+            if (hasSha1) {
+                if (diskDetails[SHA1LABEL]!=details[SHA1LABEL]) {
                     diff.type=eDiffSha1Sum;
                     diff.name=catalogName;
                     diff.catalogValue=details[SHA1LABEL];
-                    diff.diskValue=str;
+                    diff.diskValue=diskDetails[SHA1LABEL];
                     gLog<<xfcDebug<<"different sha1 for "<<catalogName<<eol;
-                    gLog<<"catalog value="<<details[SHA1LABEL]<<", disk value="<<str<<eol;
+                    gLog<<"catalog value="<<details[SHA1LABEL];
+                    gLog<<", disk value="<<diskDetails[SHA1LABEL]<<eol;
                     return diff;
                 }
             }
-            catch(std::string e) {
-                diff.type=eDiffErrorOnDisk;
-                diff.name=catalogName;
-                diff.diskValue=e;
-                return diff;
-            }
-        }
+        } // end if(openFile)
     } // end file compare
 
     return diff;
@@ -1121,11 +1203,6 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pD
             }
         }
 
-    // :tmp:
-    //for (unsigned int i=0; i<namesOnDisk.size(); i++) {
-    //    msgDebug(__FUNCTION__, ": a name on disk: ", namesOnDisk[i]);
-    //}
-    
     for (unsigned int i=0;i<namesInCatalog.size();i++) {
         gLog<<xfcDebug<<__FUNCTION__<<": checking (catalog name): "<<namesInCatalog[i]<<eol;
         bool found=false;

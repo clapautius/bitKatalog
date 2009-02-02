@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
+ *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,9 +41,6 @@ class KUrl;
  *
  * This bitkatalog uses an HTML component as an example.
  *
- * @short Main view
- * @author Tudor Pristavu <clapautiuAtGmaliDotCom>
- * @version 0.1
  */
 class bitKatalogView : public QWidget
 {
@@ -65,9 +62,6 @@ public:
     // does refresh
     // does delete old xfc
     
-    bool catalogWasModified();
-    void resetModifiedFlag();
-
     void populateTree(Xfc*);
         
     /**

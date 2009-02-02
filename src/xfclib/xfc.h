@@ -35,6 +35,8 @@ using namespace std;
 #define SHA256LABEL "sha256"
 #define SHA1LABEL "sha1"
 
+#define READ_BUF_LEN 102400
+
 class XfcEntity;
 class Xfc;
 
@@ -55,13 +57,11 @@ public:
     } ElementType;
 
     typedef int (*XmlParamForFileCallback)(
-        std::string fileName,
-        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
-        volatile const bool *pAbortFlag);
+        string fileName, string *pParam, string *pValue, volatile const bool *pAbortFlag);
 
     typedef int (*XmlParamForFileChunkCallback)(
         const char *buf, unsigned int bufLen, bool isFirstChunk, bool isLastChunk,
-        std::string &xmlParam, std::string &xmlValue, std::vector<std::string> &xmlAttrs,
+        string *paramName, string *paramValue,
         volatile const bool *pAbortFlag);
     
     static std::string getVersionString();
@@ -230,6 +230,11 @@ private:
 
     EntityDiff compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
                             bool &rShaWasMissing, volatile const bool *pAbortFlag=NULL);
+
+
+    map<string, string> bufferCallbacks(string path,
+                                        vector<XmlParamForFileChunkCallback> &cbList,
+                                        volatile const bool *pAbortFlag);
 
     
     int mState;
