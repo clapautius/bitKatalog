@@ -48,11 +48,6 @@ public:
     
 private:
 
-    int verifyDirectory(string catalogPath, string diskPath);
-
-    EntityDiff compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
-                            bool &rShaWasMissing);
-
     Xfc* mpCatalog;
     
     std::string mCatalogPath, mDiskPath;

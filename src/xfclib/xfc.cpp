@@ -975,3 +975,203 @@ std::string Xfc::getVersionString()
 {
   return std::string(XFCAPP_VERSION);
 }
+
+
+/**
+ * helper function
+ **/
+EntityDiff
+Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
+                  bool &rShaWasMissing, volatile const bool *pAbortFlag)
+{
+    EntityDiff diff;
+    string str;
+    map<string, string> details;
+    details=rEnt.getDetails();
+    ostringstream ostr;
+    gLog<<xfcDebug<<"comparing items with name "<<catalogName<<eol;
+
+    if (!isDirectory(diskPath)) {
+        // first check size
+        ostr<<getFileSize(diskPath);
+        if (ostr.str() != details["size"]) {
+            diff.type=eDiffSize;
+            diff.name=catalogName;
+            diff.catalogValue=details["size"];
+            diff.diskValue=ostr.str();
+            gLog<<xfcDebug<<"different sizes for "<<catalogName<<eol;
+            gLog<<"catalog val="<<details["size"]<<", disk val="<<ostr.str()<<eol;
+            return diff;
+        }
+
+        if (details[SHA256LABEL].empty() && details[SHA1LABEL].empty())
+            rShaWasMissing=true;
+
+        // sha256
+        if (!details[SHA256LABEL].empty()) {
+            try {
+                str=execChecksum(diskPath, std::string("sha256sum"), pAbortFlag);
+                if (str!=details[SHA256LABEL]) {
+                    diff.type=eDiffSha256Sum;
+                    diff.name=catalogName;
+                    diff.catalogValue=details[SHA256LABEL];
+                    diff.diskValue=str;
+                    gLog<<xfcDebug<<"different sha256 for "<<catalogName<<eol;
+                    gLog<<"catalog val="<<details[SHA256LABEL]<<", disk val="<<str<<eol;
+                    return diff;
+                }
+            }
+            catch(std::string e) {
+                diff.type=eDiffErrorOnDisk;
+                diff.name=catalogName;
+                diff.diskValue=e;
+                return diff;
+            }
+        }
+
+        // sha1
+        if (!details[SHA1LABEL].empty()) {
+            try {
+                str=execChecksum(diskPath, std::string("sha1sum"), pAbortFlag);
+                if (str!=details[SHA1LABEL]) {
+                    diff.type=eDiffSha1Sum;
+                    diff.name=catalogName;
+                    diff.catalogValue=details[SHA1LABEL];
+                    diff.diskValue=str;
+                    gLog<<xfcDebug<<"different sha1 for "<<catalogName<<eol;
+                    gLog<<"catalog value="<<details[SHA1LABEL]<<", disk value="<<str<<eol;
+                    return diff;
+                }
+            }
+            catch(std::string e) {
+                diff.type=eDiffErrorOnDisk;
+                diff.name=catalogName;
+                diff.diskValue=e;
+                return diff;
+            }
+        }
+    } // end file compare
+
+    return diff;
+}
+
+
+/**
+ * @retval < 0 - failure
+ * @retval 0 - stopped by user
+ * @retval 1 - ok, checksums were present
+ * @retval 2 - ok, some checksums were missing
+ **/
+int
+Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pDifferences,
+                     volatile const bool *pAbortFlag)
+{
+    vector<string> namesInCatalog;
+    vector<XfcEntity> entitiesInCatalog;
+    map<string, string> details;
+    vector<string> namesOnDisk;
+    EntityDiff diff;
+    XfcEntity ent;
+    bool shaWasMissing=false;
+
+    gLog<<xfcDebug<<"Verifying dir: "<<diskPath<<eol;
+    gLog<<xfcDebug<<"Catalog path is: "<<catalogPath<<eol;
+
+    if (pAbortFlag && *pAbortFlag) {
+        gLog<<xfcInfo<<__FUNCTION__<<": stopped by user"<<eol;
+        return 0;
+    }
+    
+    EntityIterator entIterator(*this, catalogPath);
+    while (entIterator.hasMoreChildren()) {
+        ent=entIterator.getNextChild();
+        entitiesInCatalog.push_back(ent);
+        namesInCatalog.push_back(ent.getName());
+    }
+    
+    try {
+        namesOnDisk=getFileListInDir(diskPath);
+    }
+    catch(std::string e) {
+        // do something (add this to error list?) :fixme:
+        gLog<<xfcWarn<<__FUNCTION__<<": error in getFileListInDir()"<<eol;
+        return -1;
+    }
+    
+    for (unsigned int i=0;i<namesOnDisk.size();i++)
+        if (isDirectory(diskPath+"/"+namesOnDisk[i])) {
+            bool found=true;
+            // check if it exists in catalog
+            for (unsigned int j=0;j<namesInCatalog.size();j++)
+                if (namesInCatalog[j]==namesOnDisk[i]) {
+                    found=true;
+                    break;
+                }
+            if (found) {
+                verifyDirectory(catalogPath+"/"+namesOnDisk[i],
+                                diskPath+"/"+namesOnDisk[i], pDifferences, pAbortFlag);
+            }
+            else {
+                diff.type=eDiffOnlyOnDisk;
+                diff.name=namesOnDisk[i];
+                pDifferences->push_back(diff);
+                gLog<<xfcInfo<<"Difference (only on disk) for: "<<namesOnDisk[i]<<eol;
+                namesOnDisk.erase(namesOnDisk.begin()+i);
+                i--;
+            }
+        }
+
+    // :tmp:
+    //for (unsigned int i=0; i<namesOnDisk.size(); i++) {
+    //    msgDebug(__FUNCTION__, ": a name on disk: ", namesOnDisk[i]);
+    //}
+    
+    for (unsigned int i=0;i<namesInCatalog.size();i++) {
+        gLog<<xfcDebug<<__FUNCTION__<<": checking (catalog name): "<<namesInCatalog[i]<<eol;
+        bool found=false;
+        for (unsigned int j=0;j<namesOnDisk.size();j++) {
+            if (pAbortFlag && *pAbortFlag) {
+                gLog<<xfcInfo<<__FUNCTION__<<": stopped by user"<<eol;
+                return 0;
+            }
+            if (namesInCatalog[i]==namesOnDisk[j]) {
+                gLog<<xfcDebug<<__FUNCTION__<<": comparing with (disk name): "<<namesOnDisk[j]<<eol;
+                found=true;
+                std::string diskPathCurrent=diskPath+"/"+namesOnDisk[j];
+                diff=compareItems(namesInCatalog[i], entitiesInCatalog[i],
+                                  diskPathCurrent, shaWasMissing);
+                if (eDiffIdentical != diff.type) {
+                    if (eDiffErrorOnDisk == diff.type) {
+                        throw std::string("Error comparing")+namesInCatalog[i];
+                    }
+                    else {
+                        gLog<<xfcInfo<<"Difference (type="<<(int)diff.type<<") for: "<<diff.name<<eol;
+                        gLog<<"  catalog value="<<diff.catalogValue<<", disk value="<<diff.diskValue<<eol;
+                        pDifferences->push_back(diff);
+                    }
+                }
+                namesOnDisk.erase(namesOnDisk.begin()+j);
+                break;
+            }
+        }
+        if (!found) { // only in catalog
+            diff.type=eDiffOnlyInCatalog;
+            diff.name=catalogPath+"/"+namesInCatalog[i];
+            gLog<<xfcInfo<<"Difference (only in catalog) for: "<<diff.name<<eol;
+            pDifferences->push_back(diff);
+        }
+    }
+
+    // the remaining elements are only on disk
+    diff.type=eDiffOnlyOnDisk;
+    for (unsigned int i=0;i<namesOnDisk.size();i++)  {
+        diff.name=diskPath+"/"+namesOnDisk[i];
+        gLog<<xfcInfo<<"Difference (only on disk) for: "<<diff.name<<eol;
+        pDifferences->push_back(diff);
+    }
+
+    if (shaWasMissing)
+        return 2;
+    else
+        return 1;
+}

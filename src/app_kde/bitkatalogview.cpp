@@ -359,6 +359,13 @@ bitKatalogView::verifyDisk() throw()
                 str1.clear();
                 str2.clear();
                 break;
+            case eDiffErrorOnDisk:
+                str1=differences[i].name;
+                str2=differences[i].name+"\n error reading details from disk: "+differences[i].diskValue;
+                pResults->addText(str1, " ! IO error ", str2, 2);
+                str1.clear();
+                str2.clear();
+                break;
             default:
                 pResults->addText(differences[i].name, " ! ", differences[i].name);
                 break;

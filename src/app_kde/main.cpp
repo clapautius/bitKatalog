@@ -173,9 +173,3 @@ void startUp(KCmdLineArgs *pArgs)
     //gpConfig->setReadOnly(false);
     //runningForTheFirstTime();
 }
-
-
-EntityDiff::EntityDiff()
-{
-    type=eDiffIdentical;
-}

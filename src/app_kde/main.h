@@ -58,25 +58,4 @@ void msgDebug(std::string, std::string="", std::string="", std::string="");
 
 //void runningForTheFirstTime();
 
-typedef enum {
-    eDiffIdentical,
-    eDiffOnlyInCatalog,
-    eDiffOnlyOnDisk,
-    eDiffSize,
-    eDiffSha1Sum,
-    eDiffSha256Sum,
-    eDiffError
-} EntityDiffType;
-
-
-struct EntityDiff
-{
-    EntityDiffType type;
-    std::string name;
-    std::string catalogValue;
-    std::string diskValue;
-
-    EntityDiff();
-};
-
 #endif

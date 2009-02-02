@@ -79,3 +79,8 @@ XfcLogger::operator<<(int i)
 }
 
 XfcLogger gLog;
+
+EntityDiff::EntityDiff()
+{
+    type=eDiffIdentical;
+}

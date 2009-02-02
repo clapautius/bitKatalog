@@ -28,6 +28,8 @@
 
 #include <libxml/parser.h>
 
+#include "xfclib.h"
+
 using namespace std;
 
 #define SHA256LABEL "sha256"
@@ -170,6 +172,9 @@ public:
 
     XfcEntity getEntityFromNode(xmlNodePtr lpNode) throw (std::string);
 
+    int verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pDiffs,
+                        volatile const bool *pAbortFlag=NULL);
+
 private:    
 
     std::string getValueOfNode(xmlNodePtr) throw (std::string);
@@ -222,6 +227,9 @@ private:
     std::string getCDate(xmlNodePtr lpDiskNode, xmlNodePtr *lpCDateNode=NULL)
     const
     throw (std::string);
+
+    EntityDiff compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
+                            bool &rShaWasMissing, volatile const bool *pAbortFlag=NULL);
 
     
     int mState;

@@ -39,4 +39,25 @@ private:
 
 extern XfcLogger gLog;
 
+typedef enum {
+    eDiffIdentical,
+    eDiffOnlyInCatalog,
+    eDiffOnlyOnDisk,
+    eDiffSize,
+    eDiffSha1Sum,
+    eDiffSha256Sum,
+    eDiffErrorOnDisk /// diskValue contains some clues regarding the error
+} EntityDiffType;
+
+
+struct EntityDiff
+{
+    EntityDiffType type;
+    std::string name;
+    std::string catalogValue;
+    std::string diskValue;
+
+    EntityDiff();
+};
+
 #endif

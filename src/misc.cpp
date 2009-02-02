@@ -29,6 +29,7 @@
 #include <string>
 
 #include "misc.h"
+#include "xfclib.h"
 
 using namespace std;
 
@@ -55,7 +56,6 @@ waitChildProcess(pid_t process, volatile const bool *pAbortFlag, int &status, in
     tv.tv_usec=0;
 
     while (true) {
-
         // read command output
         // :fixme: if less than 99 bytes are available, the operation would block?
         FD_ZERO(&set);
@@ -71,32 +71,28 @@ waitChildProcess(pid_t process, volatile const bool *pAbortFlag, int &status, in
         // check if child is still alive
         rc=waitpid(process, &status, WNOHANG);
         if (process == rc) { // finished
-#if defined(XFC_DEBUG)
-            cout<<__FUNCTION__<<": waitpid returned "<<rc<<". status="<<status<<endl;
-#endif
+            gLog<<xfcDebug<<__FUNCTION__<<": waitpid returned "<<rc<<". status="<<status<<eol;
+            // read the rest of the output
+            while ((len=read(inputFd, buf, 99))>0) {
+                buf[len]=0;
+                cmdOutput+=buf;
+            }
             return true;
         }
         else if (0 == rc) { // not finished
-            if (*pAbortFlag) {
-#if defined(XFC_DEBUG)
-                cout<<":debug: abort flag is on"<<endl;
+            if (pAbortFlag && *pAbortFlag) {
+                gLog<<xfcDebug<<__FUNCTION__<<": abort flag is on"<<eol;
                 cout.flush();
-#endif
-                
                 if (!killed) {
-#if defined(XFC_DEBUG)
-                    cout<<__FUNCTION__<<": Abort flag is on, killing process, pid="<<process<<ends;
+                    gLog<<xfcInfo<<__FUNCTION__<<": Abort flag is on, killing process, pid="<<process<<eol;
                     cout.flush();
-#endif
                     kill(process, 15);
                     killed=true;
                 }
             }
         }
         else { // error
-#if defined(XFC_DEBUG)
-            cout<<__FUNCTION__<<": waitpid returned "<<rc<<endl;
-#endif
+            gLog<<xfcDebug<<__FUNCTION__<<": waitpid returned "<<rc<<eol;
             return false;
         }
     }
@@ -112,14 +108,13 @@ executeCommand(
     pid_t prPid;
     int fds[2];
     std::string output;
-#if defined(XFC_DEBUG)
-    cout<<"executing command: "<<lpPrg<<endl<<"params: ";
-    if(lpArg1) cout<<lpArg1;
-    if(lpArg2) cout<<", "<<lpArg2;
-    if(lpArg3) cout<<", "<<lpArg3;
-    if(lpArg4) cout<<", "<<lpArg4;
-    cout<<endl;
-#endif
+
+    gLog<<xfcInfo<<"executing external command: "<<lpPrg<<eol<<"params: ";
+    if(lpArg1) gLog<<lpArg1;
+    if(lpArg2) gLog<<", "<<lpArg2;
+    if(lpArg3) gLog<<", "<<lpArg3;
+    if(lpArg4) gLog<<", "<<lpArg4;
+    gLog<<eol;
     
     if (pipe(fds)==-1)
         throw std::string("executeCommand(): pipe error");
@@ -144,9 +139,6 @@ executeCommand(
             close(fds[0]);
             throw std::string("waitpid() error");
         }
-#if defined(XFC_DEBUG)
-        cout<<__FUNCTION__<<": command output: "<<output.c_str();
-#endif 
         if (WIFEXITED(status)) {
             if (WEXITSTATUS(status)!=0) {
                 close(fds[0]);
@@ -158,6 +150,7 @@ executeCommand(
             throw std::string("Error executing external command (2): ")+lpPrg;
         }
         close(fds[0]);
+        gLog<<xfcInfo<<__FUNCTION__<<": command output: "<<output<<eol;
         return output;
     }
 }

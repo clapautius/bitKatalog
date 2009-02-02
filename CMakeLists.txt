@@ -1,6 +1,9 @@
 project(bitKatalog)
 cmake_minimum_required(VERSION 2.4)
-cmake_policy(SET CMP0003 NEW)
+
+if (CMAKE_MINOR_VERSION GREATER 5)
+  cmake_policy(SET CMP0003 NEW)
+endif (CMAKE_MINOR_VERSION GREATER 5)
 
 # :release:
 #set (CMAKE_VERBOSE_MAKEFILE 1)
