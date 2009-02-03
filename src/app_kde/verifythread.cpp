@@ -46,7 +46,8 @@ VerifyThread::~VerifyThread()
 void
 VerifyThread::run()
 {
-    mResultCode=mpCatalog->verifyDirectory(mCatalogPath, mDiskPath, mpDifferences, &mAbortFlag);
+    mResultCode=mpCatalog->verifyDirectory(mCatalogPath, mDiskPath, mDiskPath.length(),
+                                           mpDifferences, &mAbortFlag);
 }
 
 

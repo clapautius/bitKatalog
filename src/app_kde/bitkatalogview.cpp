@@ -206,26 +206,18 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
 void
 bitKatalogView::details() throw()
 {
-    Q3ListViewItem *lpItem=NULL;
-    std::string lCompletePath;
-    std::string lS;
-    
+    std::string completePath;
     if (mCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
         return;
     }
-    
-    lpItem=mpCurrentItem;
-    lCompletePath=mCurrentItemPath;
-
-    if (lCompletePath!="/") {
-        XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
-    
-        DetailsBox *lpDetailsBox=new DetailsBox(mCatalog, lCompletePath, &lEnt,
+    completePath=mCurrentItemPath;
+    if (completePath!="/") {
+        XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
+        DetailsBox *pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt,
           mpCurrentItem);
-        lpDetailsBox->exec(); 
-    
-        if (lpDetailsBox->catalogWasModified()) {
+        pDetailsBox->exec(); 
+        if (pDetailsBox->catalogWasModified()) {
             gCatalogState=1;
             gpMainWindow->updateTitle(true);
         }
@@ -239,78 +231,76 @@ bitKatalogView::details() throw()
 void 
 bitKatalogView::verifyDisk() throw()
 {
-    Q3ListViewItem *lpItem;
-    std::string lCompletePath;
-    std::string lS;
+    std::string completePath;
+    std::string str;
     vector<EntityDiff> differences;
     
     if (mCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
         return;
     }
-    lpItem=mpCurrentItem;
-    lCompletePath=mCurrentItemPath;
+    completePath=mCurrentItemPath;
 
-    QString lDir = KFileDialog::getExistingDirectory(KUrl("/"), this, QString("Path to verify"));
-    if ("" == lDir) // cancel
+    QString dir=KFileDialog::getExistingDirectory(KUrl("/"), this, QString("Path to verify"));
+    if ("" == dir) // cancel
         return;
 
-    VerifyThread *lpVerifyThread=new VerifyThread(
-        mCatalog, lCompletePath, lDir.toStdString(), &differences);
+    VerifyThread *pVerifyThread=new VerifyThread(
+        mCatalog, completePath, dir.toStdString(), &differences);
         
-    KProgressDialog *lpProgress=new KProgressDialog(this, "Verifying ...", "");
-    //lpProgress->progressBar()->setTotalSteps(0);
-    lpProgress->progressBar()->setRange(0, 0);
-    //lpProgress->progressBar()->setPercentageVisible(false);
-    lpProgress->progressBar()->setTextVisible(false);
-    lpProgress->setMinimumDuration(1000);
-    lpProgress->setAutoClose(true);
-    lpProgress->setAllowCancel(true);
-    lpProgress->setButtonText("Stop");
-    lpProgress->setLabelText(QString(""));
+    KProgressDialog *pProgress=new KProgressDialog(this, "Verifying ...", "");
+    //pProgress->progressBar()->setTotalSteps(0);
+    pProgress->progressBar()->setRange(0, 0);
+    //pProgress->progressBar()->setPercentageVisible(false);
+    pProgress->progressBar()->setTextVisible(false);
+    pProgress->setMinimumDuration(1000);
+    pProgress->setAutoClose(true);
+    pProgress->setAllowCancel(true);
+    pProgress->setButtonText("Stop");
+    pProgress->setLabelText(QString(""));
     int i=0;
 
-    lpVerifyThread->start();
-    while (!lpVerifyThread->isFinished()) {
+    pVerifyThread->start();
+    while (!pVerifyThread->isFinished()) {
         std::string lLabel;
         std::string lOldLabel;
-        lLabel=lpVerifyThread->getCurrentFile();
+        lLabel=pVerifyThread->getCurrentFile();
         if (lLabel!=lOldLabel) {
             if (lLabel.size()>60) {
-                std::string lS=lLabel.substr(0, 28);
-                lS+="....";
-                lS+=lLabel.substr(lLabel.size()-28);
-                lLabel=lS;
+                str=lLabel.substr(0, 28);
+                str+="....";
+                str+=lLabel.substr(lLabel.size()-28);
+                lLabel=str;
             }
-            lpProgress->setLabelText(QString(lLabel.c_str()));
+            pProgress->setLabelText(QString(lLabel.c_str()));
             lOldLabel=lLabel;
         }
-        if (lpProgress->wasCancelled()) {
-            lpVerifyThread->stopThread();
-            KProgressDialog *lpProgress2=new KProgressDialog(this, "Waiting ...", "");
-            lpProgress2->progressBar()->setRange(0, 0);
-            lpProgress2->progressBar()->setTextVisible(false);
-            lpProgress2->setMinimumDuration(1000);
-            lpProgress2->setAutoClose(false);
-            lpProgress2->setAllowCancel(false);
-            lpProgress2->setLabelText(QString("Waiting for verify thread to finish"));
+        if (pProgress->wasCancelled()) {
+            pVerifyThread->stopThread();
+            KProgressDialog *pProgress2=new KProgressDialog(this, "Waiting ...", "");
+            pProgress2->progressBar()->setRange(0, 0);
+            pProgress2->progressBar()->setTextVisible(false);
+            pProgress2->setMinimumDuration(1000);
+            pProgress2->setAutoClose(false);
+            pProgress2->setAllowCancel(false);
+            pProgress2->setLabelText(QString("Waiting for verify thread to finish"));
             int i=0;
-            while (!lpVerifyThread->isFinished()) {
-                lpProgress2->progressBar()->setValue(i+=10);
+            while (!pVerifyThread->isFinished()) {
+                pProgress2->progressBar()->setValue(i+=10);
                 gpApplication->processEvents();
                 usleep(100000);
             }
-            delete lpProgress2;
+            delete pProgress2;
             break;
         }
-        lpProgress->progressBar()->setValue(i+=10);
+        pProgress->progressBar()->setValue(i+=10);
         gpApplication->processEvents();
         usleep(250000);
     }
 
-    int rc=lpVerifyThread->getResultCode();
-    delete lpProgress;
-    delete lpVerifyThread;
+    int rc=pVerifyThread->getResultCode();
+    delete pProgress;
+    delete pVerifyThread;
     if(2 == rc)
         KMessageBox::information(this, "Some (or all) files did not have checksums.");
 
@@ -320,7 +310,9 @@ bitKatalogView::verifyDisk() throw()
         for (unsigned int i=0; i<differences.size(); i++) {
             switch (differences[i].type) {
             case eDiffOnlyInCatalog:
-                pResults->addText(differences[i].name, "!", "-");
+                // strip disk name
+                pResults->addText(differences[i].name.substr(completePath.length()+1),
+                                  "!", "-");
                 break;
             case eDiffOnlyOnDisk:
                 pResults->addText("-", "!", differences[i].name);

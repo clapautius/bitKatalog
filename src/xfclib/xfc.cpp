@@ -1056,7 +1056,8 @@ std::string Xfc::getVersionString()
  **/
 EntityDiff
 Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
-                  bool &rShaWasMissing, volatile const bool *pAbortFlag)
+                  unsigned int pathPrefixLen, bool &rShaWasMissing,
+                  volatile const bool *pAbortFlag)
 {
     EntityDiff diff;
     string str;
@@ -1074,7 +1075,7 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
         ostr<<getFileSize(diskPath);
         if (ostr.str() != details["size"]) {
             diff.type=eDiffSize;
-            diff.name=catalogName;
+            diff.name=diskPath.substr(pathPrefixLen+1); // including trailing '/'
             diff.catalogValue=details["size"];
             diff.diskValue=ostr.str();
             gLog<<xfcDebug<<"different sizes for "<<catalogName<<eol;
@@ -1101,7 +1102,7 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
             }
             catch (string e) {
                 diff.type=eDiffErrorOnDisk;
-                diff.name=catalogName;
+                diff.name=diskPath.substr(pathPrefixLen+1); // including trailing '/'
                 diff.diskValue=e;
                 return diff;
             }
@@ -1109,7 +1110,7 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
             if (hasSha256) {
                 if (diskDetails[SHA256LABEL]!=details[SHA256LABEL]) {
                     diff.type=eDiffSha256Sum;
-                    diff.name=catalogName;
+                    diff.name=diskPath.substr(pathPrefixLen+1); // including trailing '/'
                     diff.catalogValue=details[SHA256LABEL];
                     diff.diskValue=diskDetails[SHA256LABEL];
                     gLog<<xfcDebug<<"different sha256 for "<<catalogName<<eol;
@@ -1122,7 +1123,7 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
             if (hasSha1) {
                 if (diskDetails[SHA1LABEL]!=details[SHA1LABEL]) {
                     diff.type=eDiffSha1Sum;
-                    diff.name=catalogName;
+                    diff.name=diskPath.substr(pathPrefixLen+1); // including trailing '/'
                     diff.catalogValue=details[SHA1LABEL];
                     diff.diskValue=diskDetails[SHA1LABEL];
                     gLog<<xfcDebug<<"different sha1 for "<<catalogName<<eol;
@@ -1145,8 +1146,8 @@ Xfc::compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
  * @retval 2 - ok, some checksums were missing
  **/
 int
-Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pDifferences,
-                     volatile const bool *pAbortFlag)
+Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefixLen,
+                     vector<EntityDiff> *pDifferences, volatile const bool *pAbortFlag)
 {
     vector<string> namesInCatalog;
     vector<XfcEntity> entitiesInCatalog;
@@ -1190,12 +1191,12 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pD
                     break;
                 }
             if (found) {
-                verifyDirectory(catalogPath+"/"+namesOnDisk[i],
-                                diskPath+"/"+namesOnDisk[i], pDifferences, pAbortFlag);
+                verifyDirectory(catalogPath+"/"+namesOnDisk[i], diskPath+"/"+namesOnDisk[i],
+                                pathPrefixLen, pDifferences, pAbortFlag);
             }
             else {
                 diff.type=eDiffOnlyOnDisk;
-                diff.name=namesOnDisk[i];
+                diff.name=(diskPath+"/"+namesOnDisk[i]).substr(pathPrefixLen+1);
                 pDifferences->push_back(diff);
                 gLog<<xfcInfo<<"Difference (only on disk) for: "<<namesOnDisk[i]<<eol;
                 namesOnDisk.erase(namesOnDisk.begin()+i);
@@ -1215,8 +1216,8 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pD
                 gLog<<xfcDebug<<__FUNCTION__<<": comparing with (disk name): "<<namesOnDisk[j]<<eol;
                 found=true;
                 std::string diskPathCurrent=diskPath+"/"+namesOnDisk[j];
-                diff=compareItems(namesInCatalog[i], entitiesInCatalog[i],
-                                  diskPathCurrent, shaWasMissing);
+                diff=compareItems(namesInCatalog[i], entitiesInCatalog[i], diskPathCurrent,
+                                  pathPrefixLen, shaWasMissing);
                 if (eDiffIdentical != diff.type) {
                     if (eDiffErrorOnDisk == diff.type) {
                         throw std::string("Error comparing")+namesInCatalog[i];
@@ -1242,7 +1243,7 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pD
     // the remaining elements are only on disk
     diff.type=eDiffOnlyOnDisk;
     for (unsigned int i=0;i<namesOnDisk.size();i++)  {
-        diff.name=diskPath+"/"+namesOnDisk[i];
+        diff.name=(diskPath+"/"+namesOnDisk[i]).substr(pathPrefixLen+1);
         gLog<<xfcInfo<<"Difference (only on disk) for: "<<diff.name<<eol;
         pDifferences->push_back(diff);
     }

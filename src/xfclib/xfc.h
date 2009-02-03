@@ -41,7 +41,7 @@ class XfcEntity;
 class Xfc;
 
 
-typedef int(*ParserFuncType)(unsigned int, std::string, Xfc&, xmlNodePtr, void*);
+typedef int(*ParserFuncType)(unsigned int, string, Xfc&, xmlNodePtr, void*);
 // when func ret -1 = abandon parsing
 
     
@@ -64,7 +64,7 @@ public:
         string *paramName, string *paramValue,
         volatile const bool *pAbortFlag);
     
-    static std::string getVersionString();
+    static string getVersionString();
   
     friend class EntityIterator;
     
@@ -74,64 +74,60 @@ public:
     
     int getState() const throw();
     
-    void createNew(std::string lCatalogName="") throw();
     // creates a new catalog in memory
     // if there is a catalog, IT IS DELETED
     // the program must check first the state
+    void createNew(string catalogName="") throw();
     
-    void loadFile(std::string lPath) throw (std::string);
     // if a file is already loaded throw excp
+    void loadFile(string path) throw (string);
     
-    void saveToFile(std::string lPath, int lParams)
-            throw (std::string);
     // lParams - param. to xmlSaveFormatFile
     // overwrite without warning
+    void saveToFile(string path, int params) throw (string);
     
-    xmlDocPtr getXmlDocPtr() throw (std::string);
+    xmlDocPtr getXmlDocPtr() throw (string);
     
-    void parseFileTree(ParserFuncType callBackFunc,
-                      void *lpParam=NULL)
-            throw (std::string);
     // when callBackFunc ret -1 = abandon parsing    
+    void parseFileTree(ParserFuncType callBackFunc, void *pParam=NULL)
+        throw (string);
     
-    void parseDisk(ParserFuncType callBackFunc,
-                   std::string lDiskName, void *lpParam=NULL);
+    void parseDisk(ParserFuncType callBackFunc, string diskName, void *pParam=NULL);
     
-    std::vector<std::string> getDiskList();
+    std::vector<string> getDiskList();
     
     bool isFileOrDir(xmlNodePtr) const throw();
     
     bool isDisk(xmlNodePtr) const throw();
         
-    std::string getNameOfFile(xmlNodePtr) const throw (std::string);
+    string getNameOfFile(xmlNodePtr) const throw (string);
     
-    std::string getNameOfDisk(xmlNodePtr) const throw (std::string);
+    string getNameOfDisk(xmlNodePtr) const throw (string);
     
-    std::string getNameOfElement(xmlNodePtr) const throw (std::string);
+    string getNameOfElement(xmlNodePtr) const throw (string);
     
-    void setNameOfElement(xmlNodePtr, std::string newName) throw (std::string);
+    void setNameOfElement(xmlNodePtr, string newName) throw (string);
 
-    ElementType getTypeOfElement(xmlNodePtr lpNode) const throw (std::string);
+    ElementType getTypeOfElement(xmlNodePtr pNode) const throw (string);
 
-    std::string getDescriptionOfNode(xmlNodePtr lpNode, xmlNodePtr *lpDescriptionNode=NULL) 
-            const throw (std::string);
     // ret "" if no description
     // if lpDescriptionNode!=NULL - lpDescriptionNode will have the address of descr. node
+    string getDescriptionOfNode(xmlNodePtr pNode, xmlNodePtr *pDescriptionNode=NULL) 
+            const throw (string);
         
-    void addPathToXmlTree(
-        std::string lPath, int lMaxDepth, volatile const bool *pAbortFlag,
-        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
-        std::string lDiskId, std::string lDiskCategory="", std::string lDiskDescription="",
-        std::string lDiskLabel="")
-        throw (std::string);
     // maxDepth - -1 
+    void addPathToXmlTree(
+        string lPath, int lMaxDepth, volatile const bool *pAbortFlag,
+        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
+        string diskId, string diskCategory="", string diskDescr="", string diskLabel="")
+        throw (string);
     
-    //std::string getXmlDocPath() const throw (std::string);
+    //string getXmlDocPath() const throw (string);
     
-    xmlNodePtr getNodeForPath(std::string lPath) const throw ();
     // path is '/disk/file1/file2/...'
     // return NULL if it doesnt exist
     // path may or may not start with '/'
+    xmlNodePtr getNodeForPath(string path) const throw ();
 
     /**
      * Get all the details of a node.
@@ -140,96 +136,87 @@ public:
      * Map keys: description, size, cdate, sha1sum, sha256sum,
      * label0, label1, ..., label9.
      **/
-    std::map<std::string, std::string> getDetailsForNode(xmlNodePtr lpNode) throw (std::string);
+    std::map<string, string> getDetailsForNode(xmlNodePtr lpNode) throw (string);
 
     xmlNodePtr addNewDiskToXmlTree(
-        std::string diskName, std::string diskCategory="", std::string diskDescription="",
-        std::string diskLabel="", std::string diskCDate="")
-        throw (std::string);
+        string diskName, string diskCategory="", string diskDescription="",
+        string diskLabel="", string diskCDate="")
+        throw (string);
     
-    void addLabelTo(std::string lPath, std::string lLabel)
-        throw (std::string);
+    void addLabelTo(string path, string label) throw (string);
     
-    void removeLabelFrom(std::string lPath, std::string lLabel)
-        throw (std::string);
+    void removeLabelFrom(string path, string label) throw (string);
 
-    void setDescriptionOf(std::string lPath, std::string lDescription)
-        throw (std::string);
+    void setDescriptionOf(string path, string description) throw (string);
             
-    std::string getCDate(std::string lDiskName, xmlNodePtr *lpCDateNode=NULL)
-        const throw (std::string);
+    string getCDate(string diskName, xmlNodePtr *pCDateNode=NULL) const throw (string);
     
-    void setCDate(std::string lDiskName, std::string lCDate)
-        throw (std::string);
+    void setCDate(string diskName, string cDate) throw (string);
     
-    std::string getChecksumOf(std::string lPath, std::string sumType="")
-        const throw (std::string);
     // ret "" if no shasum
+    string getChecksumOf(string path, string sumType="") const throw (string);
     
-    std::string getChecksumOf(xmlNodePtr lpNode, std::string sumType="")
-        const throw (std::string);
     // ret "" if no shasum
+    string getChecksumOf(xmlNodePtr pNode, string sumType="") const throw (string);
 
-    XfcEntity getEntityFromNode(xmlNodePtr lpNode) throw (std::string);
+    XfcEntity getEntityFromNode(xmlNodePtr lpNode) throw (string);
 
-    int verifyDirectory(string catalogPath, string diskPath, vector<EntityDiff> *pDiffs,
-                        volatile const bool *pAbortFlag=NULL);
+    int verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefixLen,
+                        vector<EntityDiff> *pDiffs, volatile const bool *pAbortFlag=NULL);
 
 private:    
 
-    std::string getValueOfNode(xmlNodePtr) throw (std::string);
+    string getValueOfNode(xmlNodePtr) throw (string);
     
+    // lPath - fs path
     xmlNodePtr addFileToXmlTree(
-        xmlNodePtr lpParent, std::string lPath,
-        std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
-        volatile const bool *pAbortFlag)
-        throw (std::string);
-    // lPath - fs path
+        xmlNodePtr lpParent, string lPath, vector<XmlParamForFileCallback>,
+        vector<XmlParamForFileChunkCallback>, volatile const bool *pAbortFlag)
+        throw (string);
 
-    xmlNodePtr addDirToXmlTree(xmlNodePtr lpParent, std::string lPath)
-      throw (std::string);
     // lPath - fs path
+    xmlNodePtr addDirToXmlTree(xmlNodePtr pParent, string path) throw (string);
     
-    void parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode, 
-                  ParserFuncType lFunc, void *lpParam)
-            throw (std::string);               
+    void parseRec(unsigned int depth, string path, xmlNodePtr pNode, 
+                  ParserFuncType func, void *pParam)
+            throw (string);               
     
     void recAddPathToXmlTree(
-        xmlNodePtr lpCurrentNode, std::string lPath, int lLevel, int lMaxDepth,
+        xmlNodePtr pCurrentNode, string path, int level, int maxDepth,
         volatile const bool *pAbortFlag,
         std::vector<XmlParamForFileCallback>, std::vector<XmlParamForFileChunkCallback>,
         bool lSkipFirstLevel=false)
-        throw (std::string);
+        throw (string);
     // root level is 0
     // maxDepth = -1 -> ignore max depth
     
-    xmlNodePtr getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
+    xmlNodePtr getNodeForPathRec(string path, xmlNodePtr pNode) const
             throw ();
 
     string getParamValueForNode(xmlNodePtr pNode, string param);
     
-    xmlNodePtr getFirstFileNode(xmlNodePtr lpNode);
+    xmlNodePtr getFirstFileNode(xmlNodePtr pNode);
     // ret null if no such node
 
-    xmlNodePtr getFirstLabelNode(xmlNodePtr lpNode);
+    xmlNodePtr getFirstLabelNode(xmlNodePtr pNode);
     // ret null if no such node
     
-    xmlNodePtr getDescriptionNode(xmlNodePtr lpNode);
+    xmlNodePtr getDescriptionNode(xmlNodePtr pNode);
     // ret null if no such node
 
-    xmlNodePtr getNameNode(xmlNodePtr lpNode);
+    xmlNodePtr getNameNode(xmlNodePtr pNode);
     // ret null if no such node
     
     bool isLabel(xmlNodePtr) const throw();
     
     bool isDescription(xmlNodePtr) const throw();
     
-    std::string getCDate(xmlNodePtr lpDiskNode, xmlNodePtr *lpCDateNode=NULL)
-    const
-    throw (std::string);
+    string getCDate(xmlNodePtr pDiskNode, xmlNodePtr *pCDateNode=NULL)
+        const throw (string);
 
-    EntityDiff compareItems(string catalogName, XfcEntity &rEnt, string diskPath,
-                            bool &rShaWasMissing, volatile const bool *pAbortFlag=NULL);
+    EntityDiff compareItems(
+        string catalogName, XfcEntity &rEnt, string diskPath, unsigned int pathPrefixLen,
+        bool &rShaWasMissing, volatile const bool *pAbortFlag=NULL);
 
 
     map<string, string> bufferCallbacks(string path,

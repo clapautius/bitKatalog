@@ -475,7 +475,7 @@ cmdVerifyDisk(std::vector<std::string> cmd)
 {
     vector<EntityDiff> differences;
     int rc;
-    rc=gXfc.verifyDirectory(cmd[1], cmd[2], &differences, NULL);
+    rc=gXfc.verifyDirectory(cmd[1], cmd[2], cmd[2].length(), &differences, NULL);
 
     // results
     if(2 == rc)
@@ -486,7 +486,8 @@ cmdVerifyDisk(std::vector<std::string> cmd)
         for (unsigned int i=0; i<differences.size(); i++) {
             switch (differences[i].type) {
             case eDiffOnlyInCatalog:
-                displayDiff(differences[i].name, "!", "-");
+                // strip disk name
+                displayDiff(differences[i].name.substr(cmd[1].length()+1), "!", "-");
                 break;
             case eDiffOnlyOnDisk:
                 displayDiff("-", "!", differences[i].name);
