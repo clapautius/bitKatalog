@@ -238,10 +238,13 @@ void AddDiskBox::slotUser1()
 
 void AddDiskBox::browseButtonClicked()
 {
-    QString lDir = KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
-    // :todo: - replace '/'
-    if (lDir!="") {
-        mpPathLabel->setText(lDir);
+    QString prevDir;
+    prevDir=gpConfig->group("").readEntry("LastDirAddDisk", "/");
+    QString dir = KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
+    if (dir!="") {
+        mpPathLabel->setText(dir);
+        gpConfig->group("").writeEntry("LastDirAddDisk", dir);
+        gpConfig->sync();
     }
 } 
 

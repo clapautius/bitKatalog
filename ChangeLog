@@ -1,3 +1,10 @@
+2009-02-08  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
+	* src/app_kde/: remember last dir. for 'add disk' and
+	'verify' dialogs;
+
+	* src/app_kde/: other improvements;
+
 2009-01-30  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/xfcapp.h: porting to KDE4 finished, releasing 0.4.0;

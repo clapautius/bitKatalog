@@ -241,9 +241,13 @@ bitKatalogView::verifyDisk() throw()
     }
     completePath=mCurrentItemPath;
 
-    QString dir=KFileDialog::getExistingDirectory(KUrl("/"), this, QString("Path to verify"));
+    QString previousDir;
+    previousDir=gpConfig->group("").readEntry("LastDirVerify", "/");
+    QString dir=KFileDialog::getExistingDirectory(KUrl(previousDir), this, QString("Path to verify"));
     if ("" == dir) // cancel
         return;
+    gpConfig->group("").writeEntry("LastDirVerify", dir);
+    gpConfig->sync();
 
     VerifyThread *pVerifyThread=new VerifyThread(
         mCatalog, completePath, dir.toStdString(), &differences);
@@ -253,7 +257,8 @@ bitKatalogView::verifyDisk() throw()
     pProgress->progressBar()->setRange(0, 0);
     //pProgress->progressBar()->setPercentageVisible(false);
     pProgress->progressBar()->setTextVisible(false);
-    pProgress->setMinimumDuration(1000);
+    // show it immediately
+    pProgress->setMinimumDuration(0);
     pProgress->setAutoClose(true);
     pProgress->setAllowCancel(true);
     pProgress->setButtonText("Stop");
@@ -280,7 +285,7 @@ bitKatalogView::verifyDisk() throw()
             KProgressDialog *pProgress2=new KProgressDialog(this, "Waiting ...", "");
             pProgress2->progressBar()->setRange(0, 0);
             pProgress2->progressBar()->setTextVisible(false);
-            pProgress2->setMinimumDuration(1000);
+            pProgress2->setMinimumDuration(0);
             pProgress2->setAutoClose(false);
             pProgress2->setAllowCancel(false);
             pProgress2->setLabelText(QString("Waiting for verify thread to finish"));
