@@ -178,3 +178,25 @@ XfcEntity EntityIterator::getNextChild()
         // :fixme: - make o proper exception hierarchy
         throw std::string("No more children in EntityIterator");
 }
+
+
+string
+XfcEntity::getLabelsAsString() const
+{
+    string ret;
+    bool first=true;
+    std::map<std::string, std::string> details;
+    details=mpXfc->getDetailsForNode(mpXmlNode);
+    char labelsBuf[7]= { "labelX" };
+    for (char i='0'; i<='9'; i++) {
+        labelsBuf[5]=i;
+        if (!details[labelsBuf].empty()) {
+            if (!first) {
+                ret+=", ";
+            }
+            first=false;
+            ret+=details[labelsBuf];
+        }
+    }
+    return ret;
+}

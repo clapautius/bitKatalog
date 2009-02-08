@@ -5,6 +5,8 @@
 
 	* src/app_kde/: other improvements;
 
+	* src/app_kde/: added 'Labels' column in main view widget;
+
 2009-01-30  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/xfcapp.h: porting to KDE4 finished, releasing 0.4.0;

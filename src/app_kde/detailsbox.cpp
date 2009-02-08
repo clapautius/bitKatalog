@@ -304,6 +304,8 @@ void DetailsBox::accept()
         for(unsigned int i=0;i<mpLabels->count();i++)
             mpCatalog->addLabelTo(mCompletePath, mpLabels->text(i).toStdString());
         mCatalogWasModified=true;
+        string labelsString=mpXmlItem->getLabelsAsString();
+        mpListItem->setText(LABELS_COLUMN, labelsString.c_str());
     }
 
     if (mpXmlItem->isDisk()) {

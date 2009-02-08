@@ -28,8 +28,9 @@
 
 #include "xfc.h"
 
-#define DESCRIPTION_COLUMN 1
 #define NAME_COLUMN 0
+#define DESCRIPTION_COLUMN 1
+#define LABELS_COLUMN 2
 
 class QPainter;
 class KUrl;

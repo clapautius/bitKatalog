@@ -64,6 +64,8 @@ public:
   map<string, string> getDetails();
 
   void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool lIsDisk=false);
+
+  string getLabelsAsString() const;
   
 private:
 

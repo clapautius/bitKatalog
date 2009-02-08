@@ -139,8 +139,9 @@ bitKatalogView::setupListView()
     mListView=new K3ListView(this);    
     mListView->setRootIsDecorated(true);
     mListView->setAllColumnsShowFocus(true);
-    mListView->addColumn("Name", 350);
+    mListView->addColumn("Name", 320);
     mListView->addColumn("Description", 250);
+    mListView->addColumn("Labels", 320);
     connect(mListView, 
             SIGNAL(contextMenu(K3ListView *, Q3ListViewItem *, const QPoint &)),
             this, SLOT(contextMenu(K3ListView *, Q3ListViewItem *, const QPoint &)));
@@ -440,16 +441,17 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     XfcEntity lEnt;
     XmlEntityItem *lpItem;
     map<string, string> details;
+    string labelsString;
     
     while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
         details=lEnt.getDetails();
+        labelsString=lEnt.getLabelsAsString();
         if (!details["description"].empty())
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(),
-                                     details["description"].c_str());
+                                     details["description"].c_str(), labelsString.c_str());
         else
-            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str());
-        //lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str());
+            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), "", labelsString.c_str());
         lpItem->setXmlNode(lEnt.getXmlNode());
         lpItem->setPixmap(0, *gpDiskPixmap);
         lpTempIterator=new EntityIterator(*mpCatalog, lEnt.getXmlNode());
