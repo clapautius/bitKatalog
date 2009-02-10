@@ -27,42 +27,102 @@
 #include <sstream>
 #include <iostream>
 
+#include "xfcapp.h"
 #include "interface.h"
+#include "xfclib.h"
 
 using namespace std;
 
 std::string gPrompt=">";
 
-std::vector<std::string> getCommand()
-{
-    /*
-    char lAux[1024];
-    std::vector<std::string> lCmd;
-    std::istringstream lStream;
-    cout<<gPrompt.c_str();
-    cin.getline(lAux,1022);
-    lStream.str(lAux);
-    while(!lStream.eof())
-    {
-        std::string lS;
-        lStream>>lS;
-        lCmd.push_back(lS);
-    }
-    */
-    std::vector<std::string> lCmd;
-    std::istringstream lStream;
-    std::string lS;
-    char *lpPtr=readline("$");
-    add_history(lpPtr);
-    lStream.str(lpPtr);
-    while(!lStream.eof())
-    {
-        lStream>>lS;
-        lCmd.push_back(lS);
-    }
+extern XfcLogger gcLog;
 
-    free(lpPtr);
-    return lCmd;
+typedef enum {
+    eStInitial,
+    eStParam,
+    eStSpace,
+    eStString,
+    eStEscape
+} States;
+
+
+vector<string> getCommand()
+{
+    vector<string> cmd;
+    std::string str;
+    char *pPtr=readline("$");
+    States state=eStInitial, prevState=eStInitial;
+    for (unsigned int i=0; pPtr[i]; i++) {
+        switch(state) {
+        case eStInitial:
+        case eStParam:
+            if ('"'==pPtr[i]) {
+                state=eStString;
+            }
+            else if (isspace(pPtr[i])) {
+                if (!str.empty()) {
+                    cmd.push_back(str);
+                    str.clear();
+                    state=eStSpace;
+                }
+            }
+            else if ('\\'==pPtr[i]) {
+                state=eStEscape;
+                prevState=eStParam;
+            }
+            else {
+                state=eStParam;
+                str+=pPtr[i];
+            }
+            break;
+        case eStSpace:
+            if ('"'==pPtr[i]) {
+                state=eStString;
+            }
+            else if(isspace(pPtr[i]))
+                ;
+            else if ('\\'==pPtr[i]) {
+                state=eStEscape;
+                prevState=eStParam;
+            }
+            else {
+                state=eStParam;
+                str+=pPtr[i];
+            }
+            break;
+        case eStEscape:
+            str+=pPtr[i];
+            state=prevState;
+            break;
+        case eStString:
+            if ('"'==pPtr[i]) {
+                state=eStParam;
+            }
+            else if ('\\'==pPtr[i]) {
+                state=eStEscape;
+                prevState=eStString;
+            }
+            else {
+                str+=pPtr[i];
+            }
+            break;
+        } // end switch
+    }
+    // finished
+    if (!str.empty()) {
+        cmd.push_back(str);
+    }
+    add_history(pPtr);
+    free(pPtr);
+
+    gcLog<<xfcInfo<<"new user command: ";
+    for (unsigned int i=0; i<cmd.size(); i++) {
+        if (0!=i)
+            gcLog<<", ";
+        gcLog<<cmd[i];
+    }
+    gcLog<<eol;
+    return cmd;
 }
     
     

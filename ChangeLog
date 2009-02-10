@@ -1,3 +1,8 @@
+2009-02-10  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
+	* src/app_cli/: improvements in cli application (a new user cmd. parser,
+	improved cmd. line parameters, etc.);
+
 2009-02-08  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/: remember last dir. for 'add disk' and

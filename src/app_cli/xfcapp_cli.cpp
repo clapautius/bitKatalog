@@ -45,6 +45,8 @@ Xfc gXfc;
 
 XfcLogger gcLog; // cli logger
 
+string gStartFile;
+
 int printToStdout(unsigned int lDepth, std::string lPath, Xfc&,
                    xmlNodePtr lpNode, void *lpParam);
 int findInTree(unsigned int lDepth, std::string lPath, Xfc&,
@@ -123,8 +125,14 @@ parseCmdLine(int argc, char **argv)
         }
     }
     if (optind < argc) {
+        if (optind == argc-1) {
+            gStartFile=argv[optind];
+            rc=0;
+        }
+        else {
             displayUsage();
             rc=-1;
+        }
     }
     return rc;
 }
@@ -134,13 +142,23 @@ int main(int argc, char *argv[])
 {
     std::vector<std::string> cmd;
     int rc=0;
+    bool lOut=false;
 
     if (parseCmdLine(argc, argv)<0)
         exit(1);
     
     initStuff();
-    
-    bool lOut=false;
+
+    if (!gStartFile.empty()) {
+        gcLog<<xfcInfo<<"loading a file at startup, filename="<<gStartFile<<eol;
+        try {
+            gXfc.loadFile(gStartFile);    
+        }
+        catch (std::string e) {
+            displayError(e);
+            lOut=true;
+        }
+    }
     while (!lOut) {
         cmd=getCommand();
         rc=processCommand(cmd);
