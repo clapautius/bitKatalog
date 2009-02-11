@@ -231,10 +231,6 @@ void bitKatalog::fileNew()
     // this slot is called whenever the File->New menu is selected,
     // the New shortcut is pressed (usually CTRL+N) or the New toolbar
     // button is clicked
-
-    // create a new window
-    (new bitKatalog)->show();
-    
     if (gCatalogState==1) {
         if(KMessageBox::warningContinueCancel(
                this, "Catalog modified. Changes will be lost. Continue?")==KMessageBox::Cancel)

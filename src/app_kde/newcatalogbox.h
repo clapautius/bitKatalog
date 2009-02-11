@@ -21,16 +21,17 @@
 #define NEWCATALOGBOX_H
 
 
-#include <kdialog.h>
+#include <kpagedialog.h>
 #include <klineedit.h>
 #include <qlabel.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
 #include <k3listbox.h>
-#include <qlayout.h>
+#include <khbox.h>
+#include <kvbox.h>
 
 
-class NewCatalogBox : public KDialog
+class NewCatalogBox : public KPageDialog
 {
 Q_OBJECT
 
@@ -47,11 +48,9 @@ private:
 
     void layout();
     
-    QFrame *mpPage; // on heap
+    KHBox *mpLayoutBox2;
 
-    QVBoxLayout *mpLayout1; // on heap
-
-    Q3HBox *mpLayoutBox1;
+    KVBox *mpLayoutBox1;
     
     QLabel *mpTmpLabel1;
     

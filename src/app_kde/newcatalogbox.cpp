@@ -26,10 +26,11 @@
 #include "xfc.h"
 
 NewCatalogBox::NewCatalogBox()
-    : KDialog()
+    : KPageDialog()
 {
     setCaption(QString("New catalog"));
     setButtons(KDialog::Cancel | KDialog::User1);
+    setModal(true);
     layout();
 }
 
@@ -42,16 +43,14 @@ NewCatalogBox::~NewCatalogBox()
 void NewCatalogBox::layout()
 {
     resize(300,250);
-        
     setButtonText(KDialog::User1, "Create"); // :fixme: - replace with a kguiitem
-    
-    QWidget *pPage=new QWidget(this); //=plainPage();    
-    mpLayout1 = new QVBoxLayout(pPage);
-    
-    mpLayoutBox1=new Q3HBox(pPage);
-    mpLayout1->addWidget(mpLayoutBox1);
-    mpTmpLabel1=new QLabel("Catalog description: ", mpLayoutBox1);
-    mpCatalogNameEdit=new KLineEdit(mpLayoutBox1);
+    mpLayoutBox1 = new KVBox();
+    KPageWidgetItem *pPage=addPage(mpLayoutBox1, QString("New catalog"));
+    pPage->setHeader(QString("New catalog"));
+    mpLayoutBox2=new KHBox(mpLayoutBox1);
+    mpTmpLabel1=new QLabel("Catalog description: ", mpLayoutBox2);
+    mpCatalogNameEdit=new KLineEdit(mpLayoutBox2);
+    connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1()));
 }
 
 
