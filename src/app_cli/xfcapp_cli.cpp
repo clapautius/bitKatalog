@@ -177,8 +177,10 @@ int main(int argc, char *argv[])
 static int processCommand(std::vector<std::string> &rCmd)
 {
   // :fixme: :fixme: - try/catch for every commnad
-        
-  if (rCmd[0]=="about") {
+
+  if (rCmd[0].empty())
+      ; // ignore empty commands
+  else if (rCmd[0]=="about") {
       cout<<XFCAPP_NAME<<", version: "<<Xfc::getVersionString().c_str()<<endl;
   }
   else if (rCmd[0]=="help") {
@@ -468,7 +470,7 @@ static int processCommand(std::vector<std::string> &rCmd)
       }
   }
   else {
-    displayError("Unknown commnad");
+    displayError("Unknown command");
   }
 
   return 0;
@@ -590,8 +592,7 @@ int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lp
     const char *lpPtr=(const char*)lpParam;
     lName=lrXfc.getNameOfElement(lpNode); // :fixme: utf8 -> string ?
     if(xmlStrcasestr((const xmlChar*)lName.c_str(),
-       (xmlChar*)lpPtr)!=NULL)
-    {
+       (xmlChar*)lpPtr)!=NULL) {
 #if defined(XFC_DEBUG)
         cout<<":debug: found matching node: path="<<lPath.c_str();
         cout<<", name="<<lName.c_str()<<endl;
