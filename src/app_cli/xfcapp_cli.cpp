@@ -46,6 +46,7 @@ Xfc gXfc;
 XfcLogger gcLog; // cli logger
 
 string gStartFile;
+string gCatalogPath;
 
 int printToStdout(unsigned int lDepth, std::string lPath, Xfc&,
                    xmlNodePtr lpNode, void *lpParam);
@@ -152,7 +153,8 @@ int main(int argc, char *argv[])
     if (!gStartFile.empty()) {
         gcLog<<xfcInfo<<"loading a file at startup, filename="<<gStartFile<<eol;
         try {
-            gXfc.loadFile(gStartFile);    
+            gXfc.loadFile(gStartFile);
+            gCatalogPath=gStartFile;
         }
         catch (std::string e) {
             displayError(e);
@@ -215,7 +217,8 @@ static int processCommand(std::vector<std::string> &rCmd)
     }
     else {
       try {
-        gXfc.loadFile(rCmd[1]);    
+        gXfc.loadFile(rCmd[1]);
+        gCatalogPath=rCmd[1];
       }
       catch (std::string e) {
         displayError(e);
@@ -278,34 +281,26 @@ static int processCommand(std::vector<std::string> &rCmd)
     }
   }
   else if (rCmd[0]=="save") {
-    std::string lName;
-    if (rCmd.size()==1) { // no params
-      displayError("Save where? (save <fileName>)");
-    }
-    else {
-      char lAux[5];
-      int i;
-      if (fileExists(rCmd[1])) {
-        for (i=0;i<999;i++) {
-          sprintf(lAux, ".%03d", i);
-          lName=rCmd[1]+lAux;
-          if(!fileExists(lName))
-            break;
-        }
-        if (i==1000) // wow, 1000 backups
-          throw std::string("way too many backups");
-        lName=rCmd[1]+lAux;
-        rename(rCmd[1], lName);
+      std::string str, err;
+      if (rCmd.size()==1) { // no params
+          if (gCatalogPath.empty()) {
+              displayError("Don't know where to save");
+          }
+          else {
+              str=gCatalogPath;
+          }
       }
-      lName=rCmd[1];
-    }
-    try {
-      gXfc.saveToFile(lName, 1);
-      displayMessage("File saved (filename=", lName, ")");
-    }
-    catch(std::string e) {
-      displayError("Error saving file: ", e);
-    }
+      else {
+          str=rCmd[1];
+      }
+      if (!str.empty()) {
+          if (saveWithBackup(&gXfc, str, err)==0) {
+              displayMessage("File saved (filename=", str, ")");
+          }
+          else {
+              displayError("Error saving file: ", str+". Error is: "+err);
+          }
+      }
   }
   else if (rCmd[0]=="new") {
     if (gXfc.getState()==0) {

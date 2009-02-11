@@ -26,7 +26,9 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include <fstream>
 
+using namespace std;
 
 FileStatType
 getStatOfFile(std::string path) throw (std::string)
@@ -166,3 +168,57 @@ tokenizePath(std::string path)
         tokens.push_back(token);
     return tokens;
 }  
+
+
+int
+copyFile(string src, string dest)
+{
+    int rc=0;
+    unsigned long int len=0, remaining=0;
+    ifstream fin;
+    fstream fout;
+    char *buf=NULL;
+    fin.open(src.c_str(), ios::in | ios::binary);
+    if (!fin.good()) {
+        rc=-1;
+    }
+    if (0==rc) {
+        fout.open(dest.c_str(), ios::in);
+        if (fout.good()) { // dest. exists
+            rc=-3;
+        }
+        fout.close();
+    }
+    if (0==rc) {
+        fout.open(dest.c_str(), ios::out);
+        if (!fout.good()) {
+            rc=-2;
+        }
+    }
+    if (0==rc) {
+        fin.seekg(0, ios::end);
+        len=fin.tellg();
+        remaining=len;
+        fin.seekg(0, ios::beg);
+        buf=new char[100000];
+        while (fin.good()) {
+            fin.read(buf, 100000);
+            fout.write(buf, fin.gcount());
+            if (!fout.good()) {
+                rc=-2;
+                break;
+            }
+            else {
+                remaining-=fin.gcount();
+            }
+        }
+    }
+    if (0==rc && remaining>0) {
+        rc=-4;
+    }
+    delete[] buf;
+    fin.close();
+    fout.close();
+    return rc;
+}
+

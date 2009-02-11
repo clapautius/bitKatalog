@@ -1,5 +1,10 @@
 2009-02-11  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
+	* src/misc.cpp: improved Save/Save As operations (in case of symlinks or
+	relative paths);
+
+2009-02-11  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
 	* src/app_kde/: fixed 'new catalog' dialog for kde app.
 
 2009-02-10  Tudor Pristavu  <clapautiusAtGmailDotCom>

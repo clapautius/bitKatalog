@@ -22,6 +22,9 @@
 
 #include "xfcapp.h"
 
+class Xfc;
+
+
 std::string executeCommand(
     const char *lpPrg, volatile const bool*,
     const char *lpArg1=NULL, const char *lpArg2=NULL,
@@ -33,5 +36,7 @@ std::string execChecksum(std::string lPath, std::string lShaProgramPath,
 throw (std::string);  
 
 std::string getTimeSinceMidnight();
+
+int saveWithBackup(Xfc*, std::string path, std::string &error);
 
 #endif

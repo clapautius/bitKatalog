@@ -24,12 +24,15 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <time.h>
+#include <limits.h>
 
 #include <iostream>
 #include <string>
 
 #include "misc.h"
 #include "xfclib.h"
+#include "xfc.h"
+#include "fs.h"
 
 using namespace std;
 
@@ -179,4 +182,50 @@ getTimeSinceMidnight()
     snprintf(buffer, 14, "%02lu:%02lu:%02lu.%03lu", todaySecs/3600,
              (todaySecs%3600)/60, todaySecs%60, currentTime.tv_usec/1000);
     return std::string(buffer);
+}
+
+
+/**
+ * @retval 0 - ok
+ * @retval -1 - backup error
+ * @retval -2 - xml save error
+ * @retval -3 - other error
+ **/
+int
+saveWithBackup(Xfc *pXfcCat, std::string path, std::string &error)
+{
+    char aux[5];
+    int i, rc=0;
+    string name;
+    char pathBuf[PATH_MAX+1];
+    string realPath=realpath(path.c_str(), pathBuf);
+    if (fileExists(realPath)) {
+        for (i=0;i<999;i++) {
+            sprintf(aux, ".%03d", i);
+            name=realPath+aux;
+            if(!fileExists(name))
+                break;
+        }
+        if (i==1000) { // wow, 1000 backups
+            rc=-1;
+            error="too many backups";
+        }
+        else {
+            name=realPath+aux;
+            if (copyFile(realPath, name)!=0) {
+                rc=-1;
+                error="copy error";
+            }
+        }
+    }
+    if (0==rc) {
+        try {
+            pXfcCat->saveToFile(realPath, 1);
+        }
+        catch(std::string e) {
+            error=e;
+            rc=-2;
+        }
+    }
+    return rc;
 }

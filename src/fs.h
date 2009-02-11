@@ -52,6 +52,15 @@ bool fileExists(std::string lPath);
 void rename(std::string lOldFile, std::string lNewFile)
         throw (std::string);
 
+/**
+ * @retval 0 - ok
+ * @retval -1 - I/O error at reading
+ * @retval -2 - I/O error at writing
+ * @retval -3 - dest. file exists
+ * @retval -4 - unknown error
+ **/
+int copyFile(std::string src, std::string dest);
+
 std::vector<std::string> tokenizePath(std::string lPath);
 // input: a path
 // output: a vector with tokens extracted from that path

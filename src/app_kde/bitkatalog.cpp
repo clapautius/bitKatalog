@@ -49,11 +49,12 @@
 #include <kmessagebox.h>
 #include <kshortcutsdialog.h>
 
+#include "main.h"
 #include "searchbox.h"
 #include "adddiskbox.h"
 #include "newcatalogbox.h"
 #include "fs.h"
-#include "main.h"
+#include "misc.h"
 
 
 bitKatalog::bitKatalog()
@@ -281,21 +282,20 @@ bitKatalog::fileSave()
         fileSaveAs();
       }
       else {
-        try {
+          string err;
           // :fixme: - check global config
-          createNumberedBackup(mCatalogPath);
-          lpCatalog->saveToFile(mCatalogPath, 1);
-          //m_view->resetModifiedFlag();
-          gCatalogState=2;
-          gpMainWindow->updateTitle(false);
-          //KMessageBox::information(this, "File succesfully saved");
-        }
-        catch(std::string e) {
-          KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
+          if (saveWithBackup(lpCatalog, mCatalogPath, err)==0) {
+              //m_view->resetModifiedFlag();
+              gCatalogState=2;
+              gpMainWindow->updateTitle(false);
+              //KMessageBox::information(this, "File succesfully saved");
+          }
+          else {
+              KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(err.c_str()));
         }
       }
     }
-  }            
+  }
 }
 
 
@@ -315,18 +315,17 @@ void bitKatalog::fileSaveAs()
             KMessageBox::error(this, "No catalog! You should load a catalog from file or create a new one");
         }
         else {
-            try {
-                // :fixme: - check global config
-                createNumberedBackup(file_url.path().toStdString());
-                lpCatalog->saveToFile(file_url.path().toStdString(), 1);
+            string err;
+            // :fixme: - check global config
+            if (saveWithBackup(lpCatalog, file_url.path().toStdString(), err)==0) {
                 //m_view->resetModifiedFlag();
                 gCatalogState=2;
                 mCatalogPath=file_url.path().toStdString();
                 gpMainWindow->updateTitle(false);
                 //KMessageBox::information(this, "File succesfully saved");
             }
-            catch(std::string e) {
-                KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(e.c_str()));
+            else {
+                KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(err.c_str()));
             }
         }
     }
