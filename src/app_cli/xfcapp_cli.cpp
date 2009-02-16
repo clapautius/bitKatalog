@@ -190,6 +190,9 @@ static int processCommand(std::vector<std::string> &rCmd)
     displayMessage("  load <xmlFile>");
     displayMessage("  print [ all | disk <diskName> ]");
     displayMessage("  add <pathToFileOrDir> <diskName> [<maxDepth>]");
+    displayMessage("    compute sha256 sum only");
+    displayMessage("  add-allSums <pathToFileOrDir> <diskName> [<maxDepth>]");
+    displayMessage("    compute all sums (sha1, sha256)");
     displayMessage("  addWithoutSha <pathToFileOrDir> <diskName> [<maxDepth>]");
     displayMessage("    if path is a dir and ends with '/', the root dir is not added to xml tree");
     displayMessage("    depth= 0 - only root dir/file");
@@ -249,7 +252,7 @@ static int processCommand(std::vector<std::string> &rCmd)
       }
     }
   }
-  else if (rCmd[0]=="add" || rCmd[0]=="addWithoutSha") {
+  else if (rCmd[0]=="add" || rCmd[0]=="addWithoutSha" || rCmd[0]=="add-allSums") {
     if (rCmd.size()<3) {
       displayError("Add what? (add <fileOrDir> <diskName> [<maxDepth>])");
     }
@@ -268,7 +271,10 @@ static int processCommand(std::vector<std::string> &rCmd)
         try {
             vector<Xfc::XmlParamForFileCallback> cbList1;
             vector<Xfc::XmlParamForFileChunkCallback> cbList2;
-            if (rCmd[0]=="add") {
+            if (rCmd[0]=="add-allSums") {
+                cbList1.push_back(sha1Callback);
+            }
+            if (rCmd[0]=="add" || rCmd[0]=="add-allSums") {
                 cbList1.push_back(sha256Callback);
                 // params: path maxDepth abortFlag cbList1 cbList2 diskName ...
                 gXfc.addPathToXmlTree(rCmd[1], lMaxDepth, NULL, cbList1, cbList2, rCmd[2]);
@@ -298,6 +304,7 @@ static int processCommand(std::vector<std::string> &rCmd)
       if (!str.empty()) {
           if (saveWithBackup(&gXfc, str, err)==0) {
               displayMessage("File saved (filename=", str, ")");
+              gCatalogPath=str;
           }
           else {
               displayError("Error saving file: ", str+". Error is: "+err);

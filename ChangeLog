@@ -2,6 +2,9 @@
 
 	* src/misc.cpp (saveWithBackup): fixed crash on first save of a new catalog;
 
+	* src/app_cli/xfcapp_cli.cpp (processCommand): added add-allSums
+	command; other fixes;
+
 2009-02-11  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/misc.cpp: improved Save/Save As operations (in case of symlinks or
