@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <limits.h>
+#include <errno.h>
 
 #include <iostream>
 #include <string>
@@ -198,25 +199,38 @@ saveWithBackup(Xfc *pXfcCat, std::string path, std::string &error)
     int i, rc=0;
     string name;
     char pathBuf[PATH_MAX+1];
-    string realPath=realpath(path.c_str(), pathBuf);
-    if (fileExists(realPath)) {
-        for (i=0;i<999;i++) {
-            sprintf(aux, ".%03d", i);
-            name=realPath+aux;
-            if(!fileExists(name))
-                break;
-        }
-        if (i==1000) { // wow, 1000 backups
-            rc=-1;
-            error="too many backups";
+    string realPath;
+    if (fileExists(path)) {
+        char *p=realpath(path.c_str(), pathBuf);
+        if (p) {
+            realPath=p;
         }
         else {
-            name=realPath+aux;
-            if (copyFile(realPath, name)!=0) {
+            error=strerror(errno);
+            return -3;
+        }
+        if (fileExists(realPath)) {
+            for (i=0;i<999;i++) {
+                sprintf(aux, ".%03d", i);
+                name=realPath+aux;
+                if(!fileExists(name))
+                    break;
+            }
+            if (i==1000) { // wow, 1000 backups
                 rc=-1;
-                error="copy error";
+                error="too many backups";
+            }
+            else {
+                name=realPath+aux;
+                if (copyFile(realPath, name)!=0) {
+                    rc=-1;
+                    error="copy error";
+                }
             }
         }
+    }
+    else {
+        realPath=path;
     }
     if (0==rc) {
         try {

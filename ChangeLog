@@ -1,3 +1,7 @@
+2009-02-16  Tudor Pristavu  <clapautiusAtGmailDotCom>
+
+	* src/misc.cpp (saveWithBackup): fixed crash on first save of a new catalog;
+
 2009-02-11  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/misc.cpp: improved Save/Save As operations (in case of symlinks or

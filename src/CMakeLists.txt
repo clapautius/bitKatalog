@@ -8,7 +8,7 @@ if (NOT LIBXML_LIB_DIR)
   message (FATAL_ERROR "libxml2 library not found.")
 endif (NOT LIBXML_LIB_DIR)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE ")
 
 add_subdirectory(xfclib)
