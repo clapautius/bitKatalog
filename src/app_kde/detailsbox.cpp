@@ -30,6 +30,7 @@
 
 #include "bitkatalogview.h"
 #include "xfcEntity.h"
+#include "misc.h"
 
 #if defined(MTP_DEBUG)
   #include <iostream>
@@ -240,7 +241,7 @@ void DetailsBox::layout()
               str+=details[SHA256LABEL];
           mpSha256Label=new QLabel(str.c_str(), pLayoutBox2);
           str="Size: ";
-          str+=details["size"];
+          str+=sizeToHumanReadableSize(details["size"]);
           mpSizeLabel=new QLabel(str.c_str(), pLayoutBox2);
       }
       else if (2 == fileType) {

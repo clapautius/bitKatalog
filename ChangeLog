@@ -1,3 +1,7 @@
+2009-12-19  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/misc.h: size in now displayed in human readable format (in kde app).
+
 2009-02-16  Tudor Pristavu  <clapautiusAtGmailDotCom>
 
 	* src/misc.cpp (saveWithBackup): fixed crash on first save of a new catalog;

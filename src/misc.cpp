@@ -29,6 +29,8 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 #include "misc.h"
 #include "xfclib.h"
@@ -242,4 +244,29 @@ saveWithBackup(Xfc *pXfcCat, std::string path, std::string &error)
         }
     }
     return rc;
+}
+
+
+string sizeToHumanReadableSize(string sizeInBytes)
+{
+    unsigned long int sizeNum;
+    char *pRet=NULL;
+    ostringstream strm;
+    sizeNum=strtol(sizeInBytes.c_str(), &pRet, 10);
+    if (pRet==sizeInBytes.c_str()) {
+        strm<<"Invalid size";
+    }
+    else if (sizeNum<1024) {
+        strm<<sizeNum<<" B";
+    }
+    else {
+        if (sizeNum>=1024 && sizeNum<1024*1024) {
+            strm<<fixed<<setprecision(1)<<(float)(sizeNum/1024)<<" KB";
+        }
+        else {
+            strm<<fixed<<setprecision(1)<<(float)(sizeNum/1024/1024)<<" MB";
+        }
+        strm<<" ("<<sizeNum<<" B)";
+    }
+    return strm.str();
 }

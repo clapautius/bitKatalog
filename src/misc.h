@@ -39,4 +39,6 @@ std::string getTimeSinceMidnight();
 
 int saveWithBackup(Xfc*, std::string path, std::string &error);
 
+std::string sizeToHumanReadableSize(std::string sizeInBytes);
+
 #endif

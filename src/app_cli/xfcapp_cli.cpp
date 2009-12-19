@@ -64,6 +64,9 @@ static void cmdRenameDisk(std::vector<std::string> cmd);
 
 static void cmdVerifyDisk(std::vector<std::string> cmd);
 
+#if defined(XFC_DEBUG)
+static void runDebugTests();
+#endif
 
 
 static void
@@ -212,6 +215,9 @@ static int processCommand(std::vector<std::string> &rCmd)
     displayMessage("    cdate = iso format: YYYY-MM-DD");
     displayMessage("  rename_disk <oldName> <newDisk>");
     displayMessage("  verify <diskName> <path>");
+#if defined(XFC_DEBUG)
+    displayMessage("  test");
+#endif
   }
   else if (rCmd[0]=="exit" || rCmd[0]=="quit") {
     return 1;
@@ -476,6 +482,11 @@ static int processCommand(std::vector<std::string> &rCmd)
           cmdVerifyDisk(rCmd);
       }
   }
+#if defined(XFC_DEBUG)
+  else if ("test"==rCmd[0]) {
+      runDebugTests();
+  }
+#endif
   else {
     displayError("Unknown command");
   }
@@ -617,3 +628,18 @@ void initStuff()
     xmlIndentTreeOutput=1;
     xmlKeepBlanksDefault(0);
 }
+
+
+#if defined(XFC_DEBUG)
+static void
+runDebugTests()
+{
+
+    // size tests
+    displayMessage(sizeToHumanReadableSize("1023"));
+    displayMessage(sizeToHumanReadableSize("1024"));
+    displayMessage(sizeToHumanReadableSize("1025"));
+    displayMessage(sizeToHumanReadableSize("1024555"));
+    displayMessage(sizeToHumanReadableSize("1000000000"));
+}
+#endif
