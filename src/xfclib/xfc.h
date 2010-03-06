@@ -147,6 +147,10 @@ public:
     
     void removeLabelFrom(string path, string label) throw (string);
 
+    void addLabelRecTo(string path, string label) throw (string);
+
+    void removeLabelRecFrom(string path, string label) throw (string);
+    
     void setDescriptionOf(string path, string description) throw (string);
             
     string getCDate(string diskName, xmlNodePtr *pCDateNode=NULL) const throw (string);

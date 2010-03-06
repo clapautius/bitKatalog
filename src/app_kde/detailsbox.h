@@ -88,7 +88,7 @@ private:
     QPushButton *mpAddLabelButton;
     QPushButton *mpEditLabelButton;
     QPushButton *mpDeleteLabelButton;
-    
+
     QLabel *mpName; // entity name - on heap
 //    QLabel *mpDescription;
 

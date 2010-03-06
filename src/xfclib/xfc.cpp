@@ -36,6 +36,24 @@
 using namespace std;
 
 
+/**
+ * helper function
+ * @retval 0 : OK;
+ * @retval -1 : user abort / stop;
+ * @retval -2 : error;
+ **/
+int
+addLabelCallback(unsigned int depth __attribute__((unused)), std::string path, Xfc& rXfc,
+                 xmlNodePtr pNode, void *pParam)
+{
+    std::string curName;
+    curName=rXfc.getNameOfElement(pNode); // :fixme: utf8 -> string ?
+    rXfc.addLabelTo(path+"/"+curName, string((const char*)pParam));
+    return 0;
+}
+
+
+
 Xfc::Xfc()
 {
     mState=0;
@@ -149,6 +167,9 @@ void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
         std::cout<<":debug: child addr="<<lpChild<<endl;
 #endif 
         if (isFileOrDir(lpChild) || isDisk(lpChild)) {
+#if defined(XFC_DEBUG)
+            cout<<":debug: calling callbackFunc for element at addr: "<<lpChild<<endl;
+#endif
             lRet=callBackFunc(lDepth, lPath, *this, lpChild, lpParam);
             if (lRet==-1) // abandon
                 return;
@@ -215,7 +236,7 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
 {
     // :fixme: - check state
 #if defined(XFC_DEBUG)
-    cout<<":debug: in getNameOfElement()"<<endl;
+    cout<<":debug: entering function "<<__FUNCTION__<<endl;
 #endif 
     std::string lS;
     if (lpNode==NULL)
@@ -241,8 +262,7 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
         }
     }
 #if defined(XFC_DEBUG)
-    cout<<":debug: name is: "<<lS.c_str()<<endl;
-    //cout<<":debug: out of getNameOfElement()"<<endl;
+    cout<<":debug: name is: "<<lS.c_str()<<". Exiting function "<<__FUNCTION__<<endl;
 #endif 
     return lS;
 }
@@ -791,9 +811,16 @@ xmlNodePtr Xfc::getNameNode(xmlNodePtr lpNode)
 }        
 
 
-void Xfc::addLabelTo(std::string lPath,
-                        std::string lLabel)
-            throw (std::string)
+/**
+ * Add a new label to the specified node. Doesn't check if the label exists.
+ * Throws std::string if the path is invalid (the node doesn't exist).
+ *
+ * @param[in] path : copmplete path
+ * @param[in] label : the label
+ **/
+void
+Xfc::addLabelTo(std::string lPath, std::string lLabel)
+    throw (std::string)
 {
     xmlNodePtr lpNode;
     lpNode=getNodeForPath(lPath);
@@ -836,6 +863,26 @@ void Xfc::removeLabelFrom(std::string lPath,
         }
         lpChildNode=lpChildNode->next;
     }    
+}
+
+
+
+void
+Xfc::addLabelRecTo(string path, string label) throw (string)
+{
+    xmlNodePtr pNode;
+    pNode=getNodeForPath(path);
+    if (pNode==NULL)
+        throw std::string("No such node");
+    addLabelTo(path, label);
+    parseRec(0, path, pNode, addLabelCallback, (void*)label.c_str());
+}
+
+
+
+void
+Xfc::removeLabelRecFrom(string path, string label) throw (string)
+{
 }
 
 
@@ -1253,3 +1300,5 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefi
     else
         return 1;
 }
+
+

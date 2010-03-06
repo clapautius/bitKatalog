@@ -47,7 +47,7 @@ bitKatalogView::bitKatalogView(QWidget *parent)
 {
     QHBoxLayout *top_layout = new QHBoxLayout(this);
     setupListView();
-    mRootItem=new K3ListViewItem(mListView, "[ no catalog ]");
+    mRootItem=new XmlEntityItem(mListView, "[ no catalog ]");
     mCatalog=NULL;
     top_layout->addWidget(mListView);
     
@@ -153,21 +153,18 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
     std::string lCompletePath;
     std::string lS;
     Q3ListViewItem *lpItem;
+    bool isDisk=false, isDir=false;
 
-    KMenu *pContextMenu=new KMenu();
-    QAction *pAct=NULL;
-    pAct=pContextMenu->addAction("Details");
-    connect(pAct, SIGNAL(triggered()), this, SLOT(details()));
-    pContextMenu->addSeparator();
-    
-    mpCurrentItem=i;
-    
     // this code appears also in details function - make a function from it
     if (mCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
         return;
     }
-    
+
+    KMenu *pContextMenu=new KMenu();
+    QAction *pAct=NULL;
+
+    mpCurrentItem=(XmlEntityItem*)i;
     lCompletePath=mpCurrentItem->text(0).toStdString();
     lpItem=mpCurrentItem;
     while(1) {
@@ -180,32 +177,90 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
         lCompletePath=lS;
     }
     mCurrentItemPath=lCompletePath;
-
+    
     try {
         msgInfo("Context menu for: ", lCompletePath);
         // check if this is a disk
         XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
-        if (lEnt.isDisk()) {
-            pAct=pContextMenu->addAction("Verify disk");
-            connect(pAct, SIGNAL(triggered()), this, SLOT(verifyDisk()));
-            
-            pAct=pContextMenu->addAction("Rename disk");
-            connect(pAct, SIGNAL(triggered()), this, SLOT(renameDisk()));
-            
-            pAct=pContextMenu->addAction("Delete disk");
-            connect(pAct, SIGNAL(triggered()), this, SLOT(deleteDisk()));
+        Xfc::ElementType type=lEnt.getElementType();
+        switch (type) {
+        case Xfc::eDisk:
+            isDisk=true;
+            break;
+        case Xfc::eDir:
+            isDir=true;
+            break;
+        default: // make compiler happy
+            break;
         }
-        pContextMenu->exec(p);
     }
     catch(std::string e) {
         msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", lCompletePath);
+        msgWarn("  exception is: ", e);
         KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
     }
+    
+    pAct=pContextMenu->addAction("Details");
+    connect(pAct, SIGNAL(triggered()), this, SLOT(details()));
+    pContextMenu->addSeparator();
+
+    // add label rec.
+    if (isDir || isDisk) {
+        pAct=pContextMenu->addAction("Add label recursive");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(addLabelRec()));
+        
+        pContextMenu->addSeparator();
+    }
+    
+    if (isDisk) {
+        pAct=pContextMenu->addAction("Verify disk");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(verifyDisk()));
+        
+        pAct=pContextMenu->addAction("Rename disk");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(renameDisk()));
+        
+        pAct=pContextMenu->addAction("Delete disk");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(deleteDisk()));
+    }
+
+    pContextMenu->exec(p);
 }
 
 
 void
 bitKatalogView::details() throw()
+{
+    std::string completePath;
+    DetailsBox *pDetailsBox=NULL;
+    if (mCatalog==NULL) {
+        KMessageBox::error(this, "No catalog!");
+        return;
+    }
+    completePath=mCurrentItemPath;
+    if (completePath!="/") {
+        try {
+            XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
+            pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem);
+            pDetailsBox->exec(); 
+            if (pDetailsBox->catalogWasModified()) {
+                gCatalogState=1;
+                gpMainWindow->updateTitle(true);
+            }
+        }
+        catch(std::string e) {
+            msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
+            msgWarn("  exception is: ", e);
+            KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
+        }
+    }
+    else {
+        KMessageBox::information(this, "Special case - not ready yet");
+    }
+}
+
+
+void
+bitKatalogView::addLabelRec() throw()
 {
     std::string completePath;
     if (mCatalog==NULL) {
@@ -214,12 +269,17 @@ bitKatalogView::details() throw()
     }
     completePath=mCurrentItemPath;
     if (completePath!="/") {
-        XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
-        DetailsBox *pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt,
-          mpCurrentItem);
-        pDetailsBox->exec(); 
-        if (pDetailsBox->catalogWasModified()) {
-            gCatalogState=1;
+        QString str;
+        bool retButton; 
+        str=KInputDialog::getText("New label", "Label: ", "", &retButton);
+        //mpCatalog->addLabelTo(mCompletePath, lS);
+        if(retButton) {
+#if defined(XFC_DEBUG)
+            cout<<":debug: adding new label (rec.): "<<str.toStdString()<<endl;
+#endif 
+            mCatalog->addLabelRecTo(completePath, str.toStdString());
+            mpCurrentItem->redisplay(); // to update the window
+            gCatalogState=1; // :fixme: - check result
             gpMainWindow->updateTitle(true);
         }
     }
@@ -432,7 +492,8 @@ void
 bitKatalogView::populateTree(Xfc *mpCatalog)
 {
     mListView->clear();
-    mRootItem=new K3ListViewItem(mListView, "/"); // :fixme: - use catalog name?
+    mRootItem=new XmlEntityItem(mListView, "/"); // :fixme: - use catalog name?
+    mRootItem->setXmlNode(mpCatalog->getNodeForPath("/"));
 
     EntityIterator *lpIterator;
     EntityIterator *lpTempIterator;

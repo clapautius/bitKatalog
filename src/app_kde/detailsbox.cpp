@@ -124,7 +124,6 @@ void DetailsBox::connectButtons()
     connect(mpAddLabelButton, SIGNAL(clicked()), this, SLOT(addLabel()));
     connect(mpEditLabelButton, SIGNAL(clicked()), this, SLOT(editLabel()));
     connect(mpDeleteLabelButton, SIGNAL(clicked()), this, SLOT(deleteLabel()));
-    
 } 
 
 
@@ -197,7 +196,7 @@ void DetailsBox::layout()
     mpAddLabelButton=new QPushButton("Add a label", pLabelButtons);
     mpEditLabelButton=new QPushButton("Edit current label", pLabelButtons);
     mpDeleteLabelButton=new QPushButton("Delete current label", pLabelButtons);
-    
+
     //mpAddLabelButton=mpLabelButtonBox->addButton("Add a label");
     //mpEditLabelButton=mpLabelButtonBox->addButton("Edit current label");
         

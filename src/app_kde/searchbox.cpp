@@ -157,7 +157,12 @@ SearchBox::disableButtons()
 }
 
 
-/// helper function
+/**
+ * helper function
+ * @retval 0 : OK;
+ * @retval -1 : user abort / stop;
+ * @retval -2 : error;
+ **/
 int
 findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& lrXfc,
            xmlNodePtr lpNode, void *lpParam)

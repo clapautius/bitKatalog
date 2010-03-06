@@ -29,7 +29,7 @@ XmlEntityItem::XmlEntityItem(Q3ListView *lpListView, QString lS)
 }
 
 
-XmlEntityItem::XmlEntityItem(Q3ListViewItem *lpItem, QString lS,
+XmlEntityItem::XmlEntityItem(XmlEntityItem *lpItem, QString lS,
                              QString lS1, QString lS2, QString lS3)
     : K3ListViewItem(lpItem, lS, lS1, lS2, lS3)
 {
@@ -48,6 +48,38 @@ void XmlEntityItem::setXmlNode(xmlNodePtr lpNode)
 }
 
 
+void XmlEntityItem::redisplay(bool first)
+{
+    XfcEntity lEnt(mpNode, mspCatalog);
+    map<string, string> details;
+    string labelsString;
+    setText(NAME_COLUMN, lEnt.getName().c_str());
+    details=lEnt.getDetails();
+    if( !details["description"].empty())
+        setText(DESCRIPTION_COLUMN, details["description"].c_str());
+    else
+        setText(DESCRIPTION_COLUMN, "");
+    labelsString=lEnt.getLabelsAsString();
+    setText(LABELS_COLUMN, labelsString.c_str());
+
+#if defined(XFC_DEBUG)
+    cout<<":debug:"<<__FUNCTION__<<": this="<<this<<endl;
+#endif
+    
+    XmlEntityItem *pCurrentItem;
+    pCurrentItem=(XmlEntityItem*)firstChild();
+    if (pCurrentItem) {
+        pCurrentItem->redisplay(false);
+    }
+    if (!first) {
+        pCurrentItem=(XmlEntityItem*)nextSibling();
+        if (pCurrentItem) {
+            pCurrentItem->redisplay(false);
+        }
+    }
+}
+
+
 void XmlEntityItem::setOpen(bool lOpen)
 {
     map<string, string> details;
@@ -61,10 +93,11 @@ void XmlEntityItem::setOpen(bool lOpen)
         {
             lEnt=lpIterator->getNextChild();
             details=lEnt.getDetails();
+            string labelsString=lEnt.getLabelsAsString();
             if( !details["description"].empty())
-                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), details["description"].c_str());
+                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), details["description"].c_str(), labelsString.c_str());
             else
-                lpItem=new XmlEntityItem(this, lEnt.getName().c_str());
+                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), "", labelsString.c_str());
             lpItem->setXmlNode(lEnt.getXmlNode());
             switch (lEnt.getElementType()) {
             case Xfc::eFile:

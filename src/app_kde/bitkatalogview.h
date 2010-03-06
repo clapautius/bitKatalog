@@ -27,6 +27,7 @@
 #include <k3listview.h>
 
 #include "xfc.h"
+#include "xmlentityitem.h"
 
 #define NAME_COLUMN 0
 #define DESCRIPTION_COLUMN 1
@@ -103,6 +104,8 @@ private slots:
     void contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint &p);
 
     void details() throw();
+
+    void addLabelRec() throw();
     
     void verifyDisk() throw();
 
@@ -118,13 +121,14 @@ private:
     
     K3ListView *mListView;
     
-    K3ListViewItem *mRootItem;
+    XmlEntityItem *mRootItem;
     
     Xfc *mCatalog;
     
     bool mModifiedCatalog;
     
-    Q3ListViewItem *mpCurrentItem;
+    //Q3ListViewItem *mpCurrentItem;
+    XmlEntityItem *mpCurrentItem;
 
     std::string mCurrentItemPath;
 };

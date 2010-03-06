@@ -1,3 +1,7 @@
+2010-03-07  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/: new feature: add labels recursive;
+
 2009-12-19  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/misc.h: size in now displayed in human readable format (in kde app).

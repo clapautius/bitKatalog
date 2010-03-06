@@ -32,12 +32,14 @@ class XmlEntityItem : public K3ListViewItem
 public:
     XmlEntityItem(Q3ListView*, QString);
 
-    XmlEntityItem(Q3ListViewItem*, QString, 
+    XmlEntityItem(XmlEntityItem*, QString, 
                   QString=QString::null, QString=QString::null, QString=QString::null);
     
-    ~XmlEntityItem();
+    virtual ~XmlEntityItem();
     
-    void setOpen(bool);
+    virtual void setOpen(bool);
+
+    void redisplay(bool first=true);
     
     void setXmlNode(xmlNodePtr);
 
