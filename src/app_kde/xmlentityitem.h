@@ -43,6 +43,10 @@ public:
     
     void setXmlNode(xmlNodePtr);
 
+    void setAsOpened() {
+        mAlreadyOpened=true;
+    }
+    
     static Xfc *mspCatalog;
     // :fixme: - maybe fix this
       

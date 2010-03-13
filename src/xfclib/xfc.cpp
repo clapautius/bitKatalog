@@ -236,7 +236,7 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
 {
     // :fixme: - check state
 #if defined(XFC_DEBUG)
-    cout<<":debug: entering function "<<__FUNCTION__<<endl;
+//    cout<<":debug: entering function "<<__FUNCTION__<<endl;
 #endif 
     std::string lS;
     if (lpNode==NULL)
@@ -262,7 +262,7 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
         }
     }
 #if defined(XFC_DEBUG)
-    cout<<":debug: name is: "<<lS.c_str()<<". Exiting function "<<__FUNCTION__<<endl;
+//    cout<<":debug: name is: "<<lS.c_str()<<". Exiting function "<<__FUNCTION__<<endl;
 #endif 
     return lS;
 }

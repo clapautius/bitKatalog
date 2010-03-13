@@ -503,11 +503,15 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     XmlEntityItem *lpItem;
     map<string, string> details;
     string labelsString;
-    
+
+    // add first level elements without opening root element
     while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
         details=lEnt.getDetails();
         labelsString=lEnt.getLabelsAsString();
+#if defined(XFC_DEBUG)
+        cout<<":debug:"<<__FUNCTION__<<": adding element with name "<<lEnt.getName()<<endl;
+#endif
         if (!details["description"].empty())
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(),
                                      details["description"].c_str(), labelsString.c_str());
@@ -520,6 +524,7 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
             lpItem->setExpandable(true);
         delete lpTempIterator;
     }
+    mRootItem->setAsOpened();
 }    
 
 

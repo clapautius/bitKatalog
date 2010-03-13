@@ -1,3 +1,8 @@
+2010-03-13  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/app_kde/bitkatalogview.cpp (populateTree): fixed bug in kde app -
+	first level elements were duplicated in the list view;
+
 2010-03-07  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/: new feature: add labels recursive;
