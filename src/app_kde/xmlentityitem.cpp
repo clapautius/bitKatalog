@@ -22,8 +22,9 @@
 #include "xfcEntity.h"
 
 
-XmlEntityItem::XmlEntityItem(Q3ListView *lpListView, QString lS)
-    : K3ListViewItem(lpListView, lS)
+XmlEntityItem::XmlEntityItem(Q3ListView *lpListView, QString lS,
+                             QString lS1, QString lS2, QString lS3)
+    : K3ListViewItem(lpListView, lS, lS1, lS2, lS3)
 {
     mAlreadyOpened=false;
 }

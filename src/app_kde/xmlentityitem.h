@@ -30,7 +30,8 @@
 class XmlEntityItem : public K3ListViewItem
 {
 public:
-    XmlEntityItem(Q3ListView*, QString);
+    XmlEntityItem(Q3ListView*, QString,
+                  QString=QString::null, QString=QString::null, QString=QString::null);
 
     XmlEntityItem(XmlEntityItem*, QString, 
                   QString=QString::null, QString=QString::null, QString=QString::null);

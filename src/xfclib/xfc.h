@@ -53,7 +53,8 @@ public:
         eUnknown=0,
         eDisk,
         eFile,
-        eDir
+        eDir,
+        eRoot
     } ElementType;
 
     typedef int (*XmlParamForFileCallback)(
@@ -99,6 +100,8 @@ public:
     bool isFileOrDir(xmlNodePtr) const throw();
     
     bool isDisk(xmlNodePtr) const throw();
+
+    bool isRoot(xmlNodePtr) const throw();
         
     string getNameOfFile(xmlNodePtr) const throw (string);
     

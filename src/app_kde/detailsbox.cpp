@@ -249,7 +249,7 @@ void DetailsBox::layout()
           pPage2->setHeader(QString("Directory details"));
       }
     }
-    else { // disk
+    else if (mpXmlItem->isDisk()) { // disk
         pBox2= new KVBox();
         pPage2=addPage(pBox2, QString("Disk details"));
         pPage2->setHeader(QString("Disk details"));
@@ -258,9 +258,6 @@ void DetailsBox::layout()
         mpCdateEdit=new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(details["cdate"].c_str());
     }
-
-    // page3
-    //mpPage3=addPage(QString("Misc"));
 }
 
 

@@ -73,9 +73,17 @@ bitKatalog::bitKatalog()
     // I'll create the help menu after the creation of File/Edit/etc.
     setHelpMenuEnabled(false);
 
-    createGUI();
-    //setupGUI();
+    //createGUI();
+    setupGUI();
 
+    // for some strange reason, in KDE 4.4 (and probably 4.3 too), the default
+    // menu bar has lots of menu entries (Games, Tools, and many more). I don't
+    // know why and I don't know how to delete them, so I delete the whole
+    // KMenuBar and create a new one, empty.
+    KMenuBar *pOldMenuBar=menuBar();
+    setMenuBar(new KMenuBar());
+    delete pOldMenuBar;
+    
     mpFileMenu=new KMenu("&File");
     menuBar()->addMenu(mpFileMenu);
     mpEditMenu=new KMenu("&Edit");
@@ -86,7 +94,7 @@ bitKatalog::bitKatalog()
     
     //mpEditMenu->addAction("&Search");
     mpEditMenu->addAction("&Add disk to catalog", this, SLOT(addDisk()));
-
+    
     // then, setup our actions
     setupActions();
 

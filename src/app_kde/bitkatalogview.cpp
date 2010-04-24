@@ -237,24 +237,19 @@ bitKatalogView::details() throw()
         return;
     }
     completePath=mCurrentItemPath;
-    if (completePath!="/") {
-        try {
-            XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
-            pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem);
-            pDetailsBox->exec(); 
-            if (pDetailsBox->catalogWasModified()) {
-                gCatalogState=1;
-                gpMainWindow->updateTitle(true);
-            }
-        }
-        catch(std::string e) {
-            msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
-            msgWarn("  exception is: ", e);
-            KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
+    try {
+        XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
+        pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem);
+        pDetailsBox->exec(); 
+        if (pDetailsBox->catalogWasModified()) {
+            gCatalogState=1;
+            gpMainWindow->updateTitle(true);
         }
     }
-    else {
-        KMessageBox::information(this, "Special case - not ready yet");
+    catch(std::string e) {
+        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
+        msgWarn("  exception is: ", e);
+        KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
     }
 }
 
@@ -491,9 +486,28 @@ bitKatalogView::getCatalog()
 void
 bitKatalogView::populateTree(Xfc *mpCatalog)
 {
+    map<string, string> details;
+    string labelsString;
+
     mListView->clear();
-    mRootItem=new XmlEntityItem(mListView, "/"); // :fixme: - use catalog name?
-    mRootItem->setXmlNode(mpCatalog->getNodeForPath("/"));
+
+    // setup root element
+    {
+        xmlNodePtr pRootNode=mpCatalog->getNodeForPath("/");
+        string catalogName="/";
+        XfcEntity rootEnt(pRootNode, mpCatalog);
+        details=rootEnt.getDetails();
+        labelsString=rootEnt.getLabelsAsString();
+        catalogName+=rootEnt.getName();
+        if (!details["description"].empty())
+            mRootItem=new XmlEntityItem(mListView, catalogName.c_str(),
+                                        details["description"].c_str(),
+                                        labelsString.c_str());
+        else
+            mRootItem=new XmlEntityItem(mListView, catalogName.c_str(), "",
+                                        labelsString.c_str());
+        mRootItem->setXmlNode(pRootNode);
+    }
 
     EntityIterator *lpIterator;
     EntityIterator *lpTempIterator;
@@ -501,8 +515,6 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     lpIterator=new EntityIterator(*mpCatalog, lS);
     XfcEntity lEnt;
     XmlEntityItem *lpItem;
-    map<string, string> details;
-    string labelsString;
 
     // add first level elements without opening root element
     while (lpIterator->hasMoreChildren()) {

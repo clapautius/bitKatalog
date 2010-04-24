@@ -211,6 +211,18 @@ bool Xfc::isDisk(xmlNodePtr lpNode) const throw()
 }
 
 
+bool Xfc::isRoot(xmlNodePtr lpNode) const throw()
+{
+#if defined(XFC_DEBUG)
+    //cout<<":debug: checking if it is a root item: "<<lpNode->name<<endl;
+#endif
+    if (eRoot == getTypeOfElement(lpNode))
+        return true;
+    else
+        return false;
+}
+
+
 std::string Xfc::getNameOfFile(xmlNodePtr lpNode)
         const throw (std::string)
 {
@@ -240,7 +252,15 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
 #endif 
     std::string lS;
     if (lpNode==NULL)
-        lS=""; 
+        lS="";
+    else if (eRoot == getTypeOfElement(lpNode)) {
+        xmlChar *pStr;
+        pStr=xmlGetProp(lpNode, (const xmlChar*)"name");
+        if (pStr) {
+            lS=(char*)pStr;
+            xmlFree(pStr);
+        }
+    }
     else {
         xmlNodePtr lNameNode;
         lNameNode=lpNode->xmlChildrenNode; 
@@ -271,12 +291,17 @@ std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
 void
 Xfc::setNameOfElement(xmlNodePtr pNode, std::string newName) throw (std::string)
 {
-    xmlNodePtr pNameNode;  
-    if ( (pNameNode=getNameNode(pNode)) == NULL)
-        throw std::string("No name"); // :fixme: - should add it
-    xmlNodeSetContent(pNameNode, (xmlChar*)newName.c_str());
-    // :fixme: use xmlEncodeSpecialChars().
-    // :fixme: the old content ?
+    if (eRoot == getTypeOfElement(pNode)) {
+        xmlNewProp(pNode, (xmlChar*)"name", (xmlChar*)newName.c_str());
+    }
+    else {
+        xmlNodePtr pNameNode;  
+        if ( (pNameNode=getNameNode(pNode)) == NULL)
+            throw std::string("No name"); // :fixme: - should add it
+        xmlNodeSetContent(pNameNode, (xmlChar*)newName.c_str());
+        // :fixme: use xmlEncodeSpecialChars().
+        // :fixme: the old content ?
+    }
 }
          
 
@@ -300,6 +325,8 @@ Xfc::getTypeOfElement(xmlNodePtr lpNode)
                 retVal=eFile;
             else if (!strcmp(pElemName, "dir"))
                 retVal=eDir;
+            else if (!strcmp(pElemName, "catalog"))
+                retVal=eRoot;
             else
                 retVal=eUnknown;
         }
@@ -659,8 +686,8 @@ std::map<std::string, std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) thr
     std::map<std::string, std::string> details;
     string str;
     
-    if (!isFileOrDir(lpNode) && !isDisk(lpNode)) {
-        throw std::string("Xfc::getDetailsForNode(): Node is not a file/dir node");
+    if (! (isFileOrDir(lpNode) || isDisk(lpNode) || isRoot(lpNode))) {
+        throw std::string("Xfc::getDetailsForNode(): Node is not a root/dir/file node");
     }
     
     // description

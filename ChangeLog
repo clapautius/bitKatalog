@@ -1,3 +1,9 @@
+2010-04-24  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/: added support for details in root element (description, name,
+	etc.);
+	fixed menubar issue in kde 4.4 (too many menu entries, none added by me);
+
 2010-03-13  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/bitkatalogview.cpp (populateTree): fixed bug in kde app -
