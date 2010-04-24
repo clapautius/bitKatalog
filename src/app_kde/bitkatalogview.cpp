@@ -167,14 +167,24 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
     mpCurrentItem=(XmlEntityItem*)i;
     lCompletePath=mpCurrentItem->text(0).toStdString();
     lpItem=mpCurrentItem;
-    while(1) {
-        lpItem=lpItem->parent();
-        if(lpItem==NULL)
-            break;
-        lS=lpItem->text(0).toStdString();
-        lS+="/";
-        lS+=lCompletePath;
-        lCompletePath=lS;
+    if (NULL == lpItem->parent()) { // element is root
+        lCompletePath="/";
+    }
+    else {
+        while(1) {
+            lpItem=lpItem->parent();
+            if(lpItem==NULL)
+                break;
+            if (NULL == lpItem->parent()) { // element is root
+                lS="";
+            }
+            else {
+                lS=lpItem->text(0).toStdString();
+            }
+            lS+="/";
+            lS+=lCompletePath;
+            lCompletePath=lS;
+        }
     }
     mCurrentItemPath=lCompletePath;
     
