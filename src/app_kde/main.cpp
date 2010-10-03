@@ -115,6 +115,7 @@ int main(int argc, char **argv)
 
     startUp(pArgs);
 
+#if 0 // :tmp: - takes a lot of time, sometimes crashes, strange things happen
     // try to find a suitable window icon
     KIconLoader *pIconLoader=KIconLoader::global();
     QIcon windowIcon=pIconLoader->loadIconSet("bitKatalog", KIconLoader::NoGroup, 0, true);
@@ -126,6 +127,7 @@ int main(int argc, char **argv)
             gkLog<<xfcWarn<<"Couldn't find media-optical icon"<<eol;
     }
     app.setWindowIcon(windowIcon);
+#endif
 
     // see if we are starting with session management
     if (app.isSessionRestored()) {
@@ -136,7 +138,9 @@ int main(int argc, char **argv)
         KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
         if (args->count() == 0) {
             bitKatalog *widget = new bitKatalog;
+#if 0 // :tmp:
             widget->setWindowIcon(windowIcon);
+#endif
             widget->show();
             gpMainWindow=widget;
         }

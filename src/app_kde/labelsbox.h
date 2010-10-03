@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Tudor Marian Pristavu                           *
+ *   Copyright (C) 2010 by Tudor Marian Pristavu                           *
  *   clapautiusAtGmailDotCom                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,8 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef DETAILSBOX_H
-#define DETAILSBOX_H
+#ifndef LABELSBOX_H
+#define LABELSBOX_H
 
 #include <kpagedialog.h>
 
@@ -28,32 +28,25 @@
 #include <qlayout.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
-#include <k3listbox.h>
+#include <qtablewidget.h>
 #include <kvbox.h>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
 
-class DetailsBox : public KPageDialog
+class LabelsBox : public KPageDialog
 {
     Q_OBJECT
             
 public:
-    DetailsBox();
+    LabelsBox();
     
-    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*);
+    LabelsBox(XfcEntity*, Q3ListViewItem*);
 
-    virtual ~DetailsBox();
+    virtual ~LabelsBox();
     
-    bool catalogWasModified();
-
 public slots:
-    void addLabel();
-   
-    void editLabel();
-    
-    void deleteLabel();
 
 protected slots:  
     
@@ -66,42 +59,9 @@ private:
     
     void layout();
 
-    Xfc *mpCatalog;
-    
-    XfcEntity *mpXmlItem;
-
-    std::string mCompletePath;
-    
-    bool mCatalogWasModified;
-
-    Q3ListViewItem *mpListItem;
-      
-    QVBoxLayout *top_layout1, *top_layout2; // on heap
-                
-    K3ButtonBox *mpButtonBox;
-    K3ButtonBox *mpLabelButtonBox;
-    
-    QPushButton *mpOkButton;
-    QPushButton *mpCancelButton;
-    QPushButton *mpAddLabelButton;
-    QPushButton *mpEditLabelButton;
-    QPushButton *mpDeleteLabelButton;
-
-    QLabel *mpName; // entity name - on heap
-
-    Q3VGroupBox *mpLabelGroup; // on heap
-      
-    KHBox *mpCdateBox;
-    
-    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
-
-    QLabel *mpSha1Label, *mpSha256Label, *mpSizeLabel;
-    
-    KLineEdit *mpDescriptionEdit; // on heap
-    KLineEdit *mpCdateEdit;
-            
-    K3ListBox *mpLabels;
-      
+    QTableWidget *mpLabels;
+    KLineEdit *mpLabelEdit;
+    QPushButton *mpAddButton;
 };
 
 #endif

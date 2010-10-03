@@ -73,6 +73,8 @@ void SearchBox::layout()
     // page2
     //mpPage2=addPage(QString("Advanced search"));
 
+    mpSimpleSearchEdit->setFocus();
+    
     connectButtons();
 }
 

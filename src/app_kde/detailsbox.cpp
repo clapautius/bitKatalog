@@ -31,6 +31,7 @@
 #include "bitkatalogview.h"
 #include "xfcEntity.h"
 #include "misc.h"
+#include "labelsbox.h"
 
 #if defined(MTP_DEBUG)
   #include <iostream>
@@ -76,12 +77,16 @@ void DetailsBox::addLabel()
     cerr<<"addLabel()"<<endl;
 #endif
 
+    /*
     QString lS;
     bool lRetButton; 
     lS=KInputDialog::getText("New label", "Label: ", "", &lRetButton);
-    //mpCatalog->addLabelTo(mCompletePath, lS);
     if(lRetButton)
         mpLabels->insertItem(lS);
+    */
+    LabelsBox *pLabelsBox=new LabelsBox(mpXmlItem, mpListItem);
+    pLabelsBox->exec();
+    KMessageBox::error(this, "Working on it!");
 }
 
 
@@ -118,9 +123,6 @@ void DetailsBox::deleteLabel()
 
 void DetailsBox::connectButtons()
 {
-    //connect(mpOkButton, SIGNAL(clicked()), this, SLOT(accept()));
-    //connect(mpCancelButton, SIGNAL(clicked()), this, SLOT(reject()));
-   
     connect(mpAddLabelButton, SIGNAL(clicked()), this, SLOT(addLabel()));
     connect(mpEditLabelButton, SIGNAL(clicked()), this, SLOT(editLabel()));
     connect(mpDeleteLabelButton, SIGNAL(clicked()), this, SLOT(deleteLabel()));
@@ -141,9 +143,6 @@ void DetailsBox::layout()
     QSize lSize;
     QFontMetrics *lpFontMetrics;
     
-    //top_layout1 = new QVBoxLayout(mpPage1, 5);
-    //top_layout->setAutoAdd(true);
-
     resize(500,250);
     
     mpName=new QLabel(mpXmlItem->getName().c_str(), pBox1);
@@ -159,9 +158,6 @@ void DetailsBox::layout()
     mpDescriptionEdit=new KLineEdit(pDescriptionBox);
     details=mpXmlItem->getDetails();
     mpDescriptionEdit->setText(details["description"].c_str());
-    //top_layout->addWidget(lpDescription);
-    //mpDescription=new QLabel(lDetails[0].c_str(), this);
-    //mpDescription->setAlignment(Qt::AlignHCenter);
 
     // labels group box
     mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
@@ -175,12 +171,7 @@ void DetailsBox::layout()
     lFont=mpLabels->font();
     lpFontMetrics=new QFontMetrics(lFont);
     mpLabels->resize(lSize.width(), 2*lpFontMetrics->height());
-    //mpLabels->resize(lSize.width()/2, lSize.height()/2);
     delete lpFontMetrics;
-    //top_layout1->addWidget(mpLabels);
-    //QSize lSize;
-    //lSize=mpLabels->size();
-    //mpLabels->resize(lSize.width(), 50);
 
     char labelsBuf[7]= { "labelX" };
     for (char i='0'; i<='9'; i++) {
@@ -190,30 +181,13 @@ void DetailsBox::layout()
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
-    //top_layout1->addWidget(mpLabelButtons);
-    //mpLabelButtonBox=new KButtonBox(lpLabelButtons);
     
     mpAddLabelButton=new QPushButton("Add a label", pLabelButtons);
     mpEditLabelButton=new QPushButton("Edit current label", pLabelButtons);
     mpDeleteLabelButton=new QPushButton("Delete current label", pLabelButtons);
 
-    //mpAddLabelButton=mpLabelButtonBox->addButton("Add a label");
-    //mpEditLabelButton=mpLabelButtonBox->addButton("Edit current label");
-        
     // end labels group box
     
-    /*
-    QHBox *lpButtons=new QHBox(mpPage1);
-    top_layout->addWidget(lpButtons, 5);
-    //top_layout->addLayout(lpButtons, 5);
-    mpButtonBox=new KButtonBox(lpButtons);
-    //lpButtons->addWidget(mpButtonBox);
-    
-    mpOkButton=mpButtonBox->addButton("OK");
-    mpOkButton->setFocus();
-    mpCancelButton=mpButtonBox->addButton("Cancel");
-    */
-
     // page2
     KPageWidgetItem *pPage2=NULL;
     KVBox *pBox2=NULL;
