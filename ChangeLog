@@ -1,5 +1,9 @@
 2010-10-04  Tudor M.P.  <clapautiusAtGmailDotCom>
 
+	* src/app_kde/detailsbox.cpp: working on the new dialog for labels;
+
+2010-10-04  Tudor M.P.  <clapautiusAtGmailDotCom>
+
 	* src/app_kde/labelsbox.cpp: start working on new dialog for labels;
 
 2010-10-03  Tudor M.P.  <clapautiusAtGmailDotCom>

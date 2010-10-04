@@ -41,14 +41,15 @@ LabelsBox::LabelsBox()
 } 
 
 
-LabelsBox::LabelsBox(XfcEntity *lpXmlItem, Q3ListViewItem *pListItem)
+LabelsBox::LabelsBox(std::vector<std::string> allLabels, std::vector<std::string> selectedLabels)
     : KPageDialog()
 {
     setCaption(QString("Labels"));
     setButtons(KDialog::Ok | KDialog::Cancel);
     setModal(true);
 
-    layout();    
+    mSelectedLabels=selectedLabels;
+    layout(allLabels);
     connectButtons();
 }
 
@@ -60,13 +61,30 @@ LabelsBox::~LabelsBox()
 
 
 
-void LabelsBox::connectButtons()
+void
+LabelsBox::connectButtons()
 {
-
+    connect(mpAddNewButton, SIGNAL(clicked()), this, SLOT(addNewLabel()));
 } 
 
 
-void LabelsBox::layout()
+void
+LabelsBox::addLabelInList(QString labelText, bool checked)
+{
+    QTreeWidgetItem *pItem=new QTreeWidgetItem(QStringList(labelText));
+    pItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+    if (checked) {
+        pItem->setCheckState(0, Qt::Checked);
+    }
+    else {
+        pItem->setCheckState(0, Qt::Unchecked);
+    }
+    pItem->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
+    mpLabels->addTopLevelItem(pItem);
+}
+
+
+void LabelsBox::layout(std::vector<std::string> allLabels)
 {
     std::string str;
 
@@ -76,17 +94,34 @@ void LabelsBox::layout()
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Labels"));
     pPage1->setHeader(QString("Labels"));
 
-    mpLabels=new QTableWidget(pBox1);
-    mpLabels->setColumnCount(2);
+    mpLabels=new QTreeWidget(pBox1);
+    mpLabels->setColumnCount(1);
+    mpLabels->setHeaderLabels(QStringList("Available labels"));
+    for (unsigned int i=0; i<allLabels.size(); i++) {
+        addLabelInList(allLabels[i].c_str(), contains(mSelectedLabels, allLabels[i]));
+    }
+    mpLabels->sortByColumn(0, Qt::AscendingOrder);
+    mpLabels->setSortingEnabled(true);
     
     KHBox *pBox2=new KHBox(pBox1);
     mpLabelEdit=new KLineEdit(pBox2);
-    mpAddButton=new QPushButton("Add", pBox2);
+    mpAddNewButton=new QPushButton("Add new label", pBox2);
 }
 
 
 void LabelsBox::accept()
 {
+    QList<QTreeWidgetItem*> list;
+
+    mSelectedLabels.clear();
+    
+    list=mpLabels->invisibleRootItem()->takeChildren();
+    for (int i=0; i<list.size(); i++) {
+        if (Qt::Checked == list[i]->checkState(0)) {
+            mSelectedLabels.push_back(list[i]->text(0).toStdString());
+        }
+    }
+
     KPageDialog::accept();
 } 
 
@@ -95,3 +130,27 @@ void LabelsBox::reject()
 {
     KPageDialog::reject();
 } 
+
+
+void
+LabelsBox::addNewLabel()
+{
+    if (mpLabelEdit->text().isEmpty()) {
+        KMessageBox::information(this, "Nothing to add");
+    }
+    else {
+        addLabelInList(mpLabelEdit->text(), true);
+        mpLabelEdit->clear();
+    }
+}
+
+
+bool
+LabelsBox::contains(std::vector<std::string> vect, std::string elt)
+{
+    for (unsigned int i=0; i<vect.size(); i++)
+        if (vect[i]==elt)
+            return true;
+    return false;
+}
+

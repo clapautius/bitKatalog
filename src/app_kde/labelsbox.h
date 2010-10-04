@@ -20,6 +20,8 @@
 #ifndef LABELSBOX_H
 #define LABELSBOX_H
 
+#include <vector>
+
 #include <kpagedialog.h>
 
 #include <k3buttonbox.h>
@@ -28,7 +30,7 @@
 #include <qlayout.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
-#include <qtablewidget.h>
+#include <qtreewidget.h>
 #include <kvbox.h>
 
 #include "xfcapp.h"
@@ -42,7 +44,8 @@ class LabelsBox : public KPageDialog
 public:
     LabelsBox();
     
-    LabelsBox(XfcEntity*, Q3ListViewItem*);
+    LabelsBox(std::vector<std::string> allLabels,
+              std::vector<std::string> selectedLabels);
 
     virtual ~LabelsBox();
     
@@ -52,16 +55,24 @@ protected slots:
     
     virtual void accept();
     virtual void reject();
+    virtual void addNewLabel();
         
 private:
     
     void connectButtons();
     
-    void layout();
+    void layout(std::vector<std::string>);
 
-    QTableWidget *mpLabels;
+    void addLabelInList(QString labelText, bool checked=false);
+
+    // :fixme: - to be moved
+    static bool contains(std::vector<std::string> vect, std::string elt);
+    
+    std::vector<std::string> mSelectedLabels;
+    
+    QTreeWidget *mpLabels;
     KLineEdit *mpLabelEdit;
-    QPushButton *mpAddButton;
+    QPushButton *mpAddNewButton;
 };
 
 #endif

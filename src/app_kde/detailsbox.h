@@ -49,12 +49,9 @@ public:
     bool catalogWasModified();
 
 public slots:
-    void addLabel();
    
-    void editLabel();
+    void editLabels();
     
-    void deleteLabel();
-
 protected slots:  
     
     virtual void accept();
@@ -83,9 +80,7 @@ private:
     
     QPushButton *mpOkButton;
     QPushButton *mpCancelButton;
-    QPushButton *mpAddLabelButton;
-    QPushButton *mpEditLabelButton;
-    QPushButton *mpDeleteLabelButton;
+    QPushButton *mpEditLabelsButton;
 
     QLabel *mpName; // entity name - on heap
 

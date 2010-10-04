@@ -71,61 +71,24 @@ DetailsBox::~DetailsBox()
 }
 
 
-void DetailsBox::addLabel()
+void DetailsBox::editLabels()
 {
 #if defined(MTP_DEBUG)
-    cerr<<"addLabel()"<<endl;
+    cerr<<__FUNCTION__<<endl;
 #endif
 
-    /*
-    QString lS;
-    bool lRetButton; 
-    lS=KInputDialog::getText("New label", "Label: ", "", &lRetButton);
-    if(lRetButton)
-        mpLabels->insertItem(lS);
-    */
-    LabelsBox *pLabelsBox=new LabelsBox(mpXmlItem, mpListItem);
+    std::vector<std::string> list1, list2;
+    list1.push_back("bau1");
+    list1.push_back("bau2");
+    list2.push_back("bau1");
+    LabelsBox *pLabelsBox=new LabelsBox(list1, list2);
     pLabelsBox->exec();
-    KMessageBox::error(this, "Working on it!");
-}
-
-
-void DetailsBox::editLabel()
-{
-    QString lS, lOldLabel;
-    int lInt;
-    lInt=mpLabels->currentItem();
-    if(lInt==-1)
-    {
-        KMessageBox::error(this, "No label selected");
-        return;
-    }
-    bool lRetButton;
-    lOldLabel=mpLabels->currentText();
-    lS=KInputDialog::getText("Edit label", "Label: ", lOldLabel, &lRetButton);    
-    if(lRetButton)
-        mpLabels->changeItem(lS, lInt);
-}
-
-
-void DetailsBox::deleteLabel()
-{
-    int lInt;
-    lInt=mpLabels->currentItem();
-    if(lInt==-1)
-    {
-        KMessageBox::error(this, "No label selected");
-        return;
-    }
-    mpLabels->removeItem(lInt);    
 }
 
 
 void DetailsBox::connectButtons()
 {
-    connect(mpAddLabelButton, SIGNAL(clicked()), this, SLOT(addLabel()));
-    connect(mpEditLabelButton, SIGNAL(clicked()), this, SLOT(editLabel()));
-    connect(mpDeleteLabelButton, SIGNAL(clicked()), this, SLOT(deleteLabel()));
+    connect(mpEditLabelsButton, SIGNAL(clicked()), this, SLOT(editLabels()));
 } 
 
 
@@ -182,9 +145,7 @@ void DetailsBox::layout()
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
     
-    mpAddLabelButton=new QPushButton("Add a label", pLabelButtons);
-    mpEditLabelButton=new QPushButton("Edit current label", pLabelButtons);
-    mpDeleteLabelButton=new QPushButton("Delete current label", pLabelButtons);
+    mpEditLabelsButton=new QPushButton("Edit labels", pLabelButtons);
 
     // end labels group box
     
