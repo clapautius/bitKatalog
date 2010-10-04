@@ -30,7 +30,8 @@
 class VerifyThread : public QThread
 {
 public:
-    VerifyThread(Xfc*, string catalogPath, string diskPath, vector<EntityDiff> *);
+    VerifyThread(Xfc*, std::string catalogPath, std::string diskPath,
+                 std::vector<EntityDiff> *);
 
     ~VerifyThread();
     
@@ -52,7 +53,7 @@ private:
     
     std::string mCatalogPath, mDiskPath;
 
-    vector<EntityDiff> *mpDifferences;
+    std::vector<EntityDiff> *mpDifferences;
 
     std::string mCurrentFile;
     

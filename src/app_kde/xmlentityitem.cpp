@@ -21,6 +21,16 @@
 #include "main.h"
 #include "xfcEntity.h"
 
+#if defined(XFC_DEBUG)
+    #include <iostream>
+    using std::cout;
+    using std::endl;
+#endif
+
+using std::string;
+using std::vector;
+using std::map;
+
 
 XmlEntityItem::XmlEntityItem(Q3ListView *lpListView, QString lS,
                              QString lS1, QString lS2, QString lS3)

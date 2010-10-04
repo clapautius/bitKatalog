@@ -33,22 +33,23 @@
 #include "misc.h"
 #include "labelsbox.h"
 
-#if defined(MTP_DEBUG)
-  #include <iostream>
-
-  using namespace std;
+#if defined(XFC_DEBUG)
+    #include <iostream>
+    using std::cout;
+    using std::endl;
 #endif
 
-DetailsBox::DetailsBox()
-    : KPageDialog()
-{
-    // :fixme: - do something
-} 
+using std::string;
+using std::vector;
+using std::map;
 
 
 DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
-                       XfcEntity *lpXmlItem, Q3ListViewItem *pListItem)
-    : KPageDialog()
+                       XfcEntity *lpXmlItem, Q3ListViewItem *pListItem,
+                       vector<string> &rAllLabels)
+  : KPageDialog(),
+    mrAllLabels(rAllLabels)
+
 {
     setFaceType(KPageDialog::Tabbed);
     setCaption(QString("Details"));
@@ -59,6 +60,7 @@ DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
     mpCatalog=lpCatalog;
     mpListItem=pListItem;
     mCatalogWasModified=false;
+    mrAllLabels=rAllLabels;
 
     layout();    
     connectButtons();
@@ -77,12 +79,16 @@ void DetailsBox::editLabels()
     cerr<<__FUNCTION__<<endl;
 #endif
 
-    std::vector<std::string> list1, list2;
-    list1.push_back("bau1");
-    list1.push_back("bau2");
-    list2.push_back("bau1");
-    LabelsBox *pLabelsBox=new LabelsBox(list1, list2);
+    std::vector<std::string> list;
+    list=mpXmlItem->getLabels();
+    LabelsBox *pLabelsBox=new LabelsBox(mrAllLabels, list);
     pLabelsBox->exec();
+
+    list=pLabelsBox->getSelectedLabels();
+    mpLabels->clear();
+    for (uint i=0; i<list.size(); i++) {
+        mpLabels->insertItem(list[i].c_str());
+    }
 }
 
 
@@ -202,6 +208,7 @@ void DetailsBox::accept()
     //std::vector<std::string> lDetails;
     map<string, string> details;
     bool lModifiedLabels=false;
+    bool found=false;
     
     details=mpXmlItem->getDetails();
     
@@ -213,6 +220,7 @@ void DetailsBox::accept()
         mCatalogWasModified=true;
     }
 
+    // :fixme: - replace bad design (should not be limited to 9)
     vector<string> labels;
     char labelBuf[7] = { "labelX" };
     for (char c='0'; c<='9'; c++) {
@@ -224,9 +232,17 @@ void DetailsBox::accept()
     if (mpLabels->count()!=labels.size())
         lModifiedLabels=true;
     else
-        for (unsigned int i=0;i<mpLabels->count() && !lModifiedLabels;i++) {
-            if(mpLabels->text(i)!=labels[i].c_str())
+        // :fixme: optimize - use set or something else
+        for (uint i=0;i<mpLabels->count() && !lModifiedLabels;i++) {
+            found=false;
+            for (uint j=0; j<labels.size(); j++) {
+                if (mpLabels->text(i)!=labels[j].c_str())
+                    found=true;
+            }
+            if (!found) {
                 lModifiedLabels=true;
+                break;
+            }
         }
     if (lModifiedLabels) {
         // remove all labels

@@ -56,6 +56,7 @@
 #include "fs.h"
 #include "misc.h"
 
+using std::string;
 
 bitKatalog::bitKatalog()
     : KXmlGuiWindow(),

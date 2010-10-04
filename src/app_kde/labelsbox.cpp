@@ -28,10 +28,11 @@
 #include <kmessagebox.h>
 #include <kinputdialog.h>
 
+using std::string;
+using std::vector;
+
 #if defined(MTP_DEBUG)
   #include <iostream>
-
-  using namespace std;
 #endif
 
 LabelsBox::LabelsBox()
@@ -41,7 +42,7 @@ LabelsBox::LabelsBox()
 } 
 
 
-LabelsBox::LabelsBox(std::vector<std::string> allLabels, std::vector<std::string> selectedLabels)
+LabelsBox::LabelsBox(vector<string> allLabels, vector<string> selectedLabels)
     : KPageDialog()
 {
     setCaption(QString("Labels"));
@@ -84,11 +85,11 @@ LabelsBox::addLabelInList(QString labelText, bool checked)
 }
 
 
-void LabelsBox::layout(std::vector<std::string> allLabels)
+void LabelsBox::layout(vector<string> allLabels)
 {
-    std::string str;
+    string str;
 
-    resize(500,250);
+    resize(500,500);
 
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Labels"));
@@ -146,11 +147,18 @@ LabelsBox::addNewLabel()
 
 
 bool
-LabelsBox::contains(std::vector<std::string> vect, std::string elt)
+LabelsBox::contains(vector<string> vect, string elt)
 {
-    for (unsigned int i=0; i<vect.size(); i++)
+    for (uint i=0; i<vect.size(); i++)
         if (vect[i]==elt)
             return true;
     return false;
+}
+
+
+vector<string>
+LabelsBox::getSelectedLabels() const
+{
+    return mSelectedLabels;
 }
 

@@ -42,7 +42,7 @@ class DetailsBox : public KPageDialog
 public:
     DetailsBox();
     
-    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*);
+    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*, std::vector<std::string>&);
 
     virtual ~DetailsBox();
     
@@ -96,7 +96,8 @@ private:
     KLineEdit *mpCdateEdit;
             
     K3ListBox *mpLabels;
-      
+
+    std::vector<std::string> & mrAllLabels;
 };
 
 #endif

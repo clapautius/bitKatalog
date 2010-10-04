@@ -41,6 +41,16 @@
 #include "misc.h"
 #include "xfcEntity.h"
 
+#if defined(XFC_DEBUG)
+    #include <iostream>
+    using std::cout;
+    using std::endl;
+#endif
+
+using std::string;
+using std::vector;
+using std::map;
+
 
 bitKatalogView::bitKatalogView(QWidget *parent)
     : QWidget(parent)
@@ -94,6 +104,7 @@ bitKatalogView::openUrl(const KUrl& url)
 {
     //m_html->openURL(url);
     mCatalog=new Xfc;
+    mCatalogLabels.clear();
     try {
         QString lPath=url.path();
         if (lPath!=QString::null)
@@ -112,6 +123,7 @@ bitKatalogView::openUrl(const KUrl& url)
         return;
     }
     XmlEntityItem::mspCatalog=mCatalog;
+    populateCatalogLabels();
     populateTree(mCatalog);
     if (mCatalog) {
         gCatalogState=2;
@@ -249,7 +261,8 @@ bitKatalogView::details() throw()
     completePath=mCurrentItemPath;
     try {
         XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
-        pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem);
+        pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem,
+            mCatalogLabels);
         pDetailsBox->exec(); 
         if (pDetailsBox->catalogWasModified()) {
             gCatalogState=1;
@@ -557,4 +570,58 @@ void bitKatalogView::setCatalog(Xfc *lpNewCatalog)
     mCatalog=lpNewCatalog;
     XmlEntityItem::mspCatalog=mCatalog;
     populateTree(mCatalog);
+}
+
+
+/**
+ * Helper function used for collectin all labels in the catalog.
+ *
+ * @sa bitKatalogView::populateCatalogLabels
+ **/
+int collectLabels(uint, std::string, Xfc& rCatalog, xmlNodePtr pNode,
+                  void *pParam)
+{
+    vector<string> labels;
+    labels=rCatalog.getLabelsForNode(pNode);
+    for (uint i=0; i<labels.size(); i++) {
+        static_cast<bitKatalogView*>(pParam)->addLabel(labels[i]);
+    }
+    return 0;
+}
+
+
+void
+bitKatalogView::populateCatalogLabels()
+{
+    mCatalog->parseFileTree(collectLabels, this);
+}
+
+
+void
+bitKatalogView::addLabels(std::vector<std::string> newLabels)
+{
+    for (uint i=0; i<newLabels.size(); i++) {
+        addLabel(newLabels[i]);
+    }
+}
+
+
+/**
+ * Add a new label to the list of all the labels of the current catalog.
+ * Check if already exists.
+ **/
+void
+bitKatalogView::addLabel(std::string newLabel)
+{
+    // :fixme: - optimize - use a set or something
+    bool found=false;
+    for (uint i=0; i<mCatalogLabels.size(); i++) {
+        if (newLabel == mCatalogLabels[i]) {
+            found=true;
+            break;
+        }
+    }
+    if (!found) {
+        mCatalogLabels.push_back(newLabel);
+    }
 }

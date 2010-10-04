@@ -25,9 +25,13 @@
 #include "xfcEntity.h"
 #include "main.h"
 
+using std::string;
+using std::vector;
+using std::map;
 
-VerifyThread::VerifyThread(
-    Xfc* pCatalog, string catalogPath, string diskPath, vector<EntityDiff> *pDifferences)
+
+VerifyThread::VerifyThread(Xfc* pCatalog, string catalogPath, string diskPath,
+                           vector<EntityDiff> *pDifferences)
     : QThread(),
       mpDifferences(pDifferences)
 {

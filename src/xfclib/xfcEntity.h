@@ -29,9 +29,6 @@
 #include "xfc.h"
 
 
-using namespace std;
-
-
 /// wrapper class for an xml item from the catalog
 /// may be a disk or a file
 class XfcEntity
@@ -61,11 +58,13 @@ public:
   // 0 - regular file
   // 1 - directory
   
-  map<string, string> getDetails();
+  std::map<std::string, std::string> getDetails();
+
+  std::vector<std::string> getLabels();
 
   void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool lIsDisk=false);
 
-  string getLabelsAsString() const;
+  std::string getLabelsAsString() const;
   
 private:
 

@@ -30,10 +30,14 @@
 #include "plugins.h"
 
 #if defined(XFC_DEBUG)
-#include <iostream>
+    #include <iostream>
+    using std::cout;
+    using std::endl;
 #endif
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::map;
 
 
 /**
@@ -98,6 +102,11 @@ xmlDocPtr Xfc::getXmlDocPtr() throw (std::string)
 } 
 
 
+/**
+ * Parses XML tree calling callBackFunc for every xml node of type dir, disk,
+ * file or root.
+ * When callBackFunc returns -1, it abandons parsing.
+ **/
 void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
     throw (std::string)
 {
@@ -106,6 +115,8 @@ void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
     lpChild=xmlDocGetRootElement(mpDoc);
     if (lpChild==NULL) // empty document
         return;
+    if (callBackFunc(0, "/", *this, lpChild, lpParam) == -1)
+        return; // abandon
     lpChild=mpDoc->xmlChildrenNode;
     while (lpChild!=NULL) {
         parseRec(0, "/", lpChild, callBackFunc, lpParam);        
@@ -217,6 +228,21 @@ bool Xfc::isRoot(xmlNodePtr lpNode) const throw()
     //cout<<":debug: checking if it is a root item: "<<lpNode->name<<endl;
 #endif
     if (eRoot == getTypeOfElement(lpNode))
+        return true;
+    else
+        return false;
+}
+
+
+/**
+ * Check if node is dir, disk, file or root.
+ * Is more efficient than calling isDir || isFile || ...
+ **/
+bool
+Xfc::isDirDiskFileOrRoot(xmlNodePtr pNode) const throw()
+{
+    ElementType type=getTypeOfElement(pNode);
+    if (eDir == type || eDisk == type || eFile == type || eRoot == type)
         return true;
     else
         return false;
@@ -681,13 +707,19 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 }
 
 
+/**
+ * @warning Do not use this function to get the labels. It uses a bad way to get
+ * labels that should be removed. Use getLabelsForNode instead.
+ *
+ * @sa getLabelsForNode
+ **/
 std::map<std::string, std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) throw (std::string)
 {
     std::map<std::string, std::string> details;
     string str;
     
-    if (! (isFileOrDir(lpNode) || isDisk(lpNode) || isRoot(lpNode))) {
-        throw std::string("Xfc::getDetailsForNode(): Node is not a root/dir/file node");
+    if (! (isDirDiskFileOrRoot(lpNode))) {
+        throw std::string(__FUNCTION__)+": Node is not a root/dir/file node";
     }
     
     // description
@@ -738,6 +770,27 @@ std::map<std::string, std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) thr
         pChildNode=pChildNode->next;
     }
     return details;
+}
+
+
+vector<string>
+Xfc::getLabelsForNode(xmlNodePtr lpNode) throw (string)
+{
+    vector<string> labels;
+    if (! (isDirDiskFileOrRoot(lpNode))) {
+        throw std::string(__FUNCTION__)+": Node is not a root/dir/file node";
+    }
+    
+    // get XML labels
+    xmlNodePtr pChildNode;
+    pChildNode=lpNode->xmlChildrenNode; 
+    while (pChildNode!=NULL) {
+        if (isLabel(pChildNode)) {
+            labels.push_back(getValueOfNode(pChildNode));
+        }
+        pChildNode=pChildNode->next;
+    }
+    return labels;
 }
 
 

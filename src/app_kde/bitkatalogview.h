@@ -37,6 +37,13 @@ class QPainter;
 class KUrl;
 
 /**
+ * Helper function (callback for recursive collecting labels).
+ **/
+int collectLabels(uint depth, std::string path, Xfc& rCatalog, xmlNodePtr pNode,
+                  void *pParam);
+
+
+/**
  * This is the main view class for bitKatalog.  Most of the non-menu,
  * non-toolbar, and non-statusbar (e.g., non frame) GUI code should go
  * here.
@@ -46,6 +53,9 @@ class KUrl;
  */
 class bitKatalogView : public QWidget
 {
+    friend int collectLabels(uint depth, std::string path, Xfc& rCatalog,
+                             xmlNodePtr pNode, void *pParam);
+
     Q_OBJECT
 public:
 	/**
@@ -116,7 +126,13 @@ private slots:
 private:
     
     void setupListView();
-        
+
+    void populateCatalogLabels();
+
+    void addLabels(std::vector<std::string>);
+
+    void addLabel(std::string);
+    
     KParts::ReadOnlyPart *m_html;
     
     K3ListView *mListView;
@@ -126,6 +142,11 @@ private:
     Xfc *mCatalog;
     
     bool mModifiedCatalog;
+
+    /**
+     * A list of the labels in the catalog.
+     **/
+    std::vector<std::string> mCatalogLabels;
     
     //Q3ListViewItem *mpCurrentItem;
     XmlEntityItem *mpCurrentItem;

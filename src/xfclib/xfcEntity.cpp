@@ -22,6 +22,11 @@
 #include "xfcEntity.h"
 #include "xfc.h"
 
+using std::vector;
+using std::string;
+using std::map;
+
+
 /*
 XfcEntity::XfcEntity()
     throw ()
@@ -107,6 +112,7 @@ XfcEntity::getTypeOfFile() const
 }
 
 
+// :fixme: design issue, labels should not be returned as label0...
 std::map<std::string, std::string>
 XfcEntity::getDetails() 
 {
@@ -114,7 +120,15 @@ XfcEntity::getDetails()
   return mpXfc->getDetailsForNode(mpXmlNode);
 }
 
-        
+
+vector<string>
+XfcEntity::getLabels()
+{
+    checkValidData();
+    return mpXfc->getLabelsForNode(mpXmlNode);
+}
+
+
 void
 XfcEntity::setParams(std::vector<std::string> lVect, bool lIsFile, bool lIsDisk)
 {

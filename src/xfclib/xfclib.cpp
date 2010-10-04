@@ -1,6 +1,8 @@
 #include "xfclib.h"
 
-using namespace std;
+#include <iostream>
+
+using std::cout;
 
 XfcLogger&
 xfcWarn(XfcLogger &rLogger)

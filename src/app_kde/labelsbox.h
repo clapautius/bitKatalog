@@ -48,6 +48,8 @@ public:
               std::vector<std::string> selectedLabels);
 
     virtual ~LabelsBox();
+
+    std::vector<std::string> getSelectedLabels() const;
     
 public slots:
 

@@ -1,7 +1,6 @@
 #if !defined(XFCLIB_H)
 #define XFCLIB_H
 
-#include <iostream>
 #include <string>
 
 class XfcLogger;
@@ -59,5 +58,7 @@ struct EntityDiff
 
     EntityDiff();
 };
+
+typedef unsigned int uint;
 
 #endif
