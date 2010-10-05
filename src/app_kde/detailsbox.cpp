@@ -78,15 +78,21 @@ void DetailsBox::editLabels()
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<endl;
 #endif
-
-    std::vector<std::string> list;
-    list=mpXmlItem->getLabels();
-    LabelsBox *pLabelsBox=new LabelsBox(mrAllLabels, list);
+    vector<string> allCurrentLabels; // all catalog labels + current labels
+    // we need this to avoid bugs when editing an element multiple times
+    // (without hitting 'OK').
+    allCurrentLabels=mrAllLabels;
+    for(uint i=0; i<mCurrentLabels.size(); i++) {
+        if (!contains(allCurrentLabels, mCurrentLabels[i])) {
+            allCurrentLabels.push_back(mCurrentLabels[i]);
+        }
+    }
+    LabelsBox *pLabelsBox=new LabelsBox(allCurrentLabels, mCurrentLabels);
     if (QDialog::Accepted == pLabelsBox->exec()) {
-        list=pLabelsBox->getSelectedLabels();
+        mCurrentLabels=pLabelsBox->getSelectedLabels();
         mpLabels->clear();
-        for (uint i=0; i<list.size(); i++) {
-            mpLabels->insertItem(list[i].c_str());
+        for (uint i=0; i<mCurrentLabels.size(); i++) {
+            mpLabels->insertItem(mCurrentLabels[i].c_str());
         }
     }
 }
@@ -111,7 +117,7 @@ void DetailsBox::layout()
     KPageWidgetItem *pPage1=addPage(pBox1, QString("General"));
     pPage1->setHeader(QString("General"));
     
-    resize(500,350);
+    resize(500,500);
     
     mpName=new QLabel(mpXmlItem->getName().c_str(), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
@@ -136,9 +142,9 @@ void DetailsBox::layout()
     mpLabels->resize(lSize.width(), 2*lpFontMetrics->height());
     delete lpFontMetrics;
 
-    vector<string> labels=mpXmlItem->getLabels();
-    for (uint i=0; i<labels.size(); i++) {
-        mpLabels->insertItem(labels[i].c_str());
+    mCurrentLabels=mpXmlItem->getLabels();
+    for (uint i=0; i<mCurrentLabels.size(); i++) {
+        mpLabels->insertItem(mCurrentLabels[i].c_str());
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
@@ -213,28 +219,42 @@ void DetailsBox::accept()
 
     // check labels and update if modified
     vector<string> labels=mpXmlItem->getLabels();
-    if (mpLabels->count()!=labels.size())
+    if (mCurrentLabels.size()!=labels.size())
         lModifiedLabels=true;
-    else
+    else {
         // :fixme: optimize - use set or something else
-        for (uint i=0;i<mpLabels->count() && !lModifiedLabels;i++) {
+        for (uint i=0;i<mCurrentLabels.size() && !lModifiedLabels;i++) {
             found=false;
             for (uint j=0; j<labels.size(); j++) {
-                if (mpLabels->text(i)!=labels[j].c_str())
+                if (mCurrentLabels[i]==labels[j]) {
                     found=true;
+                    break;
+                }
             }
             if (!found) {
                 lModifiedLabels=true;
-                break;
             }
         }
+        for (uint i=0;i<labels.size() && !lModifiedLabels;i++) {
+            found=false;
+            for (uint j=0; j<mCurrentLabels.size(); j++) {
+                if (mCurrentLabels[j]==labels[i]) {
+                    found=true;
+                    break;
+                }
+            }
+            if (!found) {
+                lModifiedLabels=true;
+            }
+        }
+    }
     if (lModifiedLabels) {
         // remove all labels
         for(unsigned int i=0; i<labels.size(); i++)
             mpCatalog->removeLabelFrom(mCompletePath, labels[i]);
         // add new labels
-        for(unsigned int i=0;i<mpLabels->count();i++)
-            mpCatalog->addLabelTo(mCompletePath, mpLabels->text(i).toStdString());
+        for(unsigned int i=0;i<mCurrentLabels.size();i++)
+            mpCatalog->addLabelTo(mCompletePath, mCurrentLabels[i]);
         mCatalogWasModified=true;
         mLabelsWereModified=true;
         string labelsString=mpXmlItem->getLabelsAsString();

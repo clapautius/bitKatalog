@@ -102,6 +102,7 @@ private:
     K3ListBox *mpLabels;
 
     const std::vector<std::string> & mrAllLabels;
+    std::vector<std::string> mCurrentLabels;
 };
 
 #endif

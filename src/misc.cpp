@@ -290,3 +290,13 @@ vectorWStringsToString(vector<string>& vect, const char *pDelim)
     }
     return str;
 }
+
+
+bool
+contains(vector<string> vect, string elt)
+{
+    for (uint i=0; i<vect.size(); i++)
+        if (vect[i]==elt)
+            return true;
+    return false;
+}

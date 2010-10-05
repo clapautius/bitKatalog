@@ -46,4 +46,7 @@ std::string sizeToHumanReadableSize(std::string sizeInBytes);
 std::string vectorWStringsToString(std::vector<std::string>& vect,
                                    const char* pDelim=", ");
 
+bool
+contains(std::vector<std::string> vect, std::string elt);
+
 #endif

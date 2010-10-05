@@ -68,9 +68,6 @@ private:
 
     void addLabelInList(QString labelText, bool checked=false);
 
-    // :fixme: - to be moved
-    static bool contains(std::vector<std::string> vect, std::string elt);
-    
     std::vector<std::string> mSelectedLabels;
 
     bool mAddEnabled;

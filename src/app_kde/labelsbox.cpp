@@ -28,6 +28,8 @@
 #include <kmessagebox.h>
 #include <kinputdialog.h>
 
+#include "misc.h"
+
 using std::string;
 using std::vector;
 
@@ -144,16 +146,6 @@ LabelsBox::addNewLabel()
         addLabelInList(mpLabelEdit->text(), true);
         mpLabelEdit->clear();
     }
-}
-
-
-bool
-LabelsBox::contains(vector<string> vect, string elt)
-{
-    for (uint i=0; i<vect.size(); i++)
-        if (vect[i]==elt)
-            return true;
-    return false;
 }
 
 
