@@ -205,7 +205,6 @@ void DetailsBox::accept()
     //std::vector<std::string> lDetails;
     map<string, string> details;
     bool lModifiedLabels=false;
-    bool found=false;
     
     details=mpXmlItem->getDetails();
     
@@ -224,26 +223,12 @@ void DetailsBox::accept()
     else {
         // :fixme: optimize - use set or something else
         for (uint i=0;i<mCurrentLabels.size() && !lModifiedLabels;i++) {
-            found=false;
-            for (uint j=0; j<labels.size(); j++) {
-                if (mCurrentLabels[i]==labels[j]) {
-                    found=true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (contains(labels, mCurrentLabels[i])) {
                 lModifiedLabels=true;
             }
         }
         for (uint i=0;i<labels.size() && !lModifiedLabels;i++) {
-            found=false;
-            for (uint j=0; j<mCurrentLabels.size(); j++) {
-                if (mCurrentLabels[j]==labels[i]) {
-                    found=true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (contains(mCurrentLabels, labels[i])) {
                 lModifiedLabels=true;
             }
         }
