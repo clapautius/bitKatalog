@@ -223,12 +223,12 @@ void DetailsBox::accept()
     else {
         // :fixme: optimize - use set or something else
         for (uint i=0;i<mCurrentLabels.size() && !lModifiedLabels;i++) {
-            if (contains(labels, mCurrentLabels[i])) {
+            if (!contains(labels, mCurrentLabels[i])) {
                 lModifiedLabels=true;
             }
         }
         for (uint i=0;i<labels.size() && !lModifiedLabels;i++) {
-            if (contains(mCurrentLabels, labels[i])) {
+            if (!contains(mCurrentLabels, labels[i])) {
                 lModifiedLabels=true;
             }
         }
