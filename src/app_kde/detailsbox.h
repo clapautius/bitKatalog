@@ -42,11 +42,14 @@ class DetailsBox : public KPageDialog
 public:
     DetailsBox();
     
-    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*, std::vector<std::string>&);
+    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*,
+               const std::vector<std::string>&);
 
     virtual ~DetailsBox();
     
-    bool catalogWasModified();
+    bool catalogWasModified() const;
+
+    bool labelsWereModified() const;
 
 public slots:
    
@@ -70,6 +73,7 @@ private:
     std::string mCompletePath;
     
     bool mCatalogWasModified;
+    bool mLabelsWereModified;
 
     Q3ListViewItem *mpListItem;
       
@@ -97,7 +101,7 @@ private:
             
     K3ListBox *mpLabels;
 
-    std::vector<std::string> & mrAllLabels;
+    const std::vector<std::string> & mrAllLabels;
 };
 
 #endif

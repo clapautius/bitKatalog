@@ -445,7 +445,8 @@ void bitKatalog::search()
 {
     if (gCatalogState==1 || gCatalogState==2) {
         msgDebug("Trying to search ...");
-        SearchBox *lpSearchBox=new SearchBox(m_view->getCatalog());
+        SearchBox *lpSearchBox=new SearchBox(m_view->getCatalog(),
+                                             m_view->getCatalogLabels());
         lpSearchBox->exec();
     }
     else

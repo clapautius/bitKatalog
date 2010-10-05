@@ -139,15 +139,6 @@ public:
     // path may or may not start with '/'
     xmlNodePtr getNodeForPath(std::string path) const throw ();
 
-    /**
-     * Get all the details of a node.
-     * The node must be a file, dir ar disk.
-     *
-     * Map keys: description, size, cdate, sha1sum, sha256sum,
-     * label0, label1, ..., label9.
-     *
-     *  :fixme: design issue, labels should not be returned as label0...
-     **/
     std::map<std::string, std::string> getDetailsForNode(xmlNodePtr lpNode)
         throw (std::string);
 

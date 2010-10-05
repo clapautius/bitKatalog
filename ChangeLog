@@ -1,3 +1,8 @@
+2010-10-05  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/: working on the new dialogs for labels;
+	implemented search with labels;
+
 2010-10-04  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/detailsbox.cpp: working on the new dialog for labels;

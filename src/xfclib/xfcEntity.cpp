@@ -112,7 +112,14 @@ XfcEntity::getTypeOfFile() const
 }
 
 
-// :fixme: design issue, labels should not be returned as label0...
+/**
+ * Get all the details of a node.
+ * The node must be a file, dir, disk or root.
+ *
+ * Map keys: description, size, cdate, sha1sum, sha256sum.
+ *
+ * @sa XfcEntity::getLabels
+ **/
 std::map<std::string, std::string>
 XfcEntity::getDetails() 
 {
@@ -198,19 +205,13 @@ string
 XfcEntity::getLabelsAsString() const
 {
     string ret;
-    bool first=true;
-    std::map<std::string, std::string> details;
-    details=mpXfc->getDetailsForNode(mpXmlNode);
-    char labelsBuf[7]= { "labelX" };
-    for (char i='0'; i<='9'; i++) {
-        labelsBuf[5]=i;
-        if (!details[labelsBuf].empty()) {
-            if (!first) {
-                ret+=", ";
-            }
-            first=false;
-            ret+=details[labelsBuf];
+    vector<string> labels;
+    labels=mpXfc->getLabelsForNode(mpXmlNode);
+    for (uint i=0; i<labels.size(); i++) {
+        if (i>0) {
+            ret+=", ";
         }
+        ret+=labels[i];
     }
     return ret;
 }

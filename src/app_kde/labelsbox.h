@@ -45,7 +45,8 @@ public:
     LabelsBox();
     
     LabelsBox(std::vector<std::string> allLabels,
-              std::vector<std::string> selectedLabels);
+              std::vector<std::string> selectedLabels,
+              bool addEnabled=true);
 
     virtual ~LabelsBox();
 
@@ -71,6 +72,8 @@ private:
     static bool contains(std::vector<std::string> vect, std::string elt);
     
     std::vector<std::string> mSelectedLabels;
+
+    bool mAddEnabled;
     
     QTreeWidget *mpLabels;
     KLineEdit *mpLabelEdit;

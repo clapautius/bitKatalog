@@ -73,6 +73,8 @@ public:
     // doesn't modify gCatalogState
     // does refresh
     // does delete old xfc
+
+    const std::vector<std::string>& getCatalogLabels() const;
     
     void populateTree(Xfc*);
         
@@ -129,9 +131,9 @@ private:
 
     void populateCatalogLabels();
 
-    void addLabels(std::vector<std::string>);
+    void addCatalogLabels(std::vector<std::string>);
 
-    void addLabel(std::string);
+    void addCatalogLabel(std::string);
     
     KParts::ReadOnlyPart *m_html;
     

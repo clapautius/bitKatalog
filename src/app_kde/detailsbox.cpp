@@ -46,7 +46,7 @@ using std::map;
 
 DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
                        XfcEntity *lpXmlItem, Q3ListViewItem *pListItem,
-                       vector<string> &rAllLabels)
+                       const vector<string> &rAllLabels)
   : KPageDialog(),
     mrAllLabels(rAllLabels)
 
@@ -60,7 +60,7 @@ DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
     mpCatalog=lpCatalog;
     mpListItem=pListItem;
     mCatalogWasModified=false;
-    mrAllLabels=rAllLabels;
+    mLabelsWereModified=false;
 
     layout();    
     connectButtons();
@@ -75,19 +75,19 @@ DetailsBox::~DetailsBox()
 
 void DetailsBox::editLabels()
 {
-#if defined(MTP_DEBUG)
-    cerr<<__FUNCTION__<<endl;
+#if defined(XFC_DEBUG)
+    cout<<":debug:"<<__FUNCTION__<<endl;
 #endif
 
     std::vector<std::string> list;
     list=mpXmlItem->getLabels();
     LabelsBox *pLabelsBox=new LabelsBox(mrAllLabels, list);
-    pLabelsBox->exec();
-
-    list=pLabelsBox->getSelectedLabels();
-    mpLabels->clear();
-    for (uint i=0; i<list.size(); i++) {
-        mpLabels->insertItem(list[i].c_str());
+    if (QDialog::Accepted == pLabelsBox->exec()) {
+        list=pLabelsBox->getSelectedLabels();
+        mpLabels->clear();
+        for (uint i=0; i<list.size(); i++) {
+            mpLabels->insertItem(list[i].c_str());
+        }
     }
 }
 
@@ -102,27 +102,24 @@ void DetailsBox::layout()
 {
     QLabel *pTmpLabel;
     std::string str;
+    QFont lFont;
+    map<string, string> details;
+    QSize lSize;
+    QFontMetrics *lpFontMetrics;
 
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("General"));
     pPage1->setHeader(QString("General"));
     
-    QFont lFont;
-    map<string, string> details;
-    QSize lSize;
-    QFontMetrics *lpFontMetrics;
-    
-    resize(500,250);
+    resize(500,350);
     
     mpName=new QLabel(mpXmlItem->getName().c_str(), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
     lFont=mpName->font();
     lFont.setBold(true);
     mpName->setFont(lFont);
-    //top_layout1->addWidget(mpName);
 
     KHBox *pDescriptionBox=new KHBox(pBox1);
-    //top_layout1->addWidget(mpDescriptionBox);
     mpTmpLabel1=new QLabel("Description: ", pDescriptionBox);
     mpDescriptionEdit=new KLineEdit(pDescriptionBox);
     details=mpXmlItem->getDetails();
@@ -130,11 +127,8 @@ void DetailsBox::layout()
 
     // labels group box
     mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
-    //top_layout1->addWidget(mpLabelGroup);
     
     KHBox *pLabelsBox=new KHBox(mpLabelGroup);
-    //top_layout1->addWidget(mpLabelsBox);
-    //lpTempLabel=new QLabel("Labels: ", lpLabelsBox);
     mpLabels=new K3ListBox(pLabelsBox);
     lSize=mpLabels->size();
     lFont=mpLabels->font();
@@ -142,15 +136,12 @@ void DetailsBox::layout()
     mpLabels->resize(lSize.width(), 2*lpFontMetrics->height());
     delete lpFontMetrics;
 
-    char labelsBuf[7]= { "labelX" };
-    for (char i='0'; i<='9'; i++) {
-        labelsBuf[5]=i;
-        if (!details[labelsBuf].empty())
-            mpLabels->insertItem(details[labelsBuf].c_str());
+    vector<string> labels=mpXmlItem->getLabels();
+    for (uint i=0; i<labels.size(); i++) {
+        mpLabels->insertItem(labels[i].c_str());
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
-    
     mpEditLabelsButton=new QPushButton("Edit labels", pLabelButtons);
 
     // end labels group box
@@ -220,15 +211,8 @@ void DetailsBox::accept()
         mCatalogWasModified=true;
     }
 
-    // :fixme: - replace bad design (should not be limited to 9)
-    vector<string> labels;
-    char labelBuf[7] = { "labelX" };
-    for (char c='0'; c<='9'; c++) {
-        labelBuf[5]=c;
-        if (!details[labelBuf].empty())
-            labels.push_back(details[labelBuf]);
-    }
     // check labels and update if modified
+    vector<string> labels=mpXmlItem->getLabels();
     if (mpLabels->count()!=labels.size())
         lModifiedLabels=true;
     else
@@ -252,6 +236,7 @@ void DetailsBox::accept()
         for(unsigned int i=0;i<mpLabels->count();i++)
             mpCatalog->addLabelTo(mCompletePath, mpLabels->text(i).toStdString());
         mCatalogWasModified=true;
+        mLabelsWereModified=true;
         string labelsString=mpXmlItem->getLabelsAsString();
         mpListItem->setText(LABELS_COLUMN, labelsString.c_str());
     }
@@ -274,13 +259,22 @@ void DetailsBox::accept()
 } 
 
 
-void DetailsBox::reject()
+void
+DetailsBox::reject()
 {
     KPageDialog::reject();
 } 
 
 
-bool DetailsBox::catalogWasModified()
+bool
+DetailsBox::catalogWasModified() const
 {
     return mCatalogWasModified;
 } 
+
+
+bool
+DetailsBox::labelsWereModified() const
+{
+    return mLabelsWereModified;
+}

@@ -266,6 +266,10 @@ bitKatalogView::details() throw()
         pDetailsBox->exec(); 
         if (pDetailsBox->catalogWasModified()) {
             gCatalogState=1;
+            if (pDetailsBox->labelsWereModified()) {
+                vector<string> labels=lEnt.getLabels();
+                addCatalogLabels(labels);
+            }
             gpMainWindow->updateTitle(true);
         }
     }
@@ -515,23 +519,21 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     mListView->clear();
 
     // setup root element
-    {
-        xmlNodePtr pRootNode=mpCatalog->getNodeForPath("/");
-        string catalogName="/";
-        XfcEntity rootEnt(pRootNode, mpCatalog);
-        details=rootEnt.getDetails();
-        labelsString=rootEnt.getLabelsAsString();
-        catalogName+=rootEnt.getName();
-        if (!details["description"].empty())
-            mRootItem=new XmlEntityItem(mListView, catalogName.c_str(),
-                                        details["description"].c_str(),
-                                        labelsString.c_str());
-        else
-            mRootItem=new XmlEntityItem(mListView, catalogName.c_str(), "",
-                                        labelsString.c_str());
-        mRootItem->setXmlNode(pRootNode);
-    }
-
+    xmlNodePtr pRootNode=mpCatalog->getNodeForPath("/");
+    string catalogName="/";
+    XfcEntity rootEnt(pRootNode, mpCatalog);
+    details=rootEnt.getDetails();
+    labelsString=rootEnt.getLabelsAsString();
+    catalogName+=rootEnt.getName();
+    if (!details["description"].empty())
+        mRootItem=new XmlEntityItem(mListView, catalogName.c_str(),
+                                    details["description"].c_str(),
+                                    labelsString.c_str());
+    else
+        mRootItem=new XmlEntityItem(mListView, catalogName.c_str(), "",
+                                    labelsString.c_str());
+    mRootItem->setXmlNode(pRootNode);
+    
     EntityIterator *lpIterator;
     EntityIterator *lpTempIterator;
     std::string lS="/";
@@ -544,14 +546,15 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
         lEnt=lpIterator->getNextChild();
         details=lEnt.getDetails();
         labelsString=lEnt.getLabelsAsString();
-#if defined(XFC_DEBUG)
-        cout<<":debug:"<<__FUNCTION__<<": adding element with name "<<lEnt.getName()<<endl;
-#endif
         if (!details["description"].empty())
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(),
                                      details["description"].c_str(), labelsString.c_str());
         else
             lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), "", labelsString.c_str());
+#if defined(XFC_DEBUG)
+        cout<<":debug:"<<__FUNCTION__<<": adding element with name "<<lEnt.getName()<<endl;
+        cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;
+#endif
         lpItem->setXmlNode(lEnt.getXmlNode());
         lpItem->setPixmap(0, *gpDiskPixmap);
         lpTempIterator=new EntityIterator(*mpCatalog, lEnt.getXmlNode());
@@ -584,7 +587,7 @@ int collectLabels(uint, std::string, Xfc& rCatalog, xmlNodePtr pNode,
     vector<string> labels;
     labels=rCatalog.getLabelsForNode(pNode);
     for (uint i=0; i<labels.size(); i++) {
-        static_cast<bitKatalogView*>(pParam)->addLabel(labels[i]);
+        static_cast<bitKatalogView*>(pParam)->addCatalogLabel(labels[i]);
     }
     return 0;
 }
@@ -598,10 +601,10 @@ bitKatalogView::populateCatalogLabels()
 
 
 void
-bitKatalogView::addLabels(std::vector<std::string> newLabels)
+bitKatalogView::addCatalogLabels(std::vector<std::string> newLabels)
 {
     for (uint i=0; i<newLabels.size(); i++) {
-        addLabel(newLabels[i]);
+        addCatalogLabel(newLabels[i]);
     }
 }
 
@@ -611,7 +614,7 @@ bitKatalogView::addLabels(std::vector<std::string> newLabels)
  * Check if already exists.
  **/
 void
-bitKatalogView::addLabel(std::string newLabel)
+bitKatalogView::addCatalogLabel(std::string newLabel)
 {
     // :fixme: - optimize - use a set or something
     bool found=false;
@@ -625,3 +628,11 @@ bitKatalogView::addLabel(std::string newLabel)
         mCatalogLabels.push_back(newLabel);
     }
 }
+
+
+const std::vector<std::string>&
+bitKatalogView::getCatalogLabels() const
+{
+    return mCatalogLabels;
+}
+

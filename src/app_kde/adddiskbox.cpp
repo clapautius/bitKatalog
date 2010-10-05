@@ -57,7 +57,7 @@ void AddDiskBox::layout()
 {
     resize(800,450);
         
-    setButtonText(KDialog::User1, "Add"); // :fixme: - replace with a kguiitem
+    button(KDialog::User1)->setGuiItem(KStandardGuiItem::Add);
 
     KVBox *pLayoutBox= new KVBox();
     KPageWidgetItem *pPage=addPage(pLayoutBox, QString("Add disk"));

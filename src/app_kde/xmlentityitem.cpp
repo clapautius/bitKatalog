@@ -96,21 +96,32 @@ void XmlEntityItem::setOpen(bool lOpen)
     map<string, string> details;
     if(lOpen && !mAlreadyOpened)
     {
-        XfcEntity lEnt;
+        XfcEntity ent;
+#if defined(XFC_DEBUG)
+        XfcEntity thisEnt(mpNode, mspCatalog);
+        cout<<":debug:"<<__FUNCTION__<<": opening entity "<<
+            thisEnt.getName()<<endl;
+#endif
         XmlEntityItem *lpItem;
         EntityIterator *lpTempIterator;
-        EntityIterator *lpIterator=new EntityIterator(*mspCatalog, mpNode); // :fixme: - assert(mpNode)        
+        // :fixme: - assert(mpNode)
+        EntityIterator *lpIterator=new EntityIterator(*mspCatalog, mpNode);
         while(lpIterator->hasMoreChildren())
         {
-            lEnt=lpIterator->getNextChild();
-            details=lEnt.getDetails();
-            string labelsString=lEnt.getLabelsAsString();
+            ent=lpIterator->getNextChild();
+            details=ent.getDetails();
+            string labelsString=ent.getLabelsAsString();
             if( !details["description"].empty())
-                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), details["description"].c_str(), labelsString.c_str());
+                lpItem=new XmlEntityItem(this, ent.getName().c_str(), details["description"].c_str(), labelsString.c_str());
             else
-                lpItem=new XmlEntityItem(this, lEnt.getName().c_str(), "", labelsString.c_str());
-            lpItem->setXmlNode(lEnt.getXmlNode());
-            switch (lEnt.getElementType()) {
+                lpItem=new XmlEntityItem(this, ent.getName().c_str(), "", labelsString.c_str());
+            lpItem->setXmlNode(ent.getXmlNode());
+#if defined(XFC_DEBUG)
+            cout<<":debug:"<<__FUNCTION__<<": adding child: "<<
+                ent.getName()<<endl;
+            cout<<":debug:"<<__FUNCTION__<<":   labels: "<<labelsString<<endl;
+#endif
+            switch (ent.getElementType()) {
             case Xfc::eFile:
                 lpItem->setPixmap(0, *gpFilePixmap);
                 break;
@@ -123,7 +134,7 @@ void XmlEntityItem::setOpen(bool lOpen)
             default:
                 throw std::string("You've just found a bug! (The application shouldn't be here)");
             }
-            lpTempIterator=new EntityIterator(*mspCatalog, lEnt.getXmlNode());
+            lpTempIterator=new EntityIterator(*mspCatalog, ent.getXmlNode());
             if(lpTempIterator->hasMoreChildren())
                 lpItem->setExpandable(true);
             delete lpTempIterator;

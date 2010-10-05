@@ -40,7 +40,7 @@ class SearchBox : public KPageDialog
     Q_OBJECT
             
 public:
-    SearchBox(Xfc *);
+    SearchBox(Xfc *, const std::vector<std::string>&);
 
     ~SearchBox();
 
@@ -55,6 +55,8 @@ protected slots:
     
     virtual void slotUser1();
 
+    virtual void editLabels();
+
 private:
 
     void connectButtons();
@@ -64,26 +66,30 @@ private:
     
     Xfc *mpCatalog;
     
-    //QFrame *mpPage1, *mpPage2; // on heap
-    
-    //QVBoxLayout *mpLayout1; // on heap
-    
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
     
-    KLineEdit *mpSimpleSearchEdit; // on heap
+    KLineEdit *mpTextEdit, *mpLabelsEdit; // on heap
     
     KHBox *mpSimpleSearchBox; // on heap
     
     K3ListBox *mpSimpleSearchResults;
     
     KProgressDialog *mpProgress;
-};
+
+    QPushButton *mpEditLabelsButton;
+
+    std::vector<std::string> mSearchLabels;
     
+    const std::vector<std::string> & mrAllLabels;
+};
+
+
 class SearchStruct
 {
 public:
     KProgressDialog *mpProgressDialog;
     std::string mString;
+    std::vector<std::string> mLabels;
     std::vector<std::string> *mpSearchResultsPaths;
     std::vector<xmlNodePtr> *mpSearchResultsNodes;
 };

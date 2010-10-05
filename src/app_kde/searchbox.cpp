@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "searchbox.h"
+#include "labelsbox.h"
 
 #include <qpainter.h>
 #include <qlayout.h>
@@ -26,14 +27,18 @@
 #include <kprogressdialog.h>
 #include <kmessagebox.h>
 #include <kvbox.h>
+#include <kpushbutton.h>
 
 #include "main.h"
 #include "misc.h"
 
-// :todo: - make a tabbed version
+using std::string;
+using std::vector;
 
-SearchBox::SearchBox(Xfc *lpCatalog)
-    : KPageDialog()
+
+SearchBox::SearchBox(Xfc *lpCatalog, const vector<string> &rAllLabels)
+    : KPageDialog(),
+      mrAllLabels(rAllLabels)
 {
     setCaption(QString("Search"));
     setButtons(KDialog::Close | KDialog::User1);
@@ -51,30 +56,28 @@ SearchBox::~SearchBox()
 void SearchBox::layout()
 {
     resize(800,450);
-    setButtonText(KDialog::User1, "Search"); // :fixme: - replace with a kguiitem
+    button(KDialog::User1)->setGuiItem(KStandardGuiItem::Find);
     
     // page1
     KVBox *pBox1= new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("Simple search"));
-    pPage1->setHeader(QString("Simple search"));
+    KPageWidgetItem *pPage1=addPage(pBox1, QString("Search"));
+    pPage1->setHeader(QString("Search"));
     
-    //mpPage1=addPage(QString("Simple search"));    
-    //mpLayout1 = new QVBoxLayout(this);
-
     mpSimpleSearchBox=new KHBox(pBox1);
-    //mpLayout1->addWidget(mpSimpleSearchBox);
-    mpTmpLabel1=new QLabel("Search for: ", mpSimpleSearchBox);
-    mpSimpleSearchEdit=new KLineEdit(mpSimpleSearchBox);    
+    mpTmpLabel1=new QLabel("Text: ", mpSimpleSearchBox);
+    mpTextEdit=new KLineEdit(mpSimpleSearchBox);    
 
+    // labels
+    KHBox *pLabelsBox=new KHBox(pBox1);
+    mpTmpLabel2=new QLabel("Labels: ", pLabelsBox);
+    mpLabelsEdit=new KLineEdit(pLabelsBox);
+    mpLabelsEdit->setReadOnly(true);
+    mpEditLabelsButton=new QPushButton("Select labels", pLabelsBox);
+    
     // ...    
     mpSimpleSearchResults=new K3ListBox(pBox1);
-    //mpLayout1->addWidget(mpSimpleSearchResults, 5);
 
-    // page2
-    //mpPage2=addPage(QString("Advanced search"));
-
-    mpSimpleSearchEdit->setFocus();
-    
+    mpTextEdit->setFocus();
     connectButtons();
 }
 
@@ -82,6 +85,7 @@ void SearchBox::layout()
 void SearchBox::connectButtons()
 {
     connect(this, SIGNAL(user1Clicked()), this, SLOT(search())); // search    
+    connect(mpEditLabelsButton, SIGNAL(clicked()), this, SLOT(editLabels()));
 }
 
 
@@ -91,16 +95,12 @@ void SearchBox::search()
     std::vector<std::string> lSearchResultsPaths;
     std::vector<xmlNodePtr> lSearchResultsNodes;
 
-    //QProgressDialog *lpProgress=new QProgressDialog("Searching ...", "Stop", 0, this, "Dialog", true);
-    //lpProgress->setTotalSteps(0);
-    //lpProgress->setMinimumDuration(1);
-
     if (mpCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
         return;
     }
-    if (mpSimpleSearchEdit->text()=="") {
-        KMessageBox::error(this, "Search string is empty!");
+    if (mpTextEdit->text()=="" && 0==mSearchLabels.size()) {
+        KMessageBox::error(this, "Please specify a search string or a label");
         return;
     }
     
@@ -113,12 +113,14 @@ void SearchBox::search()
     mpProgress->setButtonText("Stop");
     
     lSearchStruct.mpProgressDialog=mpProgress;
-    lSearchStruct.mString=mpSimpleSearchEdit->text().toStdString();
+    lSearchStruct.mString=mpTextEdit->text().toStdString();
+    lSearchStruct.mLabels=mSearchLabels;
     lSearchStruct.mpSearchResultsNodes=&lSearchResultsNodes;
     lSearchStruct.mpSearchResultsPaths=&lSearchResultsPaths;
     mpSimpleSearchResults->clear();
     disableButtons();
     msgDebug("Starting to search. Search string is: ", lSearchStruct.mString);
+    msgDebug("Labels: ", vectorWStringsToString(lSearchStruct.mLabels));
     msgDebug("Start time: ", getTimeSinceMidnight());
     mpCatalog->parseFileTree(findInTree, (void*)&lSearchStruct);
     msgDebug("Finish time: ", getTimeSinceMidnight());
@@ -142,11 +144,24 @@ void SearchBox::slotUser1()
 
 
 void
+SearchBox::editLabels()
+{
+    gkLog<<xfcDebug<<__FUNCTION__<<eol;
+    string str;
+    LabelsBox *pLabelsBox=new LabelsBox(mrAllLabels, mSearchLabels, false);
+    if (QDialog::Accepted == pLabelsBox->exec()) {
+        mSearchLabels=pLabelsBox->getSelectedLabels();
+        mpLabelsEdit->setText(vectorWStringsToString(mSearchLabels).c_str());
+    }
+}
+
+
+void
 SearchBox::enableButtons()
 {
     enableButton(KDialog::Close, true);
     enableButton(KDialog::User1, true);
-    mpSimpleSearchEdit->setEnabled(true);
+    mpTextEdit->setEnabled(true);
 }
 
 
@@ -155,7 +170,7 @@ SearchBox::disableButtons()
 {
     enableButton(KDialog::Close, false);
     enableButton(KDialog::User1, false);
-    mpSimpleSearchEdit->setEnabled(false);
+    mpTextEdit->setEnabled(false);
 }
 
 
@@ -174,6 +189,7 @@ findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& l
     SearchStruct *lpSearchStruct=(SearchStruct*)lpParam;
     const char *lpPtr=lpSearchStruct->mString.c_str();
     KProgressDialog *lpProgressDialog=lpSearchStruct->mpProgressDialog;
+    bool found=false;
 
     if (lpProgressDialog->wasCancelled()) {
         gkLog<<xfcInfo<<__FUNCTION__<<": cancelled."<<eol;
@@ -181,17 +197,44 @@ findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& l
     }
         
     lName=lrXfc.getNameOfElement(lpNode); // :fixme: utf8 -> string ?
-    if (xmlStrcasestr((const xmlChar*)lName.c_str(), (xmlChar*)lpPtr)!=NULL) {
+    if ( lpPtr[0] &&
+         xmlStrcasestr((const xmlChar*)lName.c_str(), (xmlChar*)lpPtr)!=NULL) {
+        string fName=lPath;
+        if (lPath!="/")
+            fName+"/";
+        fName+=lName;
         gkLog<<xfcDebug<<__FUNCTION__<<": found matching node: path="<<lPath;
         gkLog<<__FUNCTION__<<":  name="<<lName<<eol;
         lpSearchStruct->mpSearchResultsPaths->push_back(lPath+"/"+lName);
         lpSearchStruct->mpSearchResultsNodes->push_back(lpNode);
+        found=true;
     }
-    // :fixme: - check labes and other stuff
+
+    // check labels
+    if (!found && lpSearchStruct->mLabels.size() > 0) {
+        vector<string> eltLabels=lrXfc.getLabelsForNode(lpNode);
+        vector<string> &rSList=lpSearchStruct->mLabels;
+        if (eltLabels.size() > 0) {
+            for (uint i=0; i<eltLabels.size() && !found; i++)
+                for (uint j=0; j<rSList.size() && !found; j++)
+                    if (xmlStrcasecmp((const xmlChar*)eltLabels[i].c_str(),
+                                      (const xmlChar*)rSList[j].c_str())==0) {
+                        string fName=lPath;
+                        if (lPath!="/")
+                            fName+="/";
+                        fName+=lName;
+                        gkLog<<xfcDebug<<__FUNCTION__;
+                        gkLog<<": found matching label ("<<eltLabels[i];
+                        gkLog<<") for node: "<<fName<<eol;
+                        lpSearchStruct->mpSearchResultsPaths->push_back(fName);
+                        lpSearchStruct->mpSearchResultsNodes->push_back(lpNode);
+                        found=true;
+                    }
+        }
+    }
     
     lpProgressDialog->progressBar()->setValue(lPosInProgressBar/10);
     lPosInProgressBar++;
     gpApplication->processEvents();
-    
     return 0;
 }

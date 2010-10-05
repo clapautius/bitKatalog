@@ -31,9 +31,6 @@
 using std::string;
 using std::vector;
 
-#if defined(MTP_DEBUG)
-  #include <iostream>
-#endif
 
 LabelsBox::LabelsBox()
     : KPageDialog()
@@ -42,8 +39,9 @@ LabelsBox::LabelsBox()
 } 
 
 
-LabelsBox::LabelsBox(vector<string> allLabels, vector<string> selectedLabels)
-    : KPageDialog()
+LabelsBox::LabelsBox(vector<string> allLabels, vector<string> selectedLabels,
+                     bool addEnabled)
+    : KPageDialog(), mAddEnabled(addEnabled)
 {
     setCaption(QString("Labels"));
     setButtons(KDialog::Ok | KDialog::Cancel);
@@ -65,7 +63,9 @@ LabelsBox::~LabelsBox()
 void
 LabelsBox::connectButtons()
 {
-    connect(mpAddNewButton, SIGNAL(clicked()), this, SLOT(addNewLabel()));
+    if (mAddEnabled) {
+        connect(mpAddNewButton, SIGNAL(clicked()), this, SLOT(addNewLabel()));
+    }
 } 
 
 
@@ -90,7 +90,6 @@ void LabelsBox::layout(vector<string> allLabels)
     string str;
 
     resize(500,500);
-
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Labels"));
     pPage1->setHeader(QString("Labels"));
@@ -103,10 +102,12 @@ void LabelsBox::layout(vector<string> allLabels)
     }
     mpLabels->sortByColumn(0, Qt::AscendingOrder);
     mpLabels->setSortingEnabled(true);
-    
-    KHBox *pBox2=new KHBox(pBox1);
-    mpLabelEdit=new KLineEdit(pBox2);
-    mpAddNewButton=new QPushButton("Add new label", pBox2);
+
+    if (mAddEnabled) {
+        KHBox *pBox2=new KHBox(pBox1);
+        mpLabelEdit=new KLineEdit(pBox2);
+        mpAddNewButton=new QPushButton("Add new label", pBox2);
+    }
 }
 
 

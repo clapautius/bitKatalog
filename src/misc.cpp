@@ -37,8 +37,12 @@
 #include "xfc.h"
 #include "fs.h"
 
-using namespace std;
-
+using std::string;
+using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::ostringstream;
 
 /**
  * helper function
@@ -261,12 +265,28 @@ string sizeToHumanReadableSize(string sizeInBytes)
     }
     else {
         if (sizeNum>=1024 && sizeNum<1024*1024) {
-            strm<<fixed<<setprecision(1)<<(float)(sizeNum/1024)<<" KB";
+            strm<<std::fixed<<std::setprecision(1)<<(float)(sizeNum/1024);
+            strm<<" KB";
         }
         else {
-            strm<<fixed<<setprecision(1)<<(float)(sizeNum/1024/1024)<<" MB";
+            strm<<std::fixed<<std::setprecision(1)<<(float)(sizeNum/1024/1024);
+            strm<<" MB";
         }
         strm<<" ("<<sizeNum<<" B)";
     }
     return strm.str();
+}
+
+
+string
+vectorWStringsToString(vector<string>& vect, const char *pDelim)
+{
+    string str;
+    for (uint i=0; i<vect.size(); i++) {
+        if (i>0) {
+            str+=pDelim;
+        }
+        str+=vect[i];
+    }
+    return str;
 }

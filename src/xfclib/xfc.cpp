@@ -708,8 +708,10 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
 
 
 /**
- * @warning Do not use this function to get the labels. It uses a bad way to get
- * labels that should be removed. Use getLabelsForNode instead.
+ * Get all the details of a node.
+ * The node must be a file, dir, disk or root.
+ *
+ * Map keys: description, size, cdate, sha1sum, sha256sum.
  *
  * @sa getLabelsForNode
  **/
@@ -755,20 +757,6 @@ std::map<std::string, std::string> Xfc::getDetailsForNode(xmlNodePtr lpNode) thr
     if (!lS.empty())
         details.insert(pair<string, string>(SHA1LABEL, lS));
     
-    // labels
-    xmlNodePtr pChildNode;
-    char labelBuf[7] = { "label0" };
-    char c='1';
-    pChildNode=lpNode->xmlChildrenNode; 
-    while (pChildNode!=NULL) {
-        if (isLabel(pChildNode)) {
-            details.insert(pair<string, string>(labelBuf, getValueOfNode(pChildNode)));
-            if (c>'9')
-                throw std::string("Too many labels"); // :fixme: - do something useful
-            labelBuf[5]=c++;
-        }
-        pChildNode=pChildNode->next;
-    }
     return details;
 }
 
