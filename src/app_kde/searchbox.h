@@ -72,8 +72,8 @@ public:
 
 protected:
 
-    void disableButtons();
-    void enableButtons();
+    void disableButtons(bool skipButtonsForLocal=false);
+    void enableButtons(bool skipButtonsForLocal=false);
     virtual void findLocalFiles(bool exactly=false);
     
 protected slots:  
@@ -93,21 +93,15 @@ private:
     void layout();
 
     void matchByRelation(std::vector<MatchFuncType>,
-                         std::vector<std::string> &rFilesToSearch,
-                         std::vector<xmlNodePtr> &rNodesToSearch,
                          QDirIterator &rIt,
                          std::vector<std::string> &rResult,
                          KProgressDialog *pProgress=NULL);
     
-    void matchByName(std::vector<std::string> &rFilesToSearch,
-                     std::vector<xmlNodePtr> &rNodesToSearch,
-                     QDirIterator &rIt,
+    void matchByName(QDirIterator &rIt,
                      std::vector<std::string> &rResult,
                      KProgressDialog *pProgress=NULL);
 
-    void matchBySizeAndSha256(std::vector<std::string> &rFilesToSearch,
-                              std::vector<xmlNodePtr> &rNodesToSearch,
-                              QDirIterator &rIt,
+    void matchBySizeAndSha256(QDirIterator &rIt,
                               std::vector<std::string> &rResult,
                               KProgressDialog *pProgress=NULL);
 

@@ -119,6 +119,7 @@ void SearchBox::layout()
     resize(800,450);
 
     button(KDialog::User1)->setGuiItem(KStandardGuiItem::Find);
+    button(KDialog::User1)->setDefault(true);
     setButtonText(KDialog::User2, "Find local by name ...");
     setButtonText(KDialog::User3, "Find local exactly ...");
 
@@ -129,7 +130,7 @@ void SearchBox::layout()
     
     mpSimpleSearchBox=new KHBox(pBox1);
     mpTmpLabel1=new QLabel("Text: ", mpSimpleSearchBox);
-    mpTextEdit=new KLineEdit(mpSimpleSearchBox);    
+    mpTextEdit=new KLineEdit(mpSimpleSearchBox);
 
     // labels
     KHBox *pLabelsBox=new KHBox(pBox1);
@@ -141,8 +142,10 @@ void SearchBox::layout()
     // ...    
     mpSimpleSearchResults=new K3ListBox(pBox1);
 
-    mpTextEdit->setFocus();
     connectButtons();
+    disableButtons(); // all
+    enableButtons(true); // skip buttons for local search
+    mpTextEdit->setFocus();
 }
 
 
@@ -194,14 +197,18 @@ void SearchBox::search()
     msgDebug("Finish time: ", getTimeSinceMidnight());
     mpProgress->progressBar()->setValue(0);
     delete mpProgress;
+    mSearchStruct.mpProgressDialog=NULL;
     msgDebug("Search finished");
 
-    if (pResultsPaths->size()>0)
+    if (pResultsPaths->size()>0) {
         for (unsigned int i=0;i<pResultsPaths->size();i++)
             mpSimpleSearchResults->insertItem(pResultsPaths->at(i).c_str());
-    else
+        enableButtons(); // enable all
+    }
+    else {
         mpSimpleSearchResults->insertItem("Nothing found!");
-    enableButtons();
+        enableButtons(true); // enable, but skip buttons for local search
+    }
 } 
 
 
@@ -219,23 +226,27 @@ SearchBox::editLabels()
 
 
 void
-SearchBox::enableButtons()
+SearchBox::enableButtons(bool skipButtonsForLocal)
 {
     enableButton(KDialog::Close, true);
     enableButton(KDialog::User1, true);
-    enableButton(KDialog::User2, true);
-    enableButton(KDialog::User3, true);
+    if (!skipButtonsForLocal) {
+        enableButton(KDialog::User2, true);
+        enableButton(KDialog::User3, true);
+    }
     mpTextEdit->setEnabled(true);
 }
 
 
 void
-SearchBox::disableButtons()
+SearchBox::disableButtons(bool skipButtonsForLocal)
 {
     enableButton(KDialog::Close, false);
     enableButton(KDialog::User1, false);
-    enableButton(KDialog::User2, false);
-    enableButton(KDialog::User3, false);
+    if (!skipButtonsForLocal) {
+        enableButton(KDialog::User2, false);
+        enableButton(KDialog::User3, false);
+    }
     mpTextEdit->setEnabled(false);
 }
 
@@ -311,8 +322,6 @@ SearchBox::findLocalFiles(bool exactly)
 {
     if (mSearchStruct.mSearchResultsPaths.size()>0) {
         // make a local copy for elements to search
-        vector<string> filesToSearch=mSearchStruct.mSearchResultsPaths;
-        vector<xmlNodePtr> nodesToSearch=mSearchStruct.mSearchResultsNodes;
         vector<string> results;
 
         // prepare progress dialog
@@ -324,15 +333,18 @@ SearchBox::findLocalFiles(bool exactly)
         pProgress->setAllowCancel(true);
         pProgress->setButtonText("Stop");
 
-        // try matching by name
         const char *pStartDir=getenv("HOME");
-        QDirIterator it(pStartDir?pStartDir:"/", QDirIterator::Subdirectories);
+        gkLog<<xfcInfo<<"Start searching local storage, starting from "
+             <<pStartDir<<eol;
+        QDirIterator it(pStartDir?pStartDir:"/",
+                  QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
         if (exactly)
-            matchByName(filesToSearch, nodesToSearch, it, results, pProgress);
+            matchBySizeAndSha256(it, results, pProgress);
         else
-            matchByName(filesToSearch, nodesToSearch, it, results, pProgress);
+            matchByName(it, results, pProgress);
 
         delete pProgress;
+        gkLog<<xfcInfo<<"Search finished, displaying results"<<eol;
         LocalFilesBox *pLocalFilesBox = new LocalFilesBox(results);
         pLocalFilesBox->exec();
     }
@@ -343,43 +355,46 @@ SearchBox::findLocalFiles(bool exactly)
 
 
 void
-SearchBox::matchByName(vector<string> &rFilesToSearch,
-                       std::vector<xmlNodePtr> &rNodesToSearch,
-                       QDirIterator &rIt, vector<string> &rResult,
+SearchBox::matchByName(QDirIterator &rIt, vector<string> &rResult,
                        KProgressDialog *pProgressDlg)
 {
     vector<MatchFuncType> functions;
     functions.push_back(matchesName);
-    return matchByRelation(functions, rFilesToSearch, rNodesToSearch,
-                           rIt, rResult, pProgressDlg);
+    return matchByRelation(functions, rIt, rResult, pProgressDlg);
 }
 
 
 void
-SearchBox::matchBySizeAndSha256(vector<string> &rFilesToSearch,
-                                std::vector<xmlNodePtr> &rNodesToSearch,
-                                QDirIterator &rIt, vector<string> &rResult,
+SearchBox::matchBySizeAndSha256(QDirIterator &rIt, vector<string> &rResult,
                                 KProgressDialog *pProgressDlg)
 {
     vector<MatchFuncType> functions;
     functions.push_back(matchesSize);
     functions.push_back(matchesSha256sum);
-    return matchByRelation(functions, rFilesToSearch, rNodesToSearch,
-                           rIt, rResult, pProgressDlg);
+    return matchByRelation(functions, rIt, rResult, pProgressDlg);
 }
 
 
+/**
+ * @param[in] funcs : vector with pointers to lambda functions that check if
+ *   local files match xml parameters.
+ * @param[in] rIt : a QDirIterator to get files from a directory recursively.
+ * @param[out] rResults : the files that match the required conditions.
+ * @param[in] pProgressDlg : optional - a KProgressDialog that should be updated
+ *   periodically.
+ **/
 void
 SearchBox::matchByRelation(vector<MatchFuncType> funcs,
-                           vector<string> &rFilesToSearch,
-                           vector<xmlNodePtr> &rNodesToSearch,
                            QDirIterator &rIt, vector<string> &rResult,
                            KProgressDialog *pProgressDlg)
 {
     uint progressPos=1;
-    while (rIt.hasNext()) {
+    vector<string> filesToSearch=mSearchStruct.mSearchResultsPaths;
+    vector<xmlNodePtr> nodesToSearch=mSearchStruct.mSearchResultsNodes;
+    while (rIt.hasNext() && !filesToSearch.empty()) {
         // progress stuff
-        if (pProgressDlg && progressPos%100==0) {
+        progressPos++;
+        if (pProgressDlg && progressPos%1000==0) {
             if (pProgressDlg->wasCancelled()) {
                 gkLog<<xfcInfo<<__FUNCTION__<<": cancelled."<<eol;
                 return;
@@ -390,13 +405,13 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
 
         QString file=rIt.next();
         QFileInfo fInfo=rIt.fileInfo();
-        for (uint i=0; i<rFilesToSearch.size(); i++) {
+        for (uint i=0; i<filesToSearch.size(); i++) {
             bool matchesAll=true;
-            if (funcs[0](fInfo, rFilesToSearch[i], rNodesToSearch[i], mpCatalog)) {
-                gkLog<<xfcDebug<<"Catalog file "<<rFilesToSearch[i];
+            if (funcs[0](fInfo, filesToSearch[i], nodesToSearch[i], mpCatalog)) {
+                gkLog<<xfcDebug<<"Catalog file "<<filesToSearch[i];
                 gkLog<<" matches local file "<<file.toStdString()<<eol;
                 for (uint j=1; j<funcs.size(); j++)
-                    if (!funcs[j](fInfo, rFilesToSearch[i], rNodesToSearch[i],
+                    if (!funcs[j](fInfo, filesToSearch[i], nodesToSearch[i],
                                  mpCatalog)) {
                         matchesAll=false;
                         break;
@@ -404,10 +419,10 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
                 if (matchesAll) {
                     gkLog<<xfcDebug<<"  matches all, good"<<eol;
                     rResult.push_back(file.toStdString());
-                    rFilesToSearch.erase(rFilesToSearch.begin()+i);
-                    rNodesToSearch.erase(rNodesToSearch.begin()+i);
+                    filesToSearch.erase(filesToSearch.begin()+i);
+                    nodesToSearch.erase(nodesToSearch.begin()+i);
                     i--;
-                    if (rFilesToSearch.size()==0) {
+                    if (filesToSearch.size()==0) {
                         gkLog<<xfcDebug<<"No more files to search"<<eol;
                         break;
                     }

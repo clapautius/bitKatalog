@@ -6,6 +6,6 @@
 #define XFCAPP_VERSION "0.9-svn"
 
 // :release:
-#define XFC_DEBUG
+//#define XFC_DEBUG
 
 #endif
