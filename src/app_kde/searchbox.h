@@ -26,7 +26,7 @@
 #include <kprogressdialog.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
-#include <k3listbox.h>
+#include <QTreeWidget>
 #include <khbox.h>
 #include <QDirIterator>
 
@@ -94,15 +94,15 @@ private:
 
     void matchByRelation(std::vector<MatchFuncType>,
                          QDirIterator &rIt,
-                         std::vector<std::string> &rResult,
+                         std::vector<QFileInfo> &rResult,
                          KProgressDialog *pProgress=NULL);
     
     void matchByName(QDirIterator &rIt,
-                     std::vector<std::string> &rResult,
+                     std::vector<QFileInfo> &rResult,
                      KProgressDialog *pProgress=NULL);
 
     void matchBySizeAndSha256(QDirIterator &rIt,
-                              std::vector<std::string> &rResult,
+                              std::vector<QFileInfo> &rResult,
                               KProgressDialog *pProgress=NULL);
 
     Xfc *mpCatalog;
@@ -113,7 +113,7 @@ private:
     
     KHBox *mpSimpleSearchBox; // on heap
     
-    K3ListBox *mpSimpleSearchResults;
+    QTreeWidget *mpSearchResults;
     
     KProgressDialog *mpProgress;
 

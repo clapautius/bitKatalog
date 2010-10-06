@@ -29,13 +29,14 @@
 #include <kinputdialog.h>
 
 #include "misc.h"
+#include "main.h"
 
 using std::string;
 using std::vector;
 
 
 
-LocalFilesBox::LocalFilesBox(vector<string> files)
+LocalFilesBox::LocalFilesBox(vector<QFileInfo> files)
     : KPageDialog()
 {
     setCaption(QString("Files on local storage"));
@@ -71,13 +72,29 @@ void LocalFilesBox::layout()
     pFileList->setSortingEnabled(true);
     pFileList->setRootIsDecorated(false);
     pFileList->header()->hide();
+    pFileList->setAlternatingRowColors(true);
     for(uint i=0; i<mFiles.size(); i++) {
-        QTreeWidgetItem *pItem=
-            new QTreeWidgetItem(QStringList(mFiles[i].c_str()));
+        gkLog<<xfcDebug<<"adding local element to list, complete path: ";
+        gkLog<<mFiles[i].filePath().toStdString()<<eol;
+        gkLog<<xfcDebug<<"path="<<mFiles[i].path().toStdString();
+        gkLog<<", fileName="<<mFiles[i].fileName().toStdString()<<eol;
+        QTreeWidgetItem *pItem=NULL;
+        if (mFiles[i].isDir()) {
+            pItem=new QTreeWidgetItem(
+                QStringList(mFiles[i].filePath()+"\n"));
+            pItem->setIcon(0, KIcon("folder"));
+            gkLog<<xfcDebug<<"element is dir"<<eol;
+        }
+        else {
+            pItem=new QTreeWidgetItem(
+                QStringList(mFiles[i].path()+"/\n"+mFiles[i].fileName()));
+            pItem->setIcon(0, KIcon("application-octet-stream"));
+            gkLog<<xfcDebug<<"element is not dir"<<eol;
+        }
         pItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-        pItem->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
         pFileList->addTopLevelItem(pItem);
     }
+    pFileList->resizeColumnToContents(0);
 }
 
 

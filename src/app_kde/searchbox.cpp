@@ -22,12 +22,12 @@
 
 #include <qpainter.h>
 #include <qlayout.h>
-
 #include <qprogressbar.h>
 #include <kprogressdialog.h>
 #include <kmessagebox.h>
 #include <kvbox.h>
 #include <kpushbutton.h>
+#include <QHeaderView>
 
 #include "main.h"
 #include "misc.h"
@@ -56,8 +56,13 @@ static bool
 matchesSize(const QFileInfo &fsFileInfo, const string &,
             const xmlNodePtr xmlNode, Xfc *pCatalog)
 {
-    return fsFileInfo.size() == stringToUint(
-        pCatalog->getDetailsForNode(xmlNode)["size"]);
+    string size=pCatalog->getDetailsForNode(xmlNode)["size"];
+    if (size.empty()) { // size unknown, skip element
+        return false;
+    }
+    else {
+        return fsFileInfo.size() == stringToUint(size);
+    }
 }
 
 
@@ -140,7 +145,12 @@ void SearchBox::layout()
     mpEditLabelsButton=new QPushButton("Select labels", pLabelsBox);
     
     // ...    
-    mpSimpleSearchResults=new K3ListBox(pBox1);
+    mpSearchResults=new QTreeWidget(pBox1);
+    mpSearchResults->setColumnCount(1);
+    mpSearchResults->setSortingEnabled(false);
+    mpSearchResults->setRootIsDecorated(false);
+    mpSearchResults->header()->hide();
+    mpSearchResults->setAlternatingRowColors(true);
 
     connectButtons();
     disableButtons(); // all
@@ -188,7 +198,7 @@ void SearchBox::search()
     mpProgress->setButtonText("Stop");
     mSearchStruct.mpProgressDialog=mpProgress;
 
-    mpSimpleSearchResults->clear();
+    mpSearchResults->clear();
     disableButtons();
     msgDebug("Starting to search. Search string is: ", mSearchStruct.mString);
     msgDebug("Labels: ", vectorWStringsToString(mSearchStruct.mLabels));
@@ -200,15 +210,20 @@ void SearchBox::search()
     mSearchStruct.mpProgressDialog=NULL;
     msgDebug("Search finished");
 
+    QTreeWidgetItem *pItem=NULL;
     if (pResultsPaths->size()>0) {
-        for (unsigned int i=0;i<pResultsPaths->size();i++)
-            mpSimpleSearchResults->insertItem(pResultsPaths->at(i).c_str());
+        for (unsigned int i=0;i<pResultsPaths->size();i++) {
+            pItem=new QTreeWidgetItem(QStringList(pResultsPaths->at(i).c_str()));
+            mpSearchResults->addTopLevelItem(pItem);
+        }
         enableButtons(); // enable all
     }
     else {
-        mpSimpleSearchResults->insertItem("Nothing found!");
+        pItem=new QTreeWidgetItem(QStringList("Nothing found!"));
+        mpSearchResults->addTopLevelItem(pItem);
         enableButtons(true); // enable, but skip buttons for local search
     }
+    mpSearchResults->resizeColumnToContents(0);
 } 
 
 
@@ -322,7 +337,7 @@ SearchBox::findLocalFiles(bool exactly)
 {
     if (mSearchStruct.mSearchResultsPaths.size()>0) {
         // make a local copy for elements to search
-        vector<string> results;
+        vector<QFileInfo> results;
 
         // prepare progress dialog
         KProgressDialog *pProgress=new KProgressDialog(this, "Searching ...",
@@ -338,15 +353,31 @@ SearchBox::findLocalFiles(bool exactly)
              <<pStartDir<<eol;
         QDirIterator it(pStartDir?pStartDir:"/",
                   QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-        if (exactly)
-            matchBySizeAndSha256(it, results, pProgress);
-        else
-            matchByName(it, results, pProgress);
+        try {
+            if (exactly)
+                matchBySizeAndSha256(it, results, pProgress);
+            else
+                matchByName(it, results, pProgress);
+        }
+        catch (string e) {
+            KMessageBox::error(this,
+                               QString("Something bad happened. Error is: ")+
+                               e.c_str());
+        }
+        catch (...) {
+            KMessageBox::error(this,
+                               QString("Something bad happened. Unknown error"));
+        }
 
         delete pProgress;
         gkLog<<xfcInfo<<"Search finished, displaying results"<<eol;
-        LocalFilesBox *pLocalFilesBox = new LocalFilesBox(results);
-        pLocalFilesBox->exec();
+        if (results.size()>0) {
+            LocalFilesBox *pLocalFilesBox = new LocalFilesBox(results);
+            pLocalFilesBox->exec();
+        }
+        else {
+            KMessageBox::information(this, "No local files found");
+        }
     }
     else {
         KMessageBox::error(this, "Nothing to search");
@@ -355,7 +386,7 @@ SearchBox::findLocalFiles(bool exactly)
 
 
 void
-SearchBox::matchByName(QDirIterator &rIt, vector<string> &rResult,
+SearchBox::matchByName(QDirIterator &rIt, vector<QFileInfo> &rResult,
                        KProgressDialog *pProgressDlg)
 {
     vector<MatchFuncType> functions;
@@ -365,7 +396,7 @@ SearchBox::matchByName(QDirIterator &rIt, vector<string> &rResult,
 
 
 void
-SearchBox::matchBySizeAndSha256(QDirIterator &rIt, vector<string> &rResult,
+SearchBox::matchBySizeAndSha256(QDirIterator &rIt, vector<QFileInfo> &rResult,
                                 KProgressDialog *pProgressDlg)
 {
     vector<MatchFuncType> functions;
@@ -385,7 +416,7 @@ SearchBox::matchBySizeAndSha256(QDirIterator &rIt, vector<string> &rResult,
  **/
 void
 SearchBox::matchByRelation(vector<MatchFuncType> funcs,
-                           QDirIterator &rIt, vector<string> &rResult,
+                           QDirIterator &rIt, vector<QFileInfo> &rResult,
                            KProgressDialog *pProgressDlg)
 {
     uint progressPos=1;
@@ -418,7 +449,7 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
                     }
                 if (matchesAll) {
                     gkLog<<xfcDebug<<"  matches all, good"<<eol;
-                    rResult.push_back(file.toStdString());
+                    rResult.push_back(fInfo);
                     filesToSearch.erase(filesToSearch.begin()+i);
                     nodesToSearch.erase(nodesToSearch.begin()+i);
                     i--;
@@ -449,4 +480,3 @@ SearchBox::findLocalFilesExactly()
 {
     return findLocalFiles(true);
 }
-

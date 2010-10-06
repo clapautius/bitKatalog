@@ -32,6 +32,7 @@
 #include <Qt3Support/q3hbox.h>
 #include <qtreewidget.h>
 #include <kvbox.h>
+#include <QFileInfo>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
@@ -43,7 +44,7 @@ class LocalFilesBox : public KPageDialog
             
 public:
 
-    LocalFilesBox(std::vector<std::string> files);
+    LocalFilesBox(std::vector<QFileInfo> files);
 
     virtual ~LocalFilesBox();
 
@@ -59,7 +60,7 @@ private:
     
     void layout();
 
-    std::vector<std::string> mFiles;
+    std::vector<QFileInfo> mFiles;
     
 };
 
