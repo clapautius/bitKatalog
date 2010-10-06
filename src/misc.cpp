@@ -300,3 +300,16 @@ contains(vector<string> vect, string elt)
             return true;
     return false;
 }
+
+
+unsigned long int
+stringToUint(std::string str) throw (std::string)
+{
+    unsigned long int sizeNum;
+    char *pRet=NULL;
+    sizeNum=strtol(str.c_str(), &pRet, 10);
+    if (pRet==str.c_str()) {
+        throw std::string("Cannot convert string to unsigned long int. String=")+str;
+    }
+    return sizeNum;
+}

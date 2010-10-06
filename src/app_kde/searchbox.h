@@ -28,6 +28,7 @@
 #include <Qt3Support/q3hbox.h>
 #include <k3listbox.h>
 #include <khbox.h>
+#include <QDirIterator>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
@@ -35,6 +36,31 @@
 /**
 @author Tudor Pristavu
 */
+
+
+typedef bool (*MatchFuncType)(const QFileInfo &, const std::string &,
+                              const xmlNodePtr, Xfc *);
+
+
+class SearchStruct
+{
+public:
+    SearchStruct();
+    
+    ~SearchStruct();
+    
+    void clear(bool freeMemory=true);
+
+    // public members - not very nice :fixme:
+    KProgressDialog *mpProgressDialog;
+    std::string mString;
+    std::vector<std::string> mLabels;
+    std::vector<std::string> mSearchResultsPaths;
+    std::vector<xmlNodePtr> mSearchResultsNodes;
+
+};
+
+
 class SearchBox : public KPageDialog
 {
     Q_OBJECT
@@ -48,12 +74,15 @@ protected:
 
     void disableButtons();
     void enableButtons();
+    virtual void findLocalFiles(bool exactly=false);
     
 protected slots:  
     
-    void search();
+    virtual void search();
     
-    virtual void slotUser1();
+    virtual void findLocalFilesByName();
+
+    virtual void findLocalFilesExactly();
 
     virtual void editLabels();
 
@@ -62,8 +91,26 @@ private:
     void connectButtons();
     
     void layout();
+
+    void matchByRelation(std::vector<MatchFuncType>,
+                         std::vector<std::string> &rFilesToSearch,
+                         std::vector<xmlNodePtr> &rNodesToSearch,
+                         QDirIterator &rIt,
+                         std::vector<std::string> &rResult,
+                         KProgressDialog *pProgress=NULL);
     
-    
+    void matchByName(std::vector<std::string> &rFilesToSearch,
+                     std::vector<xmlNodePtr> &rNodesToSearch,
+                     QDirIterator &rIt,
+                     std::vector<std::string> &rResult,
+                     KProgressDialog *pProgress=NULL);
+
+    void matchBySizeAndSha256(std::vector<std::string> &rFilesToSearch,
+                              std::vector<xmlNodePtr> &rNodesToSearch,
+                              QDirIterator &rIt,
+                              std::vector<std::string> &rResult,
+                              KProgressDialog *pProgress=NULL);
+
     Xfc *mpCatalog;
     
     QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
@@ -81,18 +128,10 @@ private:
     std::vector<std::string> mSearchLabels;
     
     const std::vector<std::string> & mrAllLabels;
+
+    SearchStruct mSearchStruct;
 };
 
-
-class SearchStruct
-{
-public:
-    KProgressDialog *mpProgressDialog;
-    std::string mString;
-    std::vector<std::string> mLabels;
-    std::vector<std::string> *mpSearchResultsPaths;
-    std::vector<xmlNodePtr> *mpSearchResultsNodes;
-};
 
 int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
                 void *lpParam);

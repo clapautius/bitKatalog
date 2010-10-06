@@ -49,4 +49,6 @@ std::string vectorWStringsToString(std::vector<std::string>& vect,
 bool
 contains(std::vector<std::string> vect, std::string elt);
 
+unsigned long int stringToUint(std::string) throw (std::string);
+
 #endif

@@ -1,6 +1,6 @@
 find_package (KDE4 REQUIRED)
 
-set (bitKatalog_srcs bitkatalog.cpp ../fs.cpp ../misc.cpp ../plugins.cpp bitkatalogview.cpp pref.cpp main.cpp adddiskbox.cpp detailsbox.cpp newcatalogbox.cpp outputwindow.cpp scanthread.cpp searchbox.cpp verifythread.cpp xmlentityitem.cpp labelsbox.cpp ../sha1.c ../sha2.c)
+set (bitKatalog_srcs bitkatalog.cpp ../fs.cpp ../misc.cpp ../plugins.cpp bitkatalogview.cpp pref.cpp main.cpp adddiskbox.cpp detailsbox.cpp newcatalogbox.cpp outputwindow.cpp scanthread.cpp searchbox.cpp verifythread.cpp xmlentityitem.cpp labelsbox.cpp localfiles.cpp ../sha1.c ../sha2.c)
 
 include (KDE4Defaults)
 

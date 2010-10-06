@@ -33,21 +33,21 @@ typedef off64_t FileSizeType;
 
 typedef struct stat64 FileStatType;
 
-FileStatType getStatOfFile(std::string lPath) throw (std::string);
+FileStatType getStatOfFile(std::string path) throw (std::string);
 
-bool isDirectory(std::string lPath) throw (std::string);
+bool isDirectory(std::string path) throw (std::string);
 
-bool isRegularFile(std::string lPath) throw (std::string);
+bool isRegularFile(std::string path) throw (std::string);
 
-bool isSymlink(std::string lPath) throw (std::string);
+bool isSymlink(std::string path) throw (std::string);
 
-std::vector<std::string> getFileListInDir(std::string lPath) throw (std::string);
+std::vector<std::string> getFileListInDir(std::string path) throw (std::string);
 
-std::string getLastComponentOfPath(std::string lPath);
+std::string getLastComponentOfPath(std::string path);
 
-FileSizeType getFileSize(std::string lPath) throw (std::string);
+FileSizeType getFileSize(std::string path) throw (std::string);
 
-bool fileExists(std::string lPath);
+bool fileExists(std::string path);
 
 void rename(std::string lOldFile, std::string lNewFile)
         throw (std::string);
@@ -61,7 +61,7 @@ void rename(std::string lOldFile, std::string lNewFile)
  **/
 int copyFile(std::string src, std::string dest);
 
-std::vector<std::string> tokenizePath(std::string lPath);
+std::vector<std::string> tokenizePath(std::string path);
 // input: a path
 // output: a vector with tokens extracted from that path
   
