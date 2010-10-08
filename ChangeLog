@@ -1,3 +1,8 @@
+2010-10-08  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/app_kde/: start working on std::string to QString
+	transition in the kde application (to avoid utf8 problems);
+
 2010-10-06  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/: implemented searching for files on local storage;

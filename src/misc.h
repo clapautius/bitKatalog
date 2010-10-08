@@ -46,8 +46,7 @@ std::string sizeToHumanReadableSize(std::string sizeInBytes);
 std::string vectorWStringsToString(std::vector<std::string>& vect,
                                    const char* pDelim=", ");
 
-bool
-contains(std::vector<std::string> vect, std::string elt);
+bool contains(std::vector<std::string> vect, std::string elt);
 
 unsigned long int stringToUint(std::string) throw (std::string);
 

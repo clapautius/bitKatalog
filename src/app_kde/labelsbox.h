@@ -44,13 +44,13 @@ class LabelsBox : public KPageDialog
 public:
     LabelsBox();
     
-    LabelsBox(std::vector<std::string> allLabels,
-              std::vector<std::string> selectedLabels,
+    LabelsBox(std::vector<QString> allLabels,
+              std::vector<QString> selectedLabels,
               bool addEnabled=true);
 
     virtual ~LabelsBox();
 
-    std::vector<std::string> getSelectedLabels() const;
+    std::vector<QString> getSelectedLabels() const;
     
 public slots:
 
@@ -64,11 +64,11 @@ private:
     
     void connectButtons();
     
-    void layout(std::vector<std::string>);
+    void layout(std::vector<QString>);
 
     void addLabelInList(QString labelText, bool checked=false);
 
-    std::vector<std::string> mSelectedLabels;
+    std::vector<QString> mSelectedLabels;
 
     bool mAddEnabled;
     

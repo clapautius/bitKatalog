@@ -31,6 +31,9 @@
 #include <sstream>
 #include <fstream>
 
+#include <vector> // :tmp: string to QString transition
+using std::vector;
+
 #include "main.h"
 #include "fs.h"
 #include "xfc.h"
@@ -173,3 +176,24 @@ void startUp(KCmdLineArgs *pArgs)
     //gpConfig->setReadOnly(false);
     //runningForTheFirstTime();
 }
+
+
+// :tmp:
+/// temporary functions used during the transition from std::string to QString
+std::vector<std::string>
+vectWQStringToVectWstring(std::vector<QString> v)
+{
+    vector<string> ret;
+    for (uint i=0; i<v.size(); i++)
+        ret[i].push_back(v[i].toStdString());
+    return ret;
+}
+
+std::vector<QString> vectWstringToVectWQString(std::vector<std::string> v)
+{
+    vector<QString> ret;
+    for (uint i=0; i<v.size(); i++)
+        ret[i].push_back(v[i].c_str());
+    return ret;
+}
+

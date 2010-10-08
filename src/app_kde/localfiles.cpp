@@ -36,13 +36,13 @@ using std::vector;
 
 
 
-LocalFilesBox::LocalFilesBox(vector<QFileInfo> files)
+LocalFilesBox::LocalFilesBox(vector<QFileInfo> &rFiles)
     : KPageDialog()
 {
     setCaption(QString("Files on local storage"));
     setButtons(KDialog::Ok);
     setModal(true);
-    mFiles=files;
+    mFiles=rFiles;
     layout();
     connectButtons();
 }

@@ -41,7 +41,7 @@ LabelsBox::LabelsBox()
 } 
 
 
-LabelsBox::LabelsBox(vector<string> allLabels, vector<string> selectedLabels,
+LabelsBox::LabelsBox(vector<QString> allLabels, vector<QString> selectedLabels,
                      bool addEnabled)
     : KPageDialog(), mAddEnabled(addEnabled)
 {
@@ -87,7 +87,7 @@ LabelsBox::addLabelInList(QString labelText, bool checked)
 }
 
 
-void LabelsBox::layout(vector<string> allLabels)
+void LabelsBox::layout(vector<QString> allLabels)
 {
     string str;
 
@@ -100,7 +100,7 @@ void LabelsBox::layout(vector<string> allLabels)
     mpLabels->setColumnCount(1);
     mpLabels->setHeaderLabels(QStringList("Available labels"));
     for (unsigned int i=0; i<allLabels.size(); i++) {
-        addLabelInList(allLabels[i].c_str(), contains(mSelectedLabels, allLabels[i]));
+        addLabelInList(allLabels[i], contains(mSelectedLabels, allLabels[i]));
     }
     mpLabels->sortByColumn(0, Qt::AscendingOrder);
     mpLabels->setSortingEnabled(true);
@@ -122,7 +122,7 @@ void LabelsBox::accept()
     list=mpLabels->invisibleRootItem()->takeChildren();
     for (int i=0; i<list.size(); i++) {
         if (Qt::Checked == list[i]->checkState(0)) {
-            mSelectedLabels.push_back(list[i]->text(0).toStdString());
+            mSelectedLabels.push_back(list[i]->text(0));
         }
     }
 

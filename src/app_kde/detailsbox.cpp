@@ -283,3 +283,14 @@ DetailsBox::labelsWereModified() const
 {
     return mLabelsWereModified;
 }
+
+
+// :tmp: - to be moved / renamed
+bool
+contains(vector<QString> vect, QString elt)
+{
+    for (uint i=0; i<vect.size(); i++)
+        if (vect[i]==elt)
+            return true;
+    return false;
+}

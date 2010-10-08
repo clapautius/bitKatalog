@@ -101,8 +101,12 @@ private:
             
     K3ListBox *mpLabels;
 
-    const std::vector<std::string> & mrAllLabels;
-    std::vector<std::string> mCurrentLabels;
+    const std::vector<QString> & mrAllLabels;
+    std::vector<QString> mCurrentLabels;
 };
+
+
+bool contains(std::vector<QString> vect, QString elt);
+
 
 #endif

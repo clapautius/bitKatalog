@@ -44,7 +44,7 @@ class LocalFilesBox : public KPageDialog
             
 public:
 
-    LocalFilesBox(std::vector<QFileInfo> files);
+    LocalFilesBox(std::vector<QFileInfo> &rFiles);
 
     virtual ~LocalFilesBox();
 
