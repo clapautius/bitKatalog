@@ -232,9 +232,11 @@ SearchBox::editLabels()
 {
     gkLog<<xfcDebug<<__FUNCTION__<<eol;
     string str;
-    LabelsBox *pLabelsBox=new LabelsBox(mrAllLabels, mSearchLabels, false);
+    LabelsBox *pLabelsBox=new LabelsBox(
+        vectWstringToVectWQString(mrAllLabels),
+        vectWstringToVectWQString(mSearchLabels), false);
     if (QDialog::Accepted == pLabelsBox->exec()) {
-        mSearchLabels=pLabelsBox->getSelectedLabels();
+        mSearchLabels=vectWQStringToVectWstring(pLabelsBox->getSelectedLabels());
         mpLabelsEdit->setText(vectorWStringsToString(mSearchLabels).c_str());
     }
 }

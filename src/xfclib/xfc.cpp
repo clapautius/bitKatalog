@@ -86,7 +86,8 @@ void Xfc::loadFile(std::string lPath) throw (std::string)
 void Xfc::saveToFile(std::string lPath, int lParams)
         throw (std::string)
 {
-    if(xmlSaveFormatFile(lPath.c_str(), getXmlDocPtr(), lParams)==-1)
+    if (xmlSaveFormatFileEnc(lPath.c_str(), getXmlDocPtr(), "utf-8", lParams)
+        == -1)
     {
         throw std::string("Error saving file.");
     }

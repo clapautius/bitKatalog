@@ -261,8 +261,9 @@ bitKatalogView::details() throw()
     completePath=mCurrentItemPath;
     try {
         XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
+        vector<QString> allLabels=vectWstringToVectWQString(mCatalogLabels);
         pDetailsBox=new DetailsBox(mCatalog, completePath, &lEnt, mpCurrentItem,
-            mCatalogLabels);
+                                   allLabels);
         pDetailsBox->exec(); 
         if (pDetailsBox->catalogWasModified()) {
             gCatalogState=1;
@@ -514,7 +515,7 @@ void
 bitKatalogView::populateTree(Xfc *mpCatalog)
 {
     map<string, string> details;
-    string labelsString;
+    QString labelsString;
 
     mListView->clear();
 
@@ -523,15 +524,15 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     string catalogName="/";
     XfcEntity rootEnt(pRootNode, mpCatalog);
     details=rootEnt.getDetails();
-    labelsString=rootEnt.getLabelsAsString();
+    labelsString=QString::fromUtf8(rootEnt.getLabelsAsString().c_str());
     catalogName+=rootEnt.getName();
     if (!details["description"].empty())
         mRootItem=new XmlEntityItem(mListView, catalogName.c_str(),
                                     details["description"].c_str(),
-                                    labelsString.c_str());
+                                    labelsString);
     else
         mRootItem=new XmlEntityItem(mListView, catalogName.c_str(), "",
-                                    labelsString.c_str());
+                                    labelsString);
     mRootItem->setXmlNode(pRootNode);
     
     EntityIterator *lpIterator;
@@ -545,12 +546,13 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
         details=lEnt.getDetails();
-        labelsString=lEnt.getLabelsAsString();
+        labelsString=QString::fromUtf8(lEnt.getLabelsAsString().c_str());
         if (!details["description"].empty())
-            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(),
-                                     details["description"].c_str(), labelsString.c_str());
+            lpItem=new XmlEntityItem(
+                mRootItem, lEnt.getName().c_str(),
+                details["description"].c_str(), labelsString);
         else
-            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), "", labelsString.c_str());
+            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), "", labelsString);
 #if defined(XFC_DEBUG)
         cout<<":debug:"<<__FUNCTION__<<": adding element with name "<<lEnt.getName()<<endl;
         cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;

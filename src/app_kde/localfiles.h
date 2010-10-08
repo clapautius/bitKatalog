@@ -50,6 +50,8 @@ public:
 
 public slots:
 
+    virtual void launchItem(QTreeWidgetItem* item);
+
 protected slots:  
     
     virtual void accept();
@@ -61,7 +63,8 @@ private:
     void layout();
 
     std::vector<QFileInfo> mFiles;
-    
+
+    QTreeWidget *mpFileList;
 };
 
 #endif

@@ -25,6 +25,8 @@
 #include <string>
 #include <klineedit.h>
 #include <QHeaderView>
+#include <QDirModel>
+#include <QDesktopServices>
 #include <kmessagebox.h>
 #include <kinputdialog.h>
 
@@ -37,7 +39,8 @@ using std::vector;
 
 
 LocalFilesBox::LocalFilesBox(vector<QFileInfo> &rFiles)
-    : KPageDialog()
+    : KPageDialog(),
+      mpFileList(NULL)
 {
     setCaption(QString("Files on local storage"));
     setButtons(KDialog::Ok);
@@ -56,6 +59,10 @@ LocalFilesBox::~LocalFilesBox()
 void
 LocalFilesBox::connectButtons()
 {
+    if (mpFileList) {
+        connect(mpFileList, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
+                this, SLOT(launchItem(QTreeWidgetItem*)));
+    }
 } 
 
 
@@ -66,13 +73,13 @@ void LocalFilesBox::layout()
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Local files"));
     pPage1->setHeader(QString("Files on local storage"));
 
-    QTreeWidget *pFileList=new QTreeWidget(pBox1);
-    pFileList->setColumnCount(1);
-    pFileList->sortByColumn(0, Qt::AscendingOrder);
-    pFileList->setSortingEnabled(true);
-    pFileList->setRootIsDecorated(false);
-    pFileList->header()->hide();
-    pFileList->setAlternatingRowColors(true);
+    mpFileList=new QTreeWidget(pBox1);
+    mpFileList->setColumnCount(1);
+    mpFileList->sortByColumn(0, Qt::AscendingOrder);
+    mpFileList->setSortingEnabled(true);
+    mpFileList->setRootIsDecorated(false);
+    mpFileList->header()->hide();
+    mpFileList->setAlternatingRowColors(true);
     for(uint i=0; i<mFiles.size(); i++) {
         gkLog<<xfcDebug<<"adding local element to list, complete path: ";
         gkLog<<mFiles[i].filePath().toStdString()<<eol;
@@ -92,9 +99,9 @@ void LocalFilesBox::layout()
             gkLog<<xfcDebug<<"element is not dir"<<eol;
         }
         pItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-        pFileList->addTopLevelItem(pItem);
+        mpFileList->addTopLevelItem(pItem);
     }
-    pFileList->resizeColumnToContents(0);
+    mpFileList->resizeColumnToContents(0);
 }
 
 
@@ -102,3 +109,21 @@ void LocalFilesBox::accept()
 {
     KPageDialog::accept();
 } 
+
+
+void
+LocalFilesBox::launchItem(QTreeWidgetItem* item)
+{
+    gkLog<<xfcDebug<<"Launching an item"<<eol;
+    int pos=mpFileList->indexOfTopLevelItem(item);
+    if (pos>=0) {
+        gkLog<<xfcDebug<<"  launching file ";
+        gkLog<<mFiles[pos].filePath().toStdString()<<eol;
+        QDesktopServices::openUrl(
+            QUrl(QString("file://")+mFiles[pos].filePath()));
+    }
+    else {
+        gkLog<<xfcWarn<<"Cannot launch item at pos "<<pos<<eol;
+        KMessageBox::error(this, "BUG");
+    }
+}

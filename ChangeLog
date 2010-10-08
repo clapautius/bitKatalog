@@ -1,7 +1,11 @@
 2010-10-08  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/: start working on std::string to QString
-	transition in the kde application (to avoid utf8 problems);
+	transition in the kde application (to avoid utf8 problems).
+	XML file is now saved with utf-8 encoding.
+	Labels can now be edited/saved correctly even if they contain utf-8
+	characters.
+	Added some basic actions for local files found in Search dialog.
 
 2010-10-06  Tudor M.P.  <clapautiusAtGmailDotCom>
 

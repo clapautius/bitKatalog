@@ -22,15 +22,14 @@
 #include <qpainter.h>
 #include <qlayout.h>
 #include <vector>
-#include <string>
 #include <klineedit.h>
 
 #include <kmessagebox.h>
 #include <kinputdialog.h>
 
 #include "misc.h"
+#include "main.h"
 
-using std::string;
 using std::vector;
 
 
@@ -89,8 +88,6 @@ LabelsBox::addLabelInList(QString labelText, bool checked)
 
 void LabelsBox::layout(vector<QString> allLabels)
 {
-    string str;
-
     resize(500,500);
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("Labels"));
@@ -149,9 +146,8 @@ LabelsBox::addNewLabel()
 }
 
 
-vector<string>
+vector<QString>
 LabelsBox::getSelectedLabels() const
 {
     return mSelectedLabels;
 }
-

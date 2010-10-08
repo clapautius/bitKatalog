@@ -31,6 +31,7 @@
 #include <k3listbox.h>
 #include <kvbox.h>
 
+#include "main.h"
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
@@ -43,7 +44,7 @@ public:
     DetailsBox();
     
     DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*,
-               const std::vector<std::string>&);
+               const std::vector<QString> &rAllLabels);
 
     virtual ~DetailsBox();
     

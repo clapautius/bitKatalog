@@ -1,3 +1,4 @@
+- SET ENCODING AS UTF8
 - implement 'add label rec.' in cli app;
 - make a better dialog for 'add label rec' in kde (similar to 'edit
    labels');

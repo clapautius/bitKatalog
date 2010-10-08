@@ -64,4 +64,10 @@ void msgDebug(std::string, std::string="", std::string="", std::string="");
 std::vector<std::string> vectWQStringToVectWstring(std::vector<QString>);
 std::vector<QString> vectWstringToVectWQString(std::vector<std::string>);
 
+bool contains(std::vector<QString> vect, QString elt);
+
+const char* qstr2cchar(QString &str);
+
+QString str2qstr(std::string s);
+
 #endif

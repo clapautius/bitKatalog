@@ -32,7 +32,9 @@
 #include <fstream>
 
 #include <vector> // :tmp: string to QString transition
+#include <string>
 using std::vector;
+using std::string;
 
 #include "main.h"
 #include "fs.h"
@@ -124,7 +126,7 @@ int main(int argc, char **argv)
     if (windowIcon.isNull()) {
         gkLog<<xfcInfo<<"Couldn't find bitKatalog icon"<<eol;
         //delete pWindowIcon;
-        windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
+        // :tmp: some strange issue on kubuntu (QImage out of memory) windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
         if (windowIcon.isNull())
             gkLog<<xfcWarn<<"Couldn't find media-optical icon"<<eol;
     }
@@ -185,7 +187,7 @@ vectWQStringToVectWstring(std::vector<QString> v)
 {
     vector<string> ret;
     for (uint i=0; i<v.size(); i++)
-        ret[i].push_back(v[i].toStdString());
+        ret.push_back(qstr2cchar(v[i]));
     return ret;
 }
 
@@ -193,7 +195,36 @@ std::vector<QString> vectWstringToVectWQString(std::vector<std::string> v)
 {
     vector<QString> ret;
     for (uint i=0; i<v.size(); i++)
-        ret[i].push_back(v[i].c_str());
+        ret.push_back(str2qstr(v[i]));
     return ret;
 }
 
+
+bool
+contains(vector<QString> vect, QString elt)
+{
+    for (uint i=0; i<vect.size(); i++)
+        if (vect[i]==elt)
+            return true;
+    return false;
+}
+
+
+/**
+ * Converts from QString to const char*, keeps utf-8 encoding.
+ **/
+const char*
+qstr2cchar(QString &str)
+{
+    return str.toUtf8().constData();
+}
+
+
+/**
+ * Converts from std::string to QString, keeps utf-8 encoding.
+ **/
+QString
+str2qstr(std::string s)
+{
+    return QString::fromUtf8(s.c_str());
+}

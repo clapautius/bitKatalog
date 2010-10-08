@@ -32,6 +32,7 @@
 #include "xfcEntity.h"
 #include "misc.h"
 #include "labelsbox.h"
+#include "main.h"
 
 #if defined(XFC_DEBUG)
     #include <iostream>
@@ -46,7 +47,7 @@ using std::map;
 
 DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
                        XfcEntity *lpXmlItem, Q3ListViewItem *pListItem,
-                       const vector<string> &rAllLabels)
+                       const vector<QString> &rAllLabels)
   : KPageDialog(),
     mrAllLabels(rAllLabels)
 
@@ -78,7 +79,7 @@ void DetailsBox::editLabels()
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<endl;
 #endif
-    vector<string> allCurrentLabels; // all catalog labels + current labels
+    vector<QString> allCurrentLabels; // all catalog labels + current labels
     // we need this to avoid bugs when editing an element multiple times
     // (without hitting 'OK').
     allCurrentLabels=mrAllLabels;
@@ -92,7 +93,7 @@ void DetailsBox::editLabels()
         mCurrentLabels=pLabelsBox->getSelectedLabels();
         mpLabels->clear();
         for (uint i=0; i<mCurrentLabels.size(); i++) {
-            mpLabels->insertItem(mCurrentLabels[i].c_str());
+            mpLabels->insertItem(mCurrentLabels[i]);
         }
     }
 }
@@ -142,9 +143,9 @@ void DetailsBox::layout()
     mpLabels->resize(lSize.width(), 2*lpFontMetrics->height());
     delete lpFontMetrics;
 
-    mCurrentLabels=mpXmlItem->getLabels();
+    mCurrentLabels=vectWstringToVectWQString(mpXmlItem->getLabels());
     for (uint i=0; i<mCurrentLabels.size(); i++) {
-        mpLabels->insertItem(mCurrentLabels[i].c_str());
+        mpLabels->insertItem(mCurrentLabels[i]);
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
@@ -217,7 +218,7 @@ void DetailsBox::accept()
     }
 
     // check labels and update if modified
-    vector<string> labels=mpXmlItem->getLabels();
+    vector<QString> labels=vectWstringToVectWQString(mpXmlItem->getLabels());
     if (mCurrentLabels.size()!=labels.size())
         lModifiedLabels=true;
     else {
@@ -236,14 +237,18 @@ void DetailsBox::accept()
     if (lModifiedLabels) {
         // remove all labels
         for(unsigned int i=0; i<labels.size(); i++)
-            mpCatalog->removeLabelFrom(mCompletePath, labels[i]);
+            mpCatalog->removeLabelFrom(mCompletePath, labels[i].toStdString());
         // add new labels
-        for(unsigned int i=0;i<mCurrentLabels.size();i++)
-            mpCatalog->addLabelTo(mCompletePath, mCurrentLabels[i]);
+        for(unsigned int i=0;i<mCurrentLabels.size();i++) {
+            gkLog<<xfcDebug<<"adding new label to element: ";
+            gkLog<<qstr2cchar(mCurrentLabels[i])<<eol;
+            mpCatalog->addLabelTo(mCompletePath, qstr2cchar(mCurrentLabels[i]));
+        }
         mCatalogWasModified=true;
         mLabelsWereModified=true;
         string labelsString=mpXmlItem->getLabelsAsString();
-        mpListItem->setText(LABELS_COLUMN, labelsString.c_str());
+        mpListItem->setText(LABELS_COLUMN,
+                            QString::fromUtf8(labelsString.c_str()));
     }
 
     if (mpXmlItem->isDisk()) {
@@ -282,15 +287,4 @@ bool
 DetailsBox::labelsWereModified() const
 {
     return mLabelsWereModified;
-}
-
-
-// :tmp: - to be moved / renamed
-bool
-contains(vector<QString> vect, QString elt)
-{
-    for (uint i=0; i<vect.size(); i++)
-        if (vect[i]==elt)
-            return true;
-    return false;
 }
