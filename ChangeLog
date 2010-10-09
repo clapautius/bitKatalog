@@ -1,3 +1,8 @@
+2010-10-09  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/app_kde/: fixed utf-8 display for names in main view; other fixes
+	related to utf-8.
+
 2010-10-08  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/: start working on std::string to QString

@@ -64,7 +64,7 @@ void XmlEntityItem::redisplay(bool first)
     XfcEntity lEnt(mpNode, mspCatalog);
     map<string, string> details;
     string labelsString;
-    setText(NAME_COLUMN, lEnt.getName().c_str());
+    setText(NAME_COLUMN, str2qstr(lEnt.getName()));
     details=lEnt.getDetails();
     if( !details["description"].empty())
         setText(DESCRIPTION_COLUMN, details["description"].c_str());
@@ -110,16 +110,20 @@ void XmlEntityItem::setOpen(bool lOpen)
         {
             ent=lpIterator->getNextChild();
             details=ent.getDetails();
-            string labelsString=ent.getLabelsAsString();
+            QString labelsString=str2qstr(ent.getLabelsAsString());
             if( !details["description"].empty())
-                lpItem=new XmlEntityItem(this, ent.getName().c_str(), details["description"].c_str(), labelsString.c_str());
+                lpItem=new XmlEntityItem(this, str2qstr(ent.getName()),
+                                         details["description"].c_str(),
+                                         labelsString);
             else
-                lpItem=new XmlEntityItem(this, ent.getName().c_str(), "", labelsString.c_str());
+                lpItem=new XmlEntityItem(this, str2qstr(ent.getName()), "",
+                                         labelsString);
             lpItem->setXmlNode(ent.getXmlNode());
 #if defined(XFC_DEBUG)
             cout<<":debug:"<<__FUNCTION__<<": adding child: "<<
                 ent.getName()<<endl;
-            cout<<":debug:"<<__FUNCTION__<<":   labels: "<<labelsString<<endl;
+            cout<<":debug:"<<__FUNCTION__<<":   labels: "<<
+                qstr2cchar(labelsString)<<endl;
 #endif
             switch (ent.getElementType()) {
             case Xfc::eFile:

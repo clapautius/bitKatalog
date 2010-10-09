@@ -162,7 +162,7 @@ bitKatalogView::setupListView()
 
 void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &p)
 {
-    std::string lCompletePath;
+    std::string completePath;
     std::string lS;
     Q3ListViewItem *lpItem;
     bool isDisk=false, isDir=false;
@@ -177,10 +177,10 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
     QAction *pAct=NULL;
 
     mpCurrentItem=(XmlEntityItem*)i;
-    lCompletePath=mpCurrentItem->text(0).toStdString();
+    completePath=qstr2str(mpCurrentItem->text(0));
     lpItem=mpCurrentItem;
     if (NULL == lpItem->parent()) { // element is root
-        lCompletePath="/";
+        completePath="/";
     }
     else {
         while(1) {
@@ -191,19 +191,19 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
                 lS="";
             }
             else {
-                lS=lpItem->text(0).toStdString();
+                lS=qstr2cchar(lpItem->text(0));
             }
             lS+="/";
-            lS+=lCompletePath;
-            lCompletePath=lS;
+            lS+=completePath;
+            completePath=lS;
         }
     }
-    mCurrentItemPath=lCompletePath;
+    mCurrentItemPath=completePath;
     
     try {
-        msgInfo("Context menu for: ", lCompletePath);
+        msgInfo("Context menu for: ", completePath);
         // check if this is a disk
-        XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
+        XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
         Xfc::ElementType type=lEnt.getElementType();
         switch (type) {
         case Xfc::eDisk:
@@ -217,7 +217,7 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
         }
     }
     catch(std::string e) {
-        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", lCompletePath);
+        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
         msgWarn("  exception is: ", e);
         KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
     }
@@ -298,9 +298,9 @@ bitKatalogView::addLabelRec() throw()
         //mpCatalog->addLabelTo(mCompletePath, lS);
         if(retButton) {
 #if defined(XFC_DEBUG)
-            cout<<":debug: adding new label (rec.): "<<str.toStdString()<<endl;
+            cout<<":debug: adding new label (rec.): "<<qstr2cchar(str)<<endl;
 #endif 
-            mCatalog->addLabelRecTo(completePath, str.toStdString());
+            mCatalog->addLabelRecTo(completePath, qstr2cchar(str));
             mpCurrentItem->redisplay(); // to update the window
             gCatalogState=1; // :fixme: - check result
             gpMainWindow->updateTitle(true);
@@ -334,7 +334,7 @@ bitKatalogView::verifyDisk() throw()
     gpConfig->sync();
 
     VerifyThread *pVerifyThread=new VerifyThread(
-        mCatalog, completePath, dir.toStdString(), &differences);
+        mCatalog, completePath, qstr2cchar(dir), &differences);
         
     KProgressDialog *pProgress=new KProgressDialog(this, "Verifying ...", "");
     //pProgress->progressBar()->setTotalSteps(0);
@@ -454,7 +454,7 @@ void
 bitKatalogView::renameDisk() throw()
 {
   Q3ListViewItem *lpItem;
-  std::string lCompletePath;
+  std::string completePath;
   QString oldName, newName;
   
   if (mCatalog==NULL) {
@@ -463,16 +463,16 @@ bitKatalogView::renameDisk() throw()
   }
   
   lpItem=mpCurrentItem;
-  lCompletePath=mCurrentItemPath;
+  completePath=mCurrentItemPath;
   
-  if (lCompletePath!="/") {
-    XfcEntity lEnt(mCatalog->getNodeForPath(lCompletePath), mCatalog);
+  if (completePath!="/") {
+    XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
     oldName=lEnt.getName().c_str();
 
     bool lRetButton;
     newName=KInputDialog::getText("Rename disk", "Name: ", oldName, &lRetButton);
     if (lRetButton && newName != oldName) {
-        lEnt.setName(newName.toStdString());
+        lEnt.setName(qstr2cchar(newName));
         lpItem->setText(NAME_COLUMN, newName);
         gCatalogState=1;
         gpMainWindow->updateTitle(true);
@@ -489,7 +489,7 @@ void
 bitKatalogView::deleteDisk() throw()
 {
   Q3ListViewItem *lpItem;
-  std::string lCompletePath;
+  std::string completePath;
   std::string lOldName, lNewName;
   
   if (mCatalog==NULL) {
@@ -497,7 +497,7 @@ bitKatalogView::deleteDisk() throw()
     return;
   }
   lpItem=mpCurrentItem;
-  lCompletePath=mCurrentItemPath;
+  completePath=mCurrentItemPath;
   
   // :todo:
   KMessageBox::information(this, "Not ready yet");
@@ -527,11 +527,11 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     labelsString=QString::fromUtf8(rootEnt.getLabelsAsString().c_str());
     catalogName+=rootEnt.getName();
     if (!details["description"].empty())
-        mRootItem=new XmlEntityItem(mListView, catalogName.c_str(),
+        mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName),
                                     details["description"].c_str(),
                                     labelsString);
     else
-        mRootItem=new XmlEntityItem(mListView, catalogName.c_str(), "",
+        mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName), "",
                                     labelsString);
     mRootItem->setXmlNode(pRootNode);
     
@@ -549,12 +549,13 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
         labelsString=QString::fromUtf8(lEnt.getLabelsAsString().c_str());
         if (!details["description"].empty())
             lpItem=new XmlEntityItem(
-                mRootItem, lEnt.getName().c_str(),
+                mRootItem, str2qstr(lEnt.getName()),
                 details["description"].c_str(), labelsString);
         else
-            lpItem=new XmlEntityItem(mRootItem, lEnt.getName().c_str(), "", labelsString);
+            lpItem=new XmlEntityItem(mRootItem, str2qstr(lEnt.getName()), "", labelsString);
 #if defined(XFC_DEBUG)
-        cout<<":debug:"<<__FUNCTION__<<": adding element with name "<<lEnt.getName()<<endl;
+        cout<<":debug:"<<__FUNCTION__<<": adding element with name ";
+        cout<<lEnt.getName()<<endl;
         cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;
 #endif
         lpItem->setXmlNode(lEnt.getXmlNode());
@@ -637,4 +638,3 @@ bitKatalogView::getCatalogLabels() const
 {
     return mCatalogLabels;
 }
-

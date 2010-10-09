@@ -66,8 +66,8 @@ std::vector<QString> vectWstringToVectWQString(std::vector<std::string>);
 
 bool contains(std::vector<QString> vect, QString elt);
 
-const char* qstr2cchar(QString &str);
-
-QString str2qstr(std::string s);
+const char* qstr2cchar(const QString &str);
+std::string qstr2str(const QString &str);
+QString str2qstr(const std::string &s);
 
 #endif

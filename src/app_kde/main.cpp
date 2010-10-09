@@ -214,9 +214,20 @@ contains(vector<QString> vect, QString elt)
  * Converts from QString to const char*, keeps utf-8 encoding.
  **/
 const char*
-qstr2cchar(QString &str)
+qstr2cchar(const QString &str)
 {
     return str.toUtf8().constData();
+}
+
+
+/**
+ * Converts from QString to string, keeps utf-8 encoding.
+ **/
+string
+qstr2str(const QString &str)
+{
+    string s(str.toUtf8().constData());
+    return s;
 }
 
 
@@ -224,7 +235,7 @@ qstr2cchar(QString &str)
  * Converts from std::string to QString, keeps utf-8 encoding.
  **/
 QString
-str2qstr(std::string s)
+str2qstr(const std::string &s)
 {
     return QString::fromUtf8(s.c_str());
 }

@@ -120,7 +120,7 @@ void DetailsBox::layout()
     
     resize(500,500);
     
-    mpName=new QLabel(mpXmlItem->getName().c_str(), pBox1);
+    mpName=new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
     lFont=mpName->font();
     lFont.setBold(true);
@@ -213,7 +213,7 @@ void DetailsBox::accept()
     lQString=mpDescriptionEdit->text();
     if (lQString!=details["description"].c_str()) {
         mpListItem->setText(DESCRIPTION_COLUMN, lQString);
-        mpCatalog->setDescriptionOf(mCompletePath, lQString.toStdString());
+        mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(lQString));
         mCatalogWasModified=true;
     }
 
@@ -237,7 +237,7 @@ void DetailsBox::accept()
     if (lModifiedLabels) {
         // remove all labels
         for(unsigned int i=0; i<labels.size(); i++)
-            mpCatalog->removeLabelFrom(mCompletePath, labels[i].toStdString());
+            mpCatalog->removeLabelFrom(mCompletePath, qstr2cchar(labels[i]));
         // add new labels
         for(unsigned int i=0;i<mCurrentLabels.size();i++) {
             gkLog<<xfcDebug<<"adding new label to element: ";
@@ -256,7 +256,7 @@ void DetailsBox::accept()
       lQString=mpCdateEdit->text();
       if (lQString!=details["cdate"].c_str()) {
         try {
-            mpCatalog->setCDate(mCompletePath, lQString.toStdString());
+            mpCatalog->setCDate(mCompletePath, qstr2cchar(lQString));
             mCatalogWasModified=true;
         }
         catch(...) {
