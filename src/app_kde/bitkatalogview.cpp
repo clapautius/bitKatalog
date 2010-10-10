@@ -276,9 +276,11 @@ bitKatalogView::details() throw()
         }
     }
     catch(std::string e) {
-        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
+        msgWarn("Cannot display info about this item! completePath=",
+                completePath);
         msgWarn("  exception is: ", e);
-        KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
+        KMessageBox::error(this,
+                           "Cannot display informations about this item!");
     }
 }
 
@@ -298,15 +300,20 @@ bitKatalogView::addLabelRec() throw()
         LabelsBox *pLabelsBox=new LabelsBox(catalogLabels, labelsToAdd);
         if (QDialog::Accepted == pLabelsBox->exec()) {
             labelsToAdd=pLabelsBox->getSelectedLabels();
-            vector<string> labelsToAddStdStr=
-                vectWQStringToVectWstring(labelsToAdd);
-            gkLog<<xfcDebug<<__FUNCTION__<<
-                " adding new labels (rec.): "<<eol;
-            mCatalog->addLabelsRecTo(completePath, labelsToAddStdStr);
-            addCatalogLabels(labelsToAddStdStr);
-            mpCurrentItem->redisplay(); // to update the window
-            gCatalogState=1; // :fixme: - check result
-            gpMainWindow->updateTitle(true);
+            if (labelsToAdd.size()>0) {
+                vector<string> labelsToAddStdStr=
+                    vectWQStringToVectWstring(labelsToAdd);
+                gkLog<<xfcDebug<<__FUNCTION__<<
+                    " adding new labels (rec.): "<<eol;
+                mCatalog->addLabelsRecTo(completePath, labelsToAddStdStr);
+                addCatalogLabels(labelsToAddStdStr);
+                mpCurrentItem->redisplay(); // to update the window
+                gCatalogState=1; // :fixme: - check result
+                gpMainWindow->updateTitle(true);
+            }
+            else {
+                KMessageBox::information(this, "You didn't select any label.");
+            }
         }
     }
     else {
@@ -330,7 +337,8 @@ bitKatalogView::verifyDisk() throw()
 
     QString previousDir;
     previousDir=gpConfig->group("").readEntry("LastDirVerify", "/");
-    QString dir=KFileDialog::getExistingDirectory(KUrl(previousDir), this, QString("Path to verify"));
+    QString dir=KFileDialog::getExistingDirectory(KUrl(previousDir),this,
+                                                  QString("Path to verify"));
     if ("" == dir) // cancel
         return;
     gpConfig->group("").writeEntry("LastDirVerify", dir);
