@@ -57,6 +57,20 @@ addLabelCallback(unsigned int depth __attribute__((unused)), std::string path, X
 }
 
 
+/**
+ * helper function
+ * @retval 0 : OK;
+ * @retval -1 : user abort / stop;
+ * @retval -2 : error;
+ **/
+int
+addLabelsCallback(unsigned int depth __attribute__((unused)), string path,
+                  Xfc& rXfc, xmlNodePtr pNode, void *pParam)
+{
+    rXfc.addLabelsTo(pNode, static_cast<const vector<string>*>(pParam), true);
+    return 0;
+}
+
 
 Xfc::Xfc()
 {
@@ -881,7 +895,8 @@ xmlNodePtr Xfc::getNameNode(xmlNodePtr lpNode)
 
 
 /**
- * Add a new label to the specified node. Doesn't check if the label exists.
+ * Add a new label to the specified node. Doesnt check if the label already
+ * exists.
  * Throws std::string if the path is invalid (the node doesn't exist).
  *
  * @param[in] path : copmplete path
@@ -895,6 +910,7 @@ Xfc::addLabelTo(std::string lPath, std::string lLabel)
     lpNode=getNodeForPath(lPath);
     if (lpNode==NULL)
         throw std::string("No such node");
+
     xmlNodePtr lpNewNode;
     xmlNodePtr lpInsertBeforeNode;
     lpNewNode=xmlNewTextChild(lpNode , NULL, (xmlChar*)"label", (xmlChar*)lLabel.c_str()); // :bug:
@@ -905,6 +921,51 @@ Xfc::addLabelTo(std::string lPath, std::string lLabel)
         if(xmlAddPrevSibling(lpInsertBeforeNode, lpNewNode)==NULL)
             throw std::string("Xfc::addLabelToNode() error - error in xmlAddPrevSibling()");
     }            
+}
+
+
+/**
+ * Add a new label to the specified node.
+ *
+ * @param[in] path : copmplete path
+ * @param[in] label : the label
+ * @param[in] checkDuplicate : if true, first check if label already exists.
+ **/
+void
+Xfc::addLabelsTo(xmlNodePtr pNode, const vector<string> *pLabels,
+                 bool checkDuplicate)
+    throw (std::string)
+{
+    vector<string> currentLabels;
+    if (pNode==NULL)
+        throw std::string("NULL node");
+
+    gLog<<xfcDebug<<__FUNCTION__<<" adding vector of labels to node"<<eol;
+    if (checkDuplicate) {
+        currentLabels=getLabelsForNode(pNode);
+    }
+
+    for (uint i=0; i<pLabels->size(); i++) {
+        if (checkDuplicate && contains(currentLabels, pLabels->at(i))) {
+            gLog<<xfcDebug<<__FUNCTION__<<" node already contains label "<<
+                pLabels->at(i)<<eol;
+            continue;
+        }
+        gLog<<xfcDebug<<__FUNCTION__<<" adding label "<<pLabels->at(i)<<
+            " to node"<<eol;
+        xmlNodePtr pNewNode;
+        xmlNodePtr pInsertBeforeNode;
+        pNewNode=xmlNewTextChild(pNode , NULL, (xmlChar*)"label",
+                                 (xmlChar*)pLabels->at(i).c_str()); // :bug:
+        // :fixme: - check ret value
+        
+        pInsertBeforeNode=getFirstFileNode(pNode);
+        if (pInsertBeforeNode!=NULL) {
+            if(xmlAddPrevSibling(pInsertBeforeNode, pNewNode)==NULL)
+                throw std::string(__FUNCTION__)+
+                    " - error in xmlAddPrevSibling()";
+        }
+    }
 }
 
 
@@ -936,6 +997,9 @@ void Xfc::removeLabelFrom(std::string lPath,
 
 
 
+/**
+ * Checks if already exists.
+ **/
 void
 Xfc::addLabelRecTo(string path, string label) throw (string)
 {
@@ -947,6 +1011,18 @@ Xfc::addLabelRecTo(string path, string label) throw (string)
     parseRec(0, path, pNode, addLabelCallback, (void*)label.c_str());
 }
 
+
+void
+Xfc::addLabelsRecTo(string path, vector<string> labels)
+    throw (std::string)
+{
+    xmlNodePtr pNode;
+    pNode=getNodeForPath(path);
+    if (pNode==NULL)
+        throw std::string("No such node");
+    addLabelsTo(pNode, &labels, true);
+    parseRec(0, path, pNode, addLabelsCallback, (void*)&labels);
+}
 
 
 void

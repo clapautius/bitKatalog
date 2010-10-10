@@ -71,7 +71,7 @@ void XmlEntityItem::redisplay(bool first)
     else
         setText(DESCRIPTION_COLUMN, "");
     labelsString=lEnt.getLabelsAsString();
-    setText(LABELS_COLUMN, labelsString.c_str());
+    setText(LABELS_COLUMN, str2qstr(labelsString));
 
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<": this="<<this<<endl;

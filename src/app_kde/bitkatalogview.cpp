@@ -37,6 +37,7 @@
 #include "detailsbox.h"
 #include "outputwindow.h"
 #include "verifythread.h"
+#include "labelsbox.h"
 #include "fs.h"
 #include "misc.h"
 #include "xfcEntity.h"
@@ -292,15 +293,17 @@ bitKatalogView::addLabelRec() throw()
     }
     completePath=mCurrentItemPath;
     if (completePath!="/") {
-        QString str;
-        bool retButton; 
-        str=KInputDialog::getText("New label", "Label: ", "", &retButton);
-        //mpCatalog->addLabelTo(mCompletePath, lS);
-        if(retButton) {
-#if defined(XFC_DEBUG)
-            cout<<":debug: adding new label (rec.): "<<qstr2cchar(str)<<endl;
-#endif 
-            mCatalog->addLabelRecTo(completePath, qstr2cchar(str));
+        vector<QString> labelsToAdd;
+        vector<QString> catalogLabels=vectWstringToVectWQString(mCatalogLabels);
+        LabelsBox *pLabelsBox=new LabelsBox(catalogLabels, labelsToAdd);
+        if (QDialog::Accepted == pLabelsBox->exec()) {
+            labelsToAdd=pLabelsBox->getSelectedLabels();
+            vector<string> labelsToAddStdStr=
+                vectWQStringToVectWstring(labelsToAdd);
+            gkLog<<xfcDebug<<__FUNCTION__<<
+                " adding new labels (rec.): "<<eol;
+            mCatalog->addLabelsRecTo(completePath, labelsToAddStdStr);
+            addCatalogLabels(labelsToAddStdStr);
             mpCurrentItem->redisplay(); // to update the window
             gCatalogState=1; // :fixme: - check result
             gpMainWindow->updateTitle(true);

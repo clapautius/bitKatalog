@@ -152,11 +152,18 @@ public:
         throw (std::string);
     
     void addLabelTo(std::string path, std::string label) throw (std::string);
-    
+
+    void addLabelsTo(xmlNodePtr node, const std::vector<std::string> *pLabels,
+                     bool checkDuplicate=false)
+        throw (std::string);
+
     void removeLabelFrom(std::string path, std::string label)
         throw (std::string);
 
     void addLabelRecTo(std::string path, std::string label) throw (std::string);
+
+    void addLabelsRecTo(std::string path, std::vector<std::string> labels)
+        throw (std::string);
 
     void removeLabelRecFrom(std::string path, std::string label)
         throw (std::string);
