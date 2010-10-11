@@ -72,8 +72,8 @@ public:
 
 protected:
 
-    void disableButtons(bool skipButtonsForLocal=false);
-    void enableButtons(bool skipButtonsForLocal=false);
+    void disableButtons();
+    void enableButtons();
     virtual void findLocalFiles(bool exactly=false);
     
 protected slots:  
@@ -85,6 +85,8 @@ protected slots:
     virtual void findLocalFilesExactly();
 
     virtual void editLabels();
+
+    virtual void contextMenuEvent(QContextMenuEvent* event);
 
 private:
 
@@ -124,6 +126,8 @@ private:
     const std::vector<std::string> & mrAllLabels;
 
     SearchStruct mSearchStruct;
+
+    std::vector<bool> mSearchEltSelected;
 };
 
 

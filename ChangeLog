@@ -1,3 +1,8 @@
+2010-10-11  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/app_kde/: implemented 'Configure ...' dialog; other small fixes
+	related to utf-8;
+
 2010-10-10  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/: improved adding labels recursive;

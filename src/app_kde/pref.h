@@ -22,35 +22,36 @@
 #ifndef _BITKATALOGPREF_H_
 #define _BITKATALOGPREF_H_
 
-#include <kdialog.h>
+#include <kpagedialog.h>
+#include <klineedit.h>
 #include <Qt/qframe.h>
+#include <QRadioButton>
 
-class bitKatalogPrefPageOne;
-class bitKatalogPrefPageTwo;
 
-class bitKatalogPreferences : public KDialog
+class bitKatalogPreferences : public KPageDialog
 {
     Q_OBJECT
 public:
+
     bitKatalogPreferences();
 
+protected slots:  
+    
+    virtual void accept();
+    virtual void reject();
+
+private slots:
+
+    virtual void setSearchPath();
+
 private:
-    bitKatalogPrefPageOne *m_pageOne;
-    bitKatalogPrefPageTwo *m_pageTwo;
+
+    void layout();
+
+    KLineEdit *mpSearchPathEdit;
+
+    QRadioButton *mpButton1, *mpButton2;
 };
 
-class bitKatalogPrefPageOne : public QFrame
-{
-    Q_OBJECT
-public:
-    bitKatalogPrefPageOne(QWidget *parent = 0);
-};
-
-class bitKatalogPrefPageTwo : public QFrame
-{
-    Q_OBJECT
-public:
-    bitKatalogPrefPageTwo(QWidget *parent = 0);
-};
 
 #endif // _BITKATALOGPREF_H_

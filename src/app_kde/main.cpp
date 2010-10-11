@@ -25,8 +25,6 @@
 #include <kcmdlineargs.h>
 #include <klocale.h>
 #include <kmessagebox.h>
-#include <kglobal.h>
-#include <ksharedconfig.h>
 
 #include <sstream>
 #include <fstream>
@@ -55,6 +53,8 @@ int gCatalogState=0;
 static const char version[] = XFCAPP_VERSION;
 
 XfcLogger gkLog;
+
+string gHomeDir;
 
 
 void
@@ -177,6 +177,8 @@ void startUp(KCmdLineArgs *pArgs)
     gpConfig=KGlobal::config();
     //gpConfig->setReadOnly(false);
     //runningForTheFirstTime();
+
+    gHomeDir=getenv("HOME");
 }
 
 
@@ -238,4 +240,18 @@ QString
 str2qstr(const std::string &s)
 {
     return QString::fromUtf8(s.c_str());
+}
+
+
+QString
+cfgGetSearchStartPath()
+{
+    return gpConfig->group("").readEntry("SearchPath", gHomeDir.c_str());
+}
+
+
+QString
+cfgGetDefaultActionForSearch()
+{
+    return gpConfig->group("").readEntry("SearchDefaultAction", "launch");
 }

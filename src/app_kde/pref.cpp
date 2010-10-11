@@ -22,43 +22,95 @@
 #include "pref.h"
 
 #include <klocale.h>
-
 #include <Qt/qlayout.h>
 #include <Qt/qlabel.h>
+#include <QGroupBox>
+#include <kpushbutton.h>
+#include <kvbox.h>
+#include <khbox.h>
+#include <klineedit.h>
+#include <kmessagebox.h>
+#include <kfiledialog.h>
+
+#include "main.h"
 
 bitKatalogPreferences::bitKatalogPreferences()
-    : KDialog()
+    : KPageDialog()
 /*    : KDialog(TreeList, i18n("bitKatalog Preferences"),
       Help|Default|Ok|Apply|Cancel, Ok) */
 
 {
-    setButtons(KDialog::Help | KDialog::Default | KDialog::Ok | KDialog::Apply | KDialog::Cancel);
+    setButtons(KDialog::Ok | KDialog::Cancel);
     setCaption(i18n("bitKatalog Preferences"));
     
-    // this is the base class for your preferences dialog.  it is now
-    // a Treelist dialog.. but there are a number of other
-    // possibilities (including Tab, Swallow, and just Plain)
-    // :todo: kde4
-    /*
-    KHbox *page=new KHBox();
-    KPageWidgetItem *item = addPage(page, i18n("First Page"), i18n("Page One Options"));
-    m_pageOne = new bitKatalogPrefPageOne(frame);
-
-    frame = addPage(i18n("Second Page"), i18n("Page Two Options"));
-    m_pageTwo = new bitKatalogPrefPageTwo(frame);
-    */
+    setModal(true);
+    layout();
 }
 
 
-bitKatalogPrefPageOne::bitKatalogPrefPageOne(QWidget *parent)
-    : QFrame(parent)
+void
+bitKatalogPreferences::layout()
 {
-    new QLabel(i18n("Add something here"), this);
+    KVBox *pBox1= new KVBox();
+    QString searchPath=cfgGetSearchStartPath();
+ 
+    KPageWidgetItem *pPage1=addPage(pBox1, QString("Search"));
+    pPage1->setHeader(QString("General"));
+
+    KHBox *pSearchPathBox=new KHBox(pBox1);
+    new QLabel("Search start path: ", pSearchPathBox);
+    mpSearchPathEdit=new KLineEdit(pSearchPathBox);
+    mpSearchPathEdit->setText(searchPath);
+    mpSearchPathEdit->setReadOnly(true);
+    KPushButton *pButton1=new KPushButton("Set path", pSearchPathBox);
+    connect(pButton1, SIGNAL(clicked()), this, SLOT(setSearchPath()));
+
+    QGroupBox *pBoxWithFrame=new QGroupBox("Default action for local items", pBox1);
+    mpButton1=new QRadioButton("Launch default application", pBoxWithFrame);
+    mpButton2=new QRadioButton("Open parent folder", pBoxWithFrame);
+    QVBoxLayout *pVBox = new QVBoxLayout;
+    pVBox->addWidget(mpButton1);
+    pVBox->addWidget(mpButton2);
+    pBoxWithFrame->setLayout(pVBox);
+    if (cfgGetDefaultActionForSearch()=="launch") {
+        mpButton1->setChecked(true);
+    }
+    else {
+        mpButton2->setChecked(true);
+    }
 }
 
 
-bitKatalogPrefPageTwo::bitKatalogPrefPageTwo(QWidget *parent)
-    : QFrame(parent)
+void
+bitKatalogPreferences::accept()
 {
-    new QLabel(i18n("Add something here"), this);
+    gpConfig->group("").writeEntry("SearchPath", mpSearchPathEdit->text());
+    if (mpButton1->isChecked()) {
+        gpConfig->group("").writeEntry("SearchDefaultAction", "launch");
+    }
+    else {
+        gpConfig->group("").writeEntry("SearchDefaultAction", "openFolder");
+    }
+    gpConfig->sync();
+
+    KPageDialog::accept();
 }
+
+
+void
+bitKatalogPreferences::reject()
+{
+    KPageDialog::reject();
+}
+
+
+void
+bitKatalogPreferences::setSearchPath()
+{
+    QString dir = KFileDialog::getExistingDirectory(KUrl(), this,
+                                                    i18n("Search path"));
+    if (dir!="") {
+        mpSearchPathEdit->setText(dir);
+    }
+}
+

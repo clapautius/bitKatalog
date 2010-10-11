@@ -28,6 +28,7 @@
 #include <kvbox.h>
 #include <kpushbutton.h>
 #include <QHeaderView>
+#include <kmenu.h>
 
 #include "main.h"
 #include "misc.h"
@@ -107,7 +108,8 @@ SearchBox::SearchBox(Xfc *lpCatalog, const vector<string> &rAllLabels)
       mrAllLabels(rAllLabels)
 {
     setCaption(QString("Search"));
-    setButtons(KDialog::Close | KDialog::User1 | KDialog::User2 | KDialog::User3);
+    setButtons(KDialog::Close | KDialog::User1);
+    //| KDialog::User2 | KDialog::User3);
     setModal(true);
     mpCatalog=lpCatalog;
     layout();
@@ -125,8 +127,8 @@ void SearchBox::layout()
 
     button(KDialog::User1)->setGuiItem(KStandardGuiItem::Find);
     button(KDialog::User1)->setDefault(true);
-    setButtonText(KDialog::User2, "Find local by name ...");
-    setButtonText(KDialog::User3, "Find local exactly ...");
+    //setButtonText(KDialog::User2, "Find local by name ...");
+    //setButtonText(KDialog::User3, "Find local exactly ...");
 
     // page1
     KVBox *pBox1= new KVBox();
@@ -151,10 +153,11 @@ void SearchBox::layout()
     mpSearchResults->setRootIsDecorated(false);
     mpSearchResults->header()->hide();
     mpSearchResults->setAlternatingRowColors(true);
+    mpSearchResults->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     connectButtons();
     disableButtons(); // all
-    enableButtons(true); // skip buttons for local search
+    enableButtons();
     mpTextEdit->setFocus();
 }
 
@@ -163,8 +166,10 @@ void SearchBox::connectButtons()
 {
     connect(this, SIGNAL(user1Clicked()), this, SLOT(search())); // search    
     connect(mpEditLabelsButton, SIGNAL(clicked()), this, SLOT(editLabels()));
-    connect(this, SIGNAL(user2Clicked()), this, SLOT(findLocalFilesByName()));
-    connect(this, SIGNAL(user3Clicked()), this, SLOT(findLocalFilesExactly()));
+    //connect(this, SIGNAL(user2Clicked()), this, SLOT(findLocalFilesByName()));
+    //connect(this, SIGNAL(user3Clicked()), this,SLOT(findLocalFilesExactly()));
+    connect(this, SIGNAL(contextMenuEvent(QContextMenuEvent *)),
+            this, SLOT(contextMenuEvent(QContextMenuEvent* event)));
 }
 
 
@@ -216,12 +221,12 @@ void SearchBox::search()
             pItem=new QTreeWidgetItem(QStringList(pResultsPaths->at(i).c_str()));
             mpSearchResults->addTopLevelItem(pItem);
         }
-        enableButtons(); // enable all
+        enableButtons();
     }
     else {
         pItem=new QTreeWidgetItem(QStringList("Nothing found!"));
         mpSearchResults->addTopLevelItem(pItem);
-        enableButtons(true); // enable, but skip buttons for local search
+        enableButtons();
     }
     mpSearchResults->resizeColumnToContents(0);
 } 
@@ -243,27 +248,19 @@ SearchBox::editLabels()
 
 
 void
-SearchBox::enableButtons(bool skipButtonsForLocal)
+SearchBox::enableButtons()
 {
     enableButton(KDialog::Close, true);
     enableButton(KDialog::User1, true);
-    if (!skipButtonsForLocal) {
-        enableButton(KDialog::User2, true);
-        enableButton(KDialog::User3, true);
-    }
     mpTextEdit->setEnabled(true);
 }
 
 
 void
-SearchBox::disableButtons(bool skipButtonsForLocal)
+SearchBox::disableButtons()
 {
     enableButton(KDialog::Close, false);
     enableButton(KDialog::User1, false);
-    if (!skipButtonsForLocal) {
-        enableButton(KDialog::User2, false);
-        enableButton(KDialog::User3, false);
-    }
     mpTextEdit->setEnabled(false);
 }
 
@@ -338,7 +335,6 @@ void
 SearchBox::findLocalFiles(bool exactly)
 {
     if (mSearchStruct.mSearchResultsPaths.size()>0) {
-        // make a local copy for elements to search
         vector<QFileInfo> results;
 
         // prepare progress dialog
@@ -350,10 +346,10 @@ SearchBox::findLocalFiles(bool exactly)
         pProgress->setAllowCancel(true);
         pProgress->setButtonText("Stop");
 
-        const char *pStartDir=getenv("HOME");
+        QString startPath=cfgGetSearchStartPath();
         gkLog<<xfcInfo<<"Start searching local storage, starting from "
-             <<pStartDir<<eol;
-        QDirIterator it(pStartDir?pStartDir:"/",
+             <<qstr2cchar(startPath)<<eol;
+        QDirIterator it(startPath,
                   QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
         try {
             if (exactly)
@@ -422,8 +418,16 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
                            KProgressDialog *pProgressDlg)
 {
     uint progressPos=1;
-    vector<string> filesToSearch=mSearchStruct.mSearchResultsPaths;
-    vector<xmlNodePtr> nodesToSearch=mSearchStruct.mSearchResultsNodes;
+    vector<string> filesToSearch;
+    vector<xmlNodePtr> nodesToSearch;
+
+    // get only selected items
+    for (uint i=0; i<mSearchStruct.mSearchResultsPaths.size(); i++) {
+        if (mSearchEltSelected[i]) {
+            filesToSearch.push_back(mSearchStruct.mSearchResultsPaths[i]);
+            nodesToSearch.push_back(mSearchStruct.mSearchResultsNodes[i]);
+        }
+    }
     while (rIt.hasNext() && !filesToSearch.empty()) {
         // progress stuff
         progressPos++;
@@ -481,4 +485,39 @@ void
 SearchBox::findLocalFilesExactly()
 {
     return findLocalFiles(true);
+}
+
+
+void
+SearchBox::contextMenuEvent(QContextMenuEvent* event)
+{
+    QList<QTreeWidgetItem *> listSel=mpSearchResults->selectedItems();
+    if (listSel.size()>0) {
+        KMenu *pContextMenu=new KMenu();
+        QAction *pAct=NULL;
+        pAct=pContextMenu->addAction(
+            "Find selected by name (on local storage)");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(findLocalFilesByName()));
+        pAct=pContextMenu->addAction(
+            "Find selected exactly (on local storage)");
+        connect(pAct, SIGNAL(triggered()), this, SLOT(findLocalFilesExactly()));
+
+        // mark selected items
+        vector<string> vectSel;
+        for (int i=0; i<listSel.size(); i++)
+            vectSel.push_back(qstr2str(listSel[i]->text(0)));
+        mSearchEltSelected.clear();
+        for (uint i=0; i<mSearchStruct.mSearchResultsPaths.size(); i++) {
+            if (contains(vectSel, mSearchStruct.mSearchResultsPaths[i])) {
+                mSearchEltSelected.push_back(true);
+            }
+            else {
+                mSearchEltSelected.push_back(false);
+            }
+        }
+        pContextMenu->exec(event->globalPos());
+    }
+    else {
+        KMessageBox::information(this, "Nothing selected");
+    }
 }

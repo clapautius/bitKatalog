@@ -130,7 +130,7 @@ void DetailsBox::layout()
     mpTmpLabel1=new QLabel("Description: ", pDescriptionBox);
     mpDescriptionEdit=new KLineEdit(pDescriptionBox);
     details=mpXmlItem->getDetails();
-    mpDescriptionEdit->setText(details["description"].c_str());
+    mpDescriptionEdit->setText(str2qstr(details["description"]));
 
     // labels group box
     mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
@@ -211,7 +211,7 @@ void DetailsBox::accept()
     
     // update description
     lQString=mpDescriptionEdit->text();
-    if (lQString!=details["description"].c_str()) {
+    if (lQString!=str2qstr(details["description"])) {
         mpListItem->setText(DESCRIPTION_COLUMN, lQString);
         mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(lQString));
         mCatalogWasModified=true;
@@ -247,8 +247,7 @@ void DetailsBox::accept()
         mCatalogWasModified=true;
         mLabelsWereModified=true;
         string labelsString=mpXmlItem->getLabelsAsString();
-        mpListItem->setText(LABELS_COLUMN,
-                            QString::fromUtf8(labelsString.c_str()));
+        mpListItem->setText(LABELS_COLUMN, str2qstr(labelsString));
     }
 
     if (mpXmlItem->isDisk()) {

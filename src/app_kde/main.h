@@ -23,6 +23,9 @@
 #include <qpixmap.h>
 #include <kapplication.h>
 #include <kconfig.h>
+#include <kglobal.h>
+#include <ksharedconfig.h>
+#include <kconfiggroup.h>
 
 #include <string>
 #include <vector> // :tmp:
@@ -48,8 +51,9 @@ extern int gCatalogState;
 // 1 - modified
 // 2 - not modified
 
-
 extern XfcLogger gkLog;
+
+extern std::string gHomeDir;
 
 void msgWarn(std::string, std::string="", std::string="");
 void msgInfo(std::string, std::string="", std::string="");
@@ -69,5 +73,8 @@ bool contains(std::vector<QString> vect, QString elt);
 const char* qstr2cchar(const QString &str);
 std::string qstr2str(const QString &str);
 QString str2qstr(const std::string &s);
+
+QString cfgGetSearchStartPath();
+QString cfgGetDefaultActionForSearch();
 
 #endif

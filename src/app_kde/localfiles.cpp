@@ -119,8 +119,14 @@ LocalFilesBox::launchItem(QTreeWidgetItem* item)
     if (pos>=0) {
         gkLog<<xfcDebug<<"  launching file ";
         gkLog<<mFiles[pos].filePath().toStdString()<<eol;
-        QDesktopServices::openUrl(
-            QUrl(QString("file://")+mFiles[pos].filePath()));
+        if (cfgGetDefaultActionForSearch()=="launch") {
+            QDesktopServices::openUrl(
+                QUrl(QString("file://")+mFiles[pos].filePath()));
+        }
+        else {
+            QDesktopServices::openUrl(
+                QUrl(QString("file://")+mFiles[pos].path()));
+        }
     }
     else {
         gkLog<<xfcWarn<<"Cannot launch item at pos "<<pos<<eol;
