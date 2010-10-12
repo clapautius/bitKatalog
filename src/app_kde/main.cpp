@@ -29,7 +29,7 @@
 #include <sstream>
 #include <fstream>
 
-#include <vector> // :tmp: string to QString transition
+#include <vector>
 #include <string>
 using std::vector;
 using std::string;
@@ -125,8 +125,7 @@ int main(int argc, char **argv)
     QIcon windowIcon=pIconLoader->loadIconSet("bitKatalog", KIconLoader::NoGroup, 0, true);
     if (windowIcon.isNull()) {
         gkLog<<xfcInfo<<"Couldn't find bitKatalog icon"<<eol;
-        //delete pWindowIcon;
-        // :tmp: some strange issue on kubuntu (QImage out of memory) windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
+        windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
         if (windowIcon.isNull())
             gkLog<<xfcWarn<<"Couldn't find media-optical icon"<<eol;
     }
@@ -182,8 +181,6 @@ void startUp(KCmdLineArgs *pArgs)
 }
 
 
-// :tmp:
-/// temporary functions used during the transition from std::string to QString
 std::vector<std::string>
 vectWQStringToVectWstring(std::vector<QString> v)
 {

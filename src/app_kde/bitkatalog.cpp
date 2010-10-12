@@ -55,6 +55,7 @@
 #include "newcatalogbox.h"
 #include "fs.h"
 #include "misc.h"
+#include "xfcEntity.h"
 
 using std::string;
 
@@ -457,12 +458,23 @@ void bitKatalog::search()
 void bitKatalog::addDisk()
 {
     if (gCatalogState==1 || gCatalogState==2) {
-        AddDiskBox *lpAddDiskBox=new AddDiskBox(m_view->getCatalog());
-        lpAddDiskBox->exec();
-        m_view->populateTree(m_view->getCatalog());
-        if (lpAddDiskBox->catalogWasModified()) {
+        AddDiskBox *pAddDiskBox=new AddDiskBox(m_view->getCatalog());
+        pAddDiskBox->exec();
+        if (pAddDiskBox->catalogWasModified()) {
             gCatalogState=1; // modified
             gpMainWindow->updateTitle(true);
+            if (pAddDiskBox->resultOk()) {
+                XfcEntity ent;
+                string newDiskPath=pAddDiskBox->addedDiskPath();
+                ent=m_view->getCatalog()->getEntityFromPath(
+                    newDiskPath.c_str());
+                m_view->addFirstLevelElement(ent);
+            }
+            else {
+                KMessageBox::error(this, "The disk could not be added.\n\
+The catalog was left in an inconsistent state.\n\
+Do not save this catalog!");
+            }
         }
     }
     else

@@ -55,7 +55,7 @@ void OutputWindow::layout()
 
 void OutputWindow::addText( std::string lText)
 {
-    mpEditArea->insertPlainText(lText.c_str() );
+    mpEditArea->insertPlainText(str2qstr(lText));
     mpEditArea->insertPlainText("\n");
 }
 
@@ -109,15 +109,15 @@ DiffOutputWindow::addText(string s1, string s2, string s3, unsigned int lines)
         background=QApplication::palette().color(QPalette::AlternateBase);
     else
         background=QApplication::palette().color(QPalette::Base);
-    QTableWidgetItem *pItem=new QTableWidgetItem(s1.c_str());
+    QTableWidgetItem *pItem=new QTableWidgetItem(str2qstr(s1));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 0, pItem);
-    pItem=new QTableWidgetItem(s2.c_str());
+    pItem=new QTableWidgetItem(str2qstr(s2));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 1, pItem);
-    pItem=new QTableWidgetItem(s3.c_str());
+    pItem=new QTableWidgetItem(str2qstr(s3));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 2, pItem);

@@ -57,7 +57,7 @@ void NewCatalogBox::layout()
 void NewCatalogBox::slotUser1()
 {
     Xfc *lpXfc=new Xfc();
-    lpXfc->createNew(mpCatalogNameEdit->text().toStdString());
+    lpXfc->createNew(qstr2cchar(mpCatalogNameEdit->text()));
     gpView->setCatalog(lpXfc);   
     gCatalogState=1;
     gpMainWindow->setCatalogPath(std::string(""));

@@ -20,6 +20,7 @@
 #include "searchbox.h"
 #include "labelsbox.h"
 
+#include <fstream>
 #include <qpainter.h>
 #include <qlayout.h>
 #include <qprogressbar.h>
@@ -34,9 +35,11 @@
 #include "misc.h"
 #include "localfiles.h"
 #include "fs.h"
+#include "plugins.h"
 
 using std::string;
 using std::vector;
+using std::ifstream;
 
 
 // helper functions (lambda functions :) )
@@ -45,33 +48,91 @@ using std::vector;
  * @param[in] pCatalog - not used
  **/
 static bool
-matchesName(const QFileInfo &fsFileInfo, const string &xmlPath,
-            const xmlNodePtr, Xfc *)
+matchesName(const QFileInfo &rFsFileInfo, const string &rXmlPath,
+            const xmlNodePtr xmlNode, Xfc *pCat, KProgressDialog*)
 {
-    return fsFileInfo.fileName().toStdString() ==
-        getLastComponentOfPath(xmlPath);
+    bool fsIsFile=rFsFileInfo.isFile();
+    bool catalogIsFile=(Xfc::eFile == pCat->getTypeOfElement(xmlNode));
+    return
+        fsIsFile==catalogIsFile &&
+        rFsFileInfo.fileName().toStdString()==getLastComponentOfPath(rXmlPath);
 }
 
 
 static bool
-matchesSize(const QFileInfo &fsFileInfo, const string &,
-            const xmlNodePtr xmlNode, Xfc *pCatalog)
+matchesSize(const QFileInfo &rFsFileInfo, const string &,
+            const xmlNodePtr xmlNode, Xfc *pCatalog, KProgressDialog*)
 {
     string size=pCatalog->getDetailsForNode(xmlNode)["size"];
     if (size.empty()) { // size unknown, skip element
         return false;
     }
     else {
-        return fsFileInfo.size() == stringToUint(size);
+        return rFsFileInfo.size() == stringToUint(size);
     }
 }
 
 
 static bool
-matchesSha256sum(const QFileInfo &, const string &,
-                 const xmlNodePtr, Xfc *)
+matchesSha256sum(const QFileInfo &rFsFileInfo, const string &,
+                 const xmlNodePtr xmlNode, Xfc *pCat, KProgressDialog *pProgress)
 {
-    return true; // :todo:
+    string sha256InCatalog=pCat->getDetailsForNode(xmlNode)[SHA256LABEL];
+    unsigned long int progressPos=0;
+    QString path=rFsFileInfo.filePath();
+    if (sha256InCatalog.empty()) {
+        return true;
+    }
+    QString origText=pProgress->labelText();
+    QString newText="Computing sha256 for ";
+    if (newText.size() + path.size() > 65) {
+        newText+="...";
+        newText+=path.right(65 - newText.size());
+    }
+    else {
+        newText+=path;
+    }
+    pProgress->setLabelText(newText);
+    ifstream fin;
+    bool firstTime=true, lastTime=false;
+    char readBuf[102400];
+    string param, value;
+    gkLog<<xfcInfo<<__FUNCTION__<<": computing sha256sum for file "<<
+        path.toStdString()<<eol;
+    fin.open(path.toStdString().c_str(), std::ios::binary);
+    if (!fin.good()) {
+        gkLog<<xfcError<<"Error opening "<<path.toStdString()<<eol;
+    }
+    while (fin.good()) {
+        fin.read(readBuf, 102400);
+        if (fin.eof())
+            lastTime=true;
+        sha256UsingBufCallback(readBuf, fin.gcount(), firstTime, lastTime,
+                               &param, &value, NULL);
+        if (lastTime) {  // final iteration
+            gkLog<<xfcInfo<<__FUNCTION__<<"sha256sum is "<<value<<eol;
+        }
+        firstTime=false;
+
+        // progress dialog stuff
+        if (pProgress->wasCancelled()) {
+            value="";
+            break;
+        }
+        pProgress->progressBar()->setValue(progressPos++);
+        gpApplication->processEvents();
+
+    } // end while(fin.good())
+    fin.close();
+    pProgress->setLabelText(origText);
+    gkLog<<xfcDebug<<"sha256 in catalog is "<<sha256InCatalog<<
+        ", sha256 on fs is "<<value<<eol;
+    if (value==sha256InCatalog) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -189,7 +250,7 @@ void SearchBox::search()
     
     // prepare search struct
     mSearchStruct.clear();
-    mSearchStruct.mString=mpTextEdit->text().toStdString();
+    mSearchStruct.mString=qstr2str(mpTextEdit->text());
     mSearchStruct.mLabels=mSearchLabels;
     pResultsPaths=&mSearchStruct.mSearchResultsPaths;
     pResultsNodes=&mSearchStruct.mSearchResultsNodes;
@@ -197,7 +258,7 @@ void SearchBox::search()
     // prepare progress dialog
     mpProgress=new KProgressDialog(this, "Searching ...", "Searching");
     mpProgress->progressBar()->setRange(0, 0);
-    mpProgress->setMinimumDuration(1000);
+    mpProgress->setMinimumDuration(500);
     mpProgress->setAutoClose(true);
     mpProgress->setAllowCancel(true);
     mpProgress->setButtonText("Stop");
@@ -218,7 +279,7 @@ void SearchBox::search()
     QTreeWidgetItem *pItem=NULL;
     if (pResultsPaths->size()>0) {
         for (unsigned int i=0;i<pResultsPaths->size();i++) {
-            pItem=new QTreeWidgetItem(QStringList(pResultsPaths->at(i).c_str()));
+            pItem=new QTreeWidgetItem(QStringList(str2qstr(pResultsPaths->at(i))));
             mpSearchResults->addTopLevelItem(pItem);
         }
         enableButtons();
@@ -242,7 +303,7 @@ SearchBox::editLabels()
         vectWstringToVectWQString(mSearchLabels), false);
     if (QDialog::Accepted == pLabelsBox->exec()) {
         mSearchLabels=vectWQStringToVectWstring(pLabelsBox->getSelectedLabels());
-        mpLabelsEdit->setText(vectorWStringsToString(mSearchLabels).c_str());
+        mpLabelsEdit->setText(str2qstr(vectorWStringsToString(mSearchLabels)));
     }
 }
 
@@ -275,7 +336,7 @@ int
 findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& lrXfc,
            xmlNodePtr lpNode, void *lpParam)
 {
-    static int lPosInProgressBar=1;
+    static unsigned long int lPosInProgressBar=1;
     std::string lName;
     SearchStruct *lpSearchStruct=(SearchStruct*)lpParam;
     const char *lpPtr=lpSearchStruct->mString.c_str();
@@ -323,10 +384,11 @@ findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& l
                     }
         }
     }
-    
-    lpProgressDialog->progressBar()->setValue(lPosInProgressBar/10);
+    if (lPosInProgressBar%100) {
+        lpProgressDialog->progressBar()->setValue(lPosInProgressBar/100);
+        gpApplication->processEvents();
+    }
     lPosInProgressBar++;
-    gpApplication->processEvents();
     return 0;
 }
 
@@ -336,17 +398,18 @@ SearchBox::findLocalFiles(bool exactly)
 {
     if (mSearchStruct.mSearchResultsPaths.size()>0) {
         vector<QFileInfo> results;
+        QString startPath=cfgGetSearchStartPath();
 
         // prepare progress dialog
-        KProgressDialog *pProgress=new KProgressDialog(this, "Searching ...",
-                                                       "Searching");
+        KProgressDialog *pProgress=new KProgressDialog(
+            this, "Searching ...",
+            QString("Searching in folder ")+startPath);
         pProgress->progressBar()->setRange(0, 0);
         pProgress->setMinimumDuration(500);
         pProgress->setAutoClose(true);
         pProgress->setAllowCancel(true);
         pProgress->setButtonText("Stop");
 
-        QString startPath=cfgGetSearchStartPath();
         gkLog<<xfcInfo<<"Start searching local storage, starting from "
              <<qstr2cchar(startPath)<<eol;
         QDirIterator it(startPath,
@@ -417,7 +480,7 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
                            QDirIterator &rIt, vector<QFileInfo> &rResult,
                            KProgressDialog *pProgressDlg)
 {
-    uint progressPos=1;
+    unsigned long int progressPos=1;
     vector<string> filesToSearch;
     vector<xmlNodePtr> nodesToSearch;
 
@@ -431,12 +494,12 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
     while (rIt.hasNext() && !filesToSearch.empty()) {
         // progress stuff
         progressPos++;
-        if (pProgressDlg && progressPos%1000==0) {
+        if (pProgressDlg && progressPos%100==0) {
             if (pProgressDlg->wasCancelled()) {
                 gkLog<<xfcInfo<<__FUNCTION__<<": cancelled."<<eol;
                 return;
             }
-            pProgressDlg->progressBar()->setValue(progressPos++);
+            pProgressDlg->progressBar()->setValue(progressPos/100);
             gpApplication->processEvents();
         }
 
@@ -444,12 +507,13 @@ SearchBox::matchByRelation(vector<MatchFuncType> funcs,
         QFileInfo fInfo=rIt.fileInfo();
         for (uint i=0; i<filesToSearch.size(); i++) {
             bool matchesAll=true;
-            if (funcs[0](fInfo, filesToSearch[i], nodesToSearch[i], mpCatalog)) {
+            if (funcs[0](fInfo, filesToSearch[i], nodesToSearch[i], mpCatalog,
+                         pProgressDlg)) {
                 gkLog<<xfcDebug<<"Catalog file "<<filesToSearch[i];
                 gkLog<<" matches local file "<<file.toStdString()<<eol;
                 for (uint j=1; j<funcs.size(); j++)
                     if (!funcs[j](fInfo, filesToSearch[i], nodesToSearch[i],
-                                 mpCatalog)) {
+                                  mpCatalog, pProgressDlg)) {
                         matchesAll=false;
                         break;
                     }

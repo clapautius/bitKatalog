@@ -469,6 +469,21 @@ xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName, std::string lDiskCate
 }
 
 
+void
+Xfc::deleteDiskFromXmlTree(std::string diskName) throw (std::string)
+{
+    xmlNodePtr pDiskNode=getNodeForPath(diskName);
+    if (!pDiskNode) {
+        throw string("No such disk");
+    }
+    if (!isDisk(pDiskNode)) {
+        throw string("Path is not a disk");
+    }
+    xmlUnlinkNode(pDiskNode);
+    xmlFreeNode(pDiskNode);
+}
+
+
 /**
  * helper function
  **/
@@ -1111,6 +1126,19 @@ XfcEntity Xfc::getEntityFromNode(xmlNodePtr lpNode)
 }
 
 
+XfcEntity
+Xfc::getEntityFromPath(std::string path) throw (std::string)
+{
+    XfcEntity ent;
+    xmlNodePtr pNode=getNodeForPath(path);
+    if (pNode) {
+        ent=getEntityFromNode(pNode);
+        return ent;
+    }
+    throw string(__FUNCTION__)+": No such node";
+}
+
+
 void Xfc::setCDate(std::string lDiskName, std::string lCDate)
     throw (std::string)
 {
@@ -1445,5 +1473,3 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefi
     else
         return 1;
 }
-
-

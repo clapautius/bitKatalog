@@ -5,6 +5,14 @@
 using std::cout;
 
 XfcLogger&
+xfcError(XfcLogger &rLogger)
+{
+    rLogger.setLevel(0);
+    return rLogger;
+}
+
+
+XfcLogger&
 xfcWarn(XfcLogger &rLogger)
 {
     rLogger.setLevel(1);

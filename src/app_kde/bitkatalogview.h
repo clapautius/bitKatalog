@@ -77,6 +77,8 @@ public:
     const std::vector<std::string>& getCatalogLabels() const;
     
     void populateTree(Xfc*);
+
+    void addFirstLevelElement(XfcEntity &rEnt);
         
     /**
      * Random 'get' function

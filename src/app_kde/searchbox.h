@@ -39,7 +39,7 @@
 
 
 typedef bool (*MatchFuncType)(const QFileInfo &, const std::string &,
-                              const xmlNodePtr, Xfc *);
+                              const xmlNodePtr, Xfc *, KProgressDialog*);
 
 
 class SearchStruct

@@ -47,6 +47,16 @@ public:
     
     bool catalogWasModified();
 
+    const std::string addedDiskPath() const
+    {
+        return mAddedDiskPath;
+    }
+
+    bool resultOk() const
+    {
+        return mResultOk;
+    }
+    
 protected:
 
     void disableButtons();
@@ -72,6 +82,10 @@ private:
     
     bool mCatalogWasModified;
 
+    bool mResultOk;
+
+    std::string mAddedDiskPath;
+    
     //QFrame *mpPage; // on heap
 
     //QVBoxLayout *mpLayout1; // on heap

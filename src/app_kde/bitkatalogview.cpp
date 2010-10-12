@@ -372,7 +372,7 @@ bitKatalogView::verifyDisk() throw()
                 str+=lLabel.substr(lLabel.size()-28);
                 lLabel=str;
             }
-            pProgress->setLabelText(QString(lLabel.c_str()));
+            pProgress->setLabelText(str2qstr(lLabel));
             lOldLabel=lLabel;
         }
         if (pProgress->wasCancelled()) {
@@ -478,7 +478,7 @@ bitKatalogView::renameDisk() throw()
   
   if (completePath!="/") {
     XfcEntity lEnt(mCatalog->getNodeForPath(completePath), mCatalog);
-    oldName=lEnt.getName().c_str();
+    oldName=str2qstr(lEnt.getName());
 
     bool lRetButton;
     newName=KInputDialog::getText("Rename disk", "Name: ", oldName, &lRetButton);
@@ -502,16 +502,31 @@ bitKatalogView::deleteDisk() throw()
   Q3ListViewItem *lpItem;
   std::string completePath;
   std::string lOldName, lNewName;
-  
+  string confirmDialog="Are you sure you want to delete the disk ";
   if (mCatalog==NULL) {
     KMessageBox::error(this, "No catalog!");
     return;
   }
   lpItem=mpCurrentItem;
   completePath=mCurrentItemPath;
-  
-  // :todo:
-  KMessageBox::information(this, "Not ready yet");
+  confirmDialog+=completePath;
+  confirmDialog+=" ?";
+  if (KMessageBox::Yes ==
+      KMessageBox::warningYesNo(this, confirmDialog.c_str())) {
+      try {
+          mCatalog->deleteDiskFromXmlTree(completePath);
+          delete mpCurrentItem;
+          mpCurrentItem=NULL;
+          mCurrentItemPath.clear();
+          gCatalogState=1;
+          gpMainWindow->updateTitle(true);
+      }
+      catch (string s) {
+          string err="Cannot delete disk. Error was: ";
+          err+=s;
+          KMessageBox::error(this, err.c_str());
+      }
+  }
 }
 
 
@@ -523,10 +538,43 @@ bitKatalogView::getCatalog()
 
 
 void
+bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
+{
+    EntityIterator *pTempIterator=NULL;
+    QString labelsString;
+    map<string, string> details;
+    details=rEnt.getDetails();
+    labelsString=str2qstr(rEnt.getLabelsAsString());
+    XmlEntityItem *pItem=NULL;
+    Xfc *pCatalog=getCatalog();
+    if (!pCatalog) {
+        throw string("No catalog");
+    }
+    if (!details["description"].empty())
+        pItem=new XmlEntityItem(mRootItem, str2qstr(rEnt.getName()),
+                                str2qstr(details["description"]), labelsString);
+    else
+        pItem=new XmlEntityItem(mRootItem, str2qstr(rEnt.getName()), "",
+                                labelsString);
+#if defined(XFC_DEBUG)
+    cout<<":debug:"<<__FUNCTION__<<": adding element with name ";
+    cout<<rEnt.getName()<<endl;
+    cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;
+#endif
+    pItem->setXmlNode(rEnt.getXmlNode());
+    pItem->setPixmap(0, *gpDiskPixmap);
+    pTempIterator=new EntityIterator(*pCatalog, rEnt.getXmlNode());
+    if (pTempIterator->hasMoreChildren())
+        pItem->setExpandable(true);
+    delete pTempIterator;
+}
+
+
+void
 bitKatalogView::populateTree(Xfc *mpCatalog)
 {
-    map<string, string> details;
     QString labelsString;
+    map<string, string> details;
 
     mListView->clear();
 
@@ -535,11 +583,11 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     string catalogName="/";
     XfcEntity rootEnt(pRootNode, mpCatalog);
     details=rootEnt.getDetails();
-    labelsString=QString::fromUtf8(rootEnt.getLabelsAsString().c_str());
+    labelsString=str2qstr(rootEnt.getLabelsAsString());
     catalogName+=rootEnt.getName();
     if (!details["description"].empty())
         mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName),
-                                    details["description"].c_str(),
+                                    str2qstr(details["description"]),
                                     labelsString);
     else
         mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName), "",
@@ -547,34 +595,14 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     mRootItem->setXmlNode(pRootNode);
     
     EntityIterator *lpIterator;
-    EntityIterator *lpTempIterator;
     std::string lS="/";
     lpIterator=new EntityIterator(*mpCatalog, lS);
     XfcEntity lEnt;
-    XmlEntityItem *lpItem;
 
     // add first level elements without opening root element
     while (lpIterator->hasMoreChildren()) {
         lEnt=lpIterator->getNextChild();
-        details=lEnt.getDetails();
-        labelsString=QString::fromUtf8(lEnt.getLabelsAsString().c_str());
-        if (!details["description"].empty())
-            lpItem=new XmlEntityItem(
-                mRootItem, str2qstr(lEnt.getName()),
-                details["description"].c_str(), labelsString);
-        else
-            lpItem=new XmlEntityItem(mRootItem, str2qstr(lEnt.getName()), "", labelsString);
-#if defined(XFC_DEBUG)
-        cout<<":debug:"<<__FUNCTION__<<": adding element with name ";
-        cout<<lEnt.getName()<<endl;
-        cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;
-#endif
-        lpItem->setXmlNode(lEnt.getXmlNode());
-        lpItem->setPixmap(0, *gpDiskPixmap);
-        lpTempIterator=new EntityIterator(*mpCatalog, lEnt.getXmlNode());
-        if (lpTempIterator->hasMoreChildren())
-            lpItem->setExpandable(true);
-        delete lpTempIterator;
+        addFirstLevelElement(lEnt);
     }
     mRootItem->setAsOpened();
 }    

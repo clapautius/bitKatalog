@@ -114,11 +114,11 @@ void DetailsBox::layout()
     QSize lSize;
     QFontMetrics *lpFontMetrics;
 
+    resize(500,500);
+
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("General"));
     pPage1->setHeader(QString("General"));
-    
-    resize(500,500);
     
     mpName=new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);

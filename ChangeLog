@@ -1,3 +1,11 @@
+2010-10-12  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/: Implemented 'delete disk' feature (both in xfclib & kde app).
+	Implemented 'disk creation date' dialog.
+	Fixed refreshing of items after adding a new disk.
+	Other fixes & improvements (UI, progress dialog feedback, utf-8, etc.).
+	Version is now 0.9-b1.
+
 2010-10-11  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/: implemented 'Configure ...' dialog; other small fixes

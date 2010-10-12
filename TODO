@@ -1,3 +1,1 @@
 - implement 'add label rec.' in cli app;
-- fix utf-8 stuff for every field (description, etc);
-- implement 'delete disk';

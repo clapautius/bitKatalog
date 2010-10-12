@@ -67,7 +67,7 @@ void XmlEntityItem::redisplay(bool first)
     setText(NAME_COLUMN, str2qstr(lEnt.getName()));
     details=lEnt.getDetails();
     if( !details["description"].empty())
-        setText(DESCRIPTION_COLUMN, details["description"].c_str());
+        setText(DESCRIPTION_COLUMN, str2qstr(details["description"]));
     else
         setText(DESCRIPTION_COLUMN, "");
     labelsString=lEnt.getLabelsAsString();
@@ -113,7 +113,7 @@ void XmlEntityItem::setOpen(bool lOpen)
             QString labelsString=str2qstr(ent.getLabelsAsString());
             if( !details["description"].empty())
                 lpItem=new XmlEntityItem(this, str2qstr(ent.getName()),
-                                         details["description"].c_str(),
+                                         str2qstr(details["description"]),
                                          labelsString);
             else
                 lpItem=new XmlEntityItem(this, str2qstr(ent.getName()), "",

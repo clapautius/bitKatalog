@@ -43,6 +43,7 @@ AddDiskBox::AddDiskBox(Xfc *lpCatalog)
     setCaption("Add disk");
     mpCatalog=lpCatalog;
     mCatalogWasModified=false;
+    mResultOk=false;
     setModal(true);
     layout();
 }
@@ -122,10 +123,10 @@ void AddDiskBox::slotUser1()
     bool computeSha1=false, computeSha256=false;
     volatile bool abortScan=false;
     
-    lPath=mpPathLabel->text().toStdString();
-    lDiskName=mpDiskNameEdit->text().toStdString();
-    lDiskDescription=mpDiskDescriptionEdit->text().toStdString();
-    lDiskCDate=mpDiskCDateEdit->text().toStdString();
+    lPath=qstr2str(mpPathLabel->text());
+    lDiskName=qstr2str(mpDiskNameEdit->text());
+    lDiskDescription=qstr2str(mpDiskDescriptionEdit->text());
+    lDiskCDate=qstr2str(mpDiskCDateEdit->text());
     
     if (lPath=="") {
         KMessageBox::error(this, "Invalid path");
@@ -170,6 +171,8 @@ void AddDiskBox::slotUser1()
     msgDebug("Start time: ", getTimeSinceMidnight());
     lpScanThread->start();
     mCatalogWasModified=true;
+    mAddedDiskPath="/";
+    mAddedDiskPath+=lDiskName;
 
     msgDebug("Add thread started, progress bar created, waiting for scan thread ...");
     while (!lpScanThread->isFinished()) {
@@ -228,6 +231,7 @@ void AddDiskBox::slotUser1()
             KMessageBox::error(this, "Cannot set cdate for disk");
         }
     }
+    mResultOk=true;
     gCatalogState=1;
     gpMainWindow->updateTitle(true);
     delete lpProgress;
@@ -263,7 +267,16 @@ void AddDiskBox::todayCDateButtonClicked()
 
 void AddDiskBox::someDayCDateButtonClicked()
 {
-    KMessageBox::error(this, "Not ready yet"); // :todo:
+    KDialog *pDlg=new KDialog();
+    pDlg->setCaption( "Select date" );
+    pDlg->setButtons( KDialog::Ok | KDialog::Cancel);
+
+    KDatePicker *pDateWidget=new KDatePicker();
+    pDlg->setMainWidget(pDateWidget);
+    if (QDialog::Accepted == pDlg->exec()) {
+        mpDiskCDateEdit->setText(pDateWidget->date().toString("yyyy-MM-dd"));
+    }
+    delete pDlg;
 }
 
 

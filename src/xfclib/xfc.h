@@ -150,6 +150,8 @@ public:
         std::string diskDescription="", std::string diskLabel="",
         std::string diskCDate="")
         throw (std::string);
+
+    void deleteDiskFromXmlTree(std::string diskName) throw (std::string);
     
     void addLabelTo(std::string path, std::string label) throw (std::string);
 
@@ -184,6 +186,8 @@ public:
         const throw (std::string);
 
     XfcEntity getEntityFromNode(xmlNodePtr lpNode) throw (std::string);
+
+    XfcEntity getEntityFromPath(std::string path) throw (std::string);
 
     int verifyDirectory(
         std::string catalogPath, std::string diskPath, uint pathPrefixLen,

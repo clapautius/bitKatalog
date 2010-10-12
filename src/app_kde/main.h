@@ -28,7 +28,7 @@
 #include <kconfiggroup.h>
 
 #include <string>
-#include <vector> // :tmp:
+#include <vector>
 
 #include "bitkatalog.h"
 #include "bitkatalogview.h"
@@ -63,8 +63,6 @@ void msgDebug(std::string, std::string="", std::string="", std::string="");
 
 //void runningForTheFirstTime();
 
-// :tmp:
-/// temporary functions used during the transition from std::string to QString
 std::vector<std::string> vectWQStringToVectWstring(std::vector<QString>);
 std::vector<QString> vectWstringToVectWQString(std::vector<std::string>);
 

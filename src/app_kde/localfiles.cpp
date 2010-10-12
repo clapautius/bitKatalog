@@ -80,6 +80,7 @@ void LocalFilesBox::layout()
     mpFileList->setRootIsDecorated(false);
     mpFileList->header()->hide();
     mpFileList->setAlternatingRowColors(true);
+    mpFileList->setCursor(Qt::PointingHandCursor);
     for(uint i=0; i<mFiles.size(); i++) {
         gkLog<<xfcDebug<<"adding local element to list, complete path: ";
         gkLog<<mFiles[i].filePath().toStdString()<<eol;

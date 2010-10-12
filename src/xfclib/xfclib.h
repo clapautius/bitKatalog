@@ -6,6 +6,7 @@
 class XfcLogger;
 
 XfcLogger& xfcWarn(XfcLogger&);
+XfcLogger& xfcError(XfcLogger&);
 XfcLogger& xfcInfo(XfcLogger&);
 XfcLogger& xfcDebug(XfcLogger&);
 XfcLogger& eol(XfcLogger&);
