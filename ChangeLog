@@ -1,6 +1,8 @@
 2010-10-13  Tudor M.P.  <clapautiusAtGmailDotCom>
 
-	* src/app_kde/main.cpp: replaced K3ListView with QTreeWidget in main view.
+	* src/app_kde/: fixed 'Edit' menu (removed unused entries).
+
+	* src/app_kde/: replaced K3ListView with QTreeWidget in main view.
 	Other small imprvements.
 
 2010-10-12  Tudor M.P.  <clapautiusAtGmailDotCom>

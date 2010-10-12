@@ -163,11 +163,15 @@ void bitKatalog::setupActions()
     
     mpEditMenu->addAction(
         m_statusbarAction=KStandardAction::showStatusbar(this, SLOT(optionsShowStatusbar()), this));
-    mpEditMenu->addAction(
-        m_toolbarAction=KStandardAction::showStatusbar(this, SLOT(optionsShowToolbar()), this));
+
+    /*
+    mpEditMenu->addAction(m_toolbarAction=new KToggleAction("Show Toolbar", this));
+    connect(m_toolbarAction, SIGNAL(triggered()), this,
+    SLOT(optionsShowToolbar()));
+    */
 
     mpEditMenu->addAction(KStandardAction::keyBindings(this, SLOT(optionsConfigureKeys()), this));
-    mpEditMenu->addAction(KStandardAction::configureToolbars(this, SLOT(optionsConfigureToolbars()), this));
+    //mpEditMenu->addAction(KStandardAction::configureToolbars(this, SLOT(optionsConfigureToolbars()), this));
     //mpEditMenu->addAction(KStandardAction::preferences(this, SLOT(optionsPreferences()), this));
 
     toolBar()->addAction(KStandardAction::open(this, SLOT(fileOpen()), this));
@@ -370,6 +374,7 @@ void bitKatalog::filePrint()
 }
 
 
+/*
 void
 bitKatalog::optionsShowToolbar()
 {
@@ -380,6 +385,7 @@ bitKatalog::optionsShowToolbar()
     else
         toolBar()->hide();
 }
+*/
 
 
 void
@@ -432,8 +438,7 @@ bitKatalog::optionsPreferences()
 void bitKatalog::changeStatusbar(const QString& text)
 {
     // display the text on the statusbar
-    statusBar()->changeItem(text, 0); // :fixme: - check - does it work - what
-                                      // is id = 0 ?
+    statusBar()->changeItem(text, 0);
 }
 
 void bitKatalog::changeCaption(const QString& text)

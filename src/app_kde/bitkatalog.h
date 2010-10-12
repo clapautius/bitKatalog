@@ -102,7 +102,7 @@ private slots:
     void fileSave();
     void fileSaveAs();
     void filePrint();
-    void optionsShowToolbar();
+    /*void optionsShowToolbar();*/
     void optionsShowStatusbar();
     void optionsConfigureKeys();
     void optionsConfigureToolbars();
@@ -131,7 +131,7 @@ private:
     KMenu *mpFileMenu, *mpEditMenu;
     //KPrinter   *m_printer;
 
-    KToggleAction *m_toolbarAction;
+    /*KToggleAction *m_toolbarAction;*/
     KToggleAction *m_statusbarAction;
     
     std::string mCatalogPath;
