@@ -88,6 +88,10 @@ protected slots:
 
     virtual void contextMenuEvent(QContextMenuEvent* event);
 
+    virtual void selectAll();
+
+    virtual void unselectAll();
+    
 private:
 
     void connectButtons();

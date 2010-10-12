@@ -58,17 +58,9 @@ bitKatalogView::bitKatalogView(QWidget *parent)
 {
     QHBoxLayout *top_layout = new QHBoxLayout(this);
     setupListView();
-    mRootItem=new XmlEntityItem(mListView, "[ no catalog ]");
+    mRootItem=new XmlEntityItem(mListView, QStringList(QString("[ no catalog ]")));
     mCatalog=NULL;
     top_layout->addWidget(mListView);
-    
-    /*
-    connect(m_html, SIGNAL(setWindowCaption(const QString&)),
-            this,   SLOT(slotSetTitle(const QString&)));
-    connect(m_html, SIGNAL(setStatusBarText(const QString&)),
-            this,   SLOT(slotOnUrl(const QString&)));
-    */
-
 }
 
 bitKatalogView::~bitKatalogView()
@@ -149,23 +141,36 @@ void bitKatalogView::slotSetTitle(const QString& title)
 void
 bitKatalogView::setupListView()
 {
-    mListView=new K3ListView(this);    
+    mListView=new QTreeWidget(this);    
     mListView->setRootIsDecorated(true);
     mListView->setAllColumnsShowFocus(true);
-    mListView->addColumn("Name", 320);
-    mListView->addColumn("Description", 250);
-    mListView->addColumn("Labels", 320);
-    connect(mListView, 
-            SIGNAL(contextMenu(K3ListView *, Q3ListViewItem *, const QPoint &)),
-            this, SLOT(contextMenu(K3ListView *, Q3ListViewItem *, const QPoint &)));
+    mListView->setColumnCount(3);
+    // :fixme: - proportional
+    mListView->setColumnWidth(0, 400);
+    mListView->setColumnWidth(1, 250);
+    mListView->setColumnWidth(2, 300);
+    mListView->setAlternatingRowColors(true);
+    QStringList columns;
+    columns.push_back("Name");
+    columns.push_back("Description");
+    columns.push_back("Labels");
+    mListView->setHeaderLabels(columns);
+    mListView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(mListView, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+            this, SLOT(expandItem(QTreeWidgetItem*)));
+    connect(mListView, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+            this, SLOT(collapseItem(QTreeWidgetItem*)));
+    connect(mListView, SIGNAL(customContextMenuRequested(const QPoint&)),
+            this, SLOT(contextMenu(const QPoint&)));
 }    
 
 
-void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &p)
+void
+bitKatalogView::contextMenu(const QPoint &rPoint)
 {
     std::string completePath;
     std::string lS;
-    Q3ListViewItem *lpItem;
+    QTreeWidgetItem *lpItem=mListView->itemAt(rPoint);
     bool isDisk=false, isDir=false;
 
     // this code appears also in details function - make a function from it
@@ -173,13 +178,13 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
         KMessageBox::error(this, "No catalog!");
         return;
     }
-
     KMenu *pContextMenu=new KMenu();
     QAction *pAct=NULL;
 
-    mpCurrentItem=(XmlEntityItem*)i;
+    gkLog<<xfcDebug<<__FUNCTION__<<": context menu for item "<<
+        static_cast<XmlEntityItem*>(lpItem)->xmlName()<<eol;
+    mpCurrentItem=(XmlEntityItem*)lpItem;
     completePath=qstr2str(mpCurrentItem->text(0));
-    lpItem=mpCurrentItem;
     if (NULL == lpItem->parent()) { // element is root
         completePath="/";
     }
@@ -218,9 +223,9 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
         }
     }
     catch(std::string e) {
-        msgWarn("Hmmm, cannot display info about this item (exception in XfcEntity()! completePath=", completePath);
+        msgWarn("Cannot display info about this item! Item path =", completePath);
         msgWarn("  exception is: ", e);
-        KMessageBox::error(this, "Hmmm, cannot display informations about this item!");
+        KMessageBox::error(this, "Cannot display informations about this item!");
     }
     
     pAct=pContextMenu->addAction("Details");
@@ -246,7 +251,7 @@ void bitKatalogView::contextMenu(K3ListView *, Q3ListViewItem *i, const QPoint &
         connect(pAct, SIGNAL(triggered()), this, SLOT(deleteDisk()));
     }
 
-    pContextMenu->exec(p);
+    pContextMenu->exec(QCursor::pos());
 }
 
 
@@ -464,7 +469,7 @@ bitKatalogView::verifyDisk() throw()
 void
 bitKatalogView::renameDisk() throw()
 {
-  Q3ListViewItem *lpItem;
+  QTreeWidgetItem *lpItem;
   std::string completePath;
   QString oldName, newName;
   
@@ -499,7 +504,7 @@ bitKatalogView::renameDisk() throw()
 void
 bitKatalogView::deleteDisk() throw()
 {
-  Q3ListViewItem *lpItem;
+  QTreeWidgetItem *lpItem;
   std::string completePath;
   std::string lOldName, lNewName;
   string confirmDialog="Are you sure you want to delete the disk ";
@@ -542,6 +547,7 @@ bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
 {
     EntityIterator *pTempIterator=NULL;
     QString labelsString;
+    QStringList columns;
     map<string, string> details;
     details=rEnt.getDetails();
     labelsString=str2qstr(rEnt.getLabelsAsString());
@@ -550,22 +556,20 @@ bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
     if (!pCatalog) {
         throw string("No catalog");
     }
-    if (!details["description"].empty())
-        pItem=new XmlEntityItem(mRootItem, str2qstr(rEnt.getName()),
-                                str2qstr(details["description"]), labelsString);
-    else
-        pItem=new XmlEntityItem(mRootItem, str2qstr(rEnt.getName()), "",
-                                labelsString);
+    columns.push_back(str2qstr(rEnt.getName()));
+    columns.push_back(str2qstr(details["description"]));
+    columns.push_back(labelsString);
+    pItem=new XmlEntityItem(mRootItem, columns);
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<": adding element with name ";
     cout<<rEnt.getName()<<endl;
     cout<<":debug:"<<__FUNCTION__<<": labelsString: "<<labelsString<<endl;
 #endif
     pItem->setXmlNode(rEnt.getXmlNode());
-    pItem->setPixmap(0, *gpDiskPixmap);
+    pItem->setIcon(0, *gpDiskIcon);
     pTempIterator=new EntityIterator(*pCatalog, rEnt.getXmlNode());
     if (pTempIterator->hasMoreChildren())
-        pItem->setExpandable(true);
+        pItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
     delete pTempIterator;
 }
 
@@ -575,6 +579,7 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
 {
     QString labelsString;
     map<string, string> details;
+    QStringList columns;
 
     mListView->clear();
 
@@ -585,13 +590,10 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     details=rootEnt.getDetails();
     labelsString=str2qstr(rootEnt.getLabelsAsString());
     catalogName+=rootEnt.getName();
-    if (!details["description"].empty())
-        mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName),
-                                    str2qstr(details["description"]),
-                                    labelsString);
-    else
-        mRootItem=new XmlEntityItem(mListView, str2qstr(catalogName), "",
-                                    labelsString);
+    columns.push_back(str2qstr(catalogName));
+    columns.push_back(str2qstr(details["description"]));
+    columns.push_back(labelsString);
+    mRootItem=new XmlEntityItem(mListView, columns);
     mRootItem->setXmlNode(pRootNode);
     
     EntityIterator *lpIterator;
@@ -677,3 +679,18 @@ bitKatalogView::getCatalogLabels() const
 {
     return mCatalogLabels;
 }
+
+
+void
+bitKatalogView::expandItem(QTreeWidgetItem *pItem)
+{
+    static_cast<XmlEntityItem*>(pItem)->setOpened(true);
+}
+
+
+void
+bitKatalogView::collapseItem(QTreeWidgetItem *pItem)
+{
+    static_cast<XmlEntityItem*>(pItem)->setOpened(false);
+}
+

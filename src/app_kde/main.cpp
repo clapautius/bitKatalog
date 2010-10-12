@@ -40,9 +40,9 @@ using std::string;
 
 KSharedConfigPtr gpConfig;
 
-QPixmap *gpDiskPixmap=NULL;
-QPixmap *gpDirPixmap=NULL;
-QPixmap *gpFilePixmap=NULL;
+KIcon *gpDiskIcon=NULL;
+KIcon *gpDirIcon=NULL;
+KIcon *gpFileIcon=NULL;
 
 KApplication *gpApplication;
 bitKatalogView *gpView=NULL;
@@ -121,13 +121,13 @@ int main(int argc, char **argv)
     startUp(pArgs);
 
     // try to find a suitable window icon
-    KIconLoader *pIconLoader=KIconLoader::global();
-    QIcon windowIcon=pIconLoader->loadIconSet("bitKatalog", KIconLoader::NoGroup, 0, true);
+    QIcon windowIcon=KIconLoader::global()->loadIconSet(
+        "bitkatalog", KIconLoader::Small, 0, true);
     if (windowIcon.isNull()) {
         gkLog<<xfcInfo<<"Couldn't find bitKatalog icon"<<eol;
-        windowIcon=pIconLoader->loadIconSet("media-optical", KIconLoader::NoGroup, 0, false);
-        if (windowIcon.isNull())
-            gkLog<<xfcWarn<<"Couldn't find media-optical icon"<<eol;
+        windowIcon=KIconLoader::global()->loadIconSet(
+            "media-optical", KIconLoader::Small, 0, false);
+        // cannot return null
     }
     app.setWindowIcon(windowIcon);
 
@@ -158,11 +158,10 @@ int main(int argc, char **argv)
 
 void startUp(KCmdLineArgs *pArgs)
 {
-    KIconLoader *pIconLoader=KIconLoader::global();
-    gpDiskPixmap=new QPixmap(pIconLoader->loadIcon("media-optical", KIconLoader::Small));
-    gpDirPixmap=new QPixmap(pIconLoader->loadIcon("folder-green", KIconLoader::Small));
-    gpFilePixmap=new QPixmap(pIconLoader->loadIcon("text-plain", KIconLoader::Small));
-
+    gpDiskIcon=new KIcon("media-optical");
+    gpDirIcon=new KIcon("folder-green");
+    gpFileIcon=new KIcon("text-plain");
+    
     xmlIndentTreeOutput=1;
     xmlKeepBlanksDefault(0);
 

@@ -229,8 +229,6 @@ void SearchBox::connectButtons()
     connect(mpEditLabelsButton, SIGNAL(clicked()), this, SLOT(editLabels()));
     //connect(this, SIGNAL(user2Clicked()), this, SLOT(findLocalFilesByName()));
     //connect(this, SIGNAL(user3Clicked()), this,SLOT(findLocalFilesExactly()));
-    connect(this, SIGNAL(contextMenuEvent(QContextMenuEvent *)),
-            this, SLOT(contextMenuEvent(QContextMenuEvent* event)));
 }
 
 
@@ -279,7 +277,8 @@ void SearchBox::search()
     QTreeWidgetItem *pItem=NULL;
     if (pResultsPaths->size()>0) {
         for (unsigned int i=0;i<pResultsPaths->size();i++) {
-            pItem=new QTreeWidgetItem(QStringList(str2qstr(pResultsPaths->at(i))));
+            pItem=new QTreeWidgetItem(
+                QStringList(str2qstr(pResultsPaths->at(i))));
             mpSearchResults->addTopLevelItem(pItem);
         }
         enableButtons();
@@ -556,16 +555,28 @@ void
 SearchBox::contextMenuEvent(QContextMenuEvent* event)
 {
     QList<QTreeWidgetItem *> listSel=mpSearchResults->selectedItems();
-    if (listSel.size()>0) {
-        KMenu *pContextMenu=new KMenu();
-        QAction *pAct=NULL;
-        pAct=pContextMenu->addAction(
-            "Find selected by name (on local storage)");
+    bool haveSelected=(listSel.size()>0);
+    KMenu *pContextMenu=new KMenu();
+    QAction *pAct=NULL;
+    pAct=pContextMenu->addAction("Select all");
+    connect(pAct, SIGNAL(triggered()), this, SLOT(selectAll()));
+    pAct=pContextMenu->addAction("Unselect all");
+    if (haveSelected)
+        connect(pAct, SIGNAL(triggered()), this, SLOT(unselectAll()));
+    else
+        pAct->setEnabled(false);
+    pContextMenu->addSeparator();
+    pAct=pContextMenu->addAction("Find selected by name (on local storage)");
+    if (haveSelected)
         connect(pAct, SIGNAL(triggered()), this, SLOT(findLocalFilesByName()));
-        pAct=pContextMenu->addAction(
-            "Find selected exactly (on local storage)");
+    else
+        pAct->setEnabled(false);
+    pAct=pContextMenu->addAction("Find selected exactly (on local storage)");
+    if (haveSelected)
         connect(pAct, SIGNAL(triggered()), this, SLOT(findLocalFilesExactly()));
-
+    else
+        pAct->setEnabled(false);
+    if (haveSelected) {
         // mark selected items
         vector<string> vectSel;
         for (int i=0; i<listSel.size(); i++)
@@ -579,9 +590,20 @@ SearchBox::contextMenuEvent(QContextMenuEvent* event)
                 mSearchEltSelected.push_back(false);
             }
         }
-        pContextMenu->exec(event->globalPos());
     }
-    else {
-        KMessageBox::information(this, "Nothing selected");
-    }
+    pContextMenu->exec(event->globalPos());
+}
+
+
+void
+SearchBox::selectAll()
+{
+    mpSearchResults->selectAll();
+}
+
+
+void
+SearchBox::unselectAll()
+{
+    mpSearchResults->clearSelection();
 }

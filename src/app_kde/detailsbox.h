@@ -28,8 +28,10 @@
 #include <qlayout.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
+#include <QTreeWidget>
 #include <k3listbox.h>
 #include <kvbox.h>
+#include <klineedit.h>
 
 #include "main.h"
 #include "xfcapp.h"
@@ -43,7 +45,7 @@ class DetailsBox : public KPageDialog
 public:
     DetailsBox();
     
-    DetailsBox(Xfc*, std::string, XfcEntity*, Q3ListViewItem*,
+    DetailsBox(Xfc*, std::string, XfcEntity*, QTreeWidgetItem*,
                const std::vector<QString> &rAllLabels);
 
     virtual ~DetailsBox();
@@ -76,7 +78,7 @@ private:
     bool mCatalogWasModified;
     bool mLabelsWereModified;
 
-    Q3ListViewItem *mpListItem;
+    QTreeWidgetItem *mpListItem;
       
     QVBoxLayout *top_layout1, *top_layout2; // on heap
                 

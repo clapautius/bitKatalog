@@ -20,25 +20,24 @@
 #ifndef XMLENTITYITEM_H
 #define XMLENTITYITEM_H
 
-#include <k3listview.h>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 #include "xfc.h"
 
 /**
 @author Tudor Pristavu
 */
-class XmlEntityItem : public K3ListViewItem
+class XmlEntityItem : public QTreeWidgetItem
 {
 public:
-    XmlEntityItem(Q3ListView*, QString,
-                  QString=QString::null, QString=QString::null, QString=QString::null);
+    XmlEntityItem(QTreeWidget*, QStringList list);
 
-    XmlEntityItem(XmlEntityItem*, QString, 
-                  QString=QString::null, QString=QString::null, QString=QString::null);
+    XmlEntityItem(XmlEntityItem*, QStringList list);
     
     virtual ~XmlEntityItem();
     
-    virtual void setOpen(bool);
+    virtual void setOpened(bool);
 
     void redisplay(bool first=true);
     
@@ -47,11 +46,15 @@ public:
     void setAsOpened() {
         mAlreadyOpened=true;
     }
+
+    std::string xmlName() const;
     
     static Xfc *mspCatalog;
     // :fixme: - maybe fix this
       
 private:
+
+    QTreeWidgetItem* nextSibling();
     
     xmlNodePtr mpNode;
     

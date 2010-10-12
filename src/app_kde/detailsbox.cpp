@@ -46,7 +46,7 @@ using std::map;
 
 
 DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
-                       XfcEntity *lpXmlItem, Q3ListViewItem *pListItem,
+                       XfcEntity *lpXmlItem, QTreeWidgetItem *pListItem,
                        const vector<QString> &rAllLabels)
   : KPageDialog(),
     mrAllLabels(rAllLabels)
@@ -62,10 +62,8 @@ DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
     mpListItem=pListItem;
     mCatalogWasModified=false;
     mLabelsWereModified=false;
-
     layout();    
     connectButtons();
-    setModal(true);
 }
 
 

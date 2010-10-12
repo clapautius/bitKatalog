@@ -24,7 +24,7 @@
 
 #include <Qt/qwidget.h>
 #include <kparts/part.h>
-#include <k3listview.h>
+#include <QTreeWidget>
 
 #include "xfc.h"
 #include "xmlentityitem.h"
@@ -112,10 +112,16 @@ signals:
     void signalChangeCaption(const QString& text);
 
 private slots:
+
+    virtual void expandItem(QTreeWidgetItem*);
+    virtual void collapseItem(QTreeWidgetItem*);
+
+    virtual void contextMenu(const QPoint &point);
+    
     void slotOnUrl(const QString& url);
+
     void slotSetTitle(const QString& title);
     
-    void contextMenu(K3ListView *l, Q3ListViewItem *i, const QPoint &p);
 
     void details() throw();
 
@@ -139,7 +145,7 @@ private:
     
     KParts::ReadOnlyPart *m_html;
     
-    K3ListView *mListView;
+    QTreeWidget *mListView; // :tmp: - rename this
     
     XmlEntityItem *mRootItem;
     
@@ -152,7 +158,6 @@ private:
      **/
     std::vector<std::string> mCatalogLabels;
     
-    //Q3ListViewItem *mpCurrentItem;
     XmlEntityItem *mpCurrentItem;
 
     std::string mCurrentItemPath;

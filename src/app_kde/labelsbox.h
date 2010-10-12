@@ -30,8 +30,9 @@
 #include <qlayout.h>
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
-#include <qtreewidget.h>
+#include <QTreeWidget>
 #include <kvbox.h>
+#include <klineedit.h>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"

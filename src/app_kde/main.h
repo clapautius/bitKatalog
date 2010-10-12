@@ -26,6 +26,7 @@
 #include <kglobal.h>
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <kicon.h>
 
 #include <string>
 #include <vector>
@@ -38,9 +39,9 @@
 
 extern KSharedConfigPtr gpConfig;
 
-extern QPixmap *gpDiskPixmap;
-extern QPixmap *gpDirPixmap;
-extern QPixmap *gpFilePixmap;
+extern KIcon *gpDiskIcon;
+extern KIcon *gpDirIcon;
+extern KIcon *gpFileIcon;
 
 extern KApplication *gpApplication;
 extern bitKatalogView *gpView;
