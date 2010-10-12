@@ -56,8 +56,7 @@ AddDiskBox::~AddDiskBox()
 
 void AddDiskBox::layout()
 {
-    resize(800,450);
-        
+    //resize(800,450);
     button(KDialog::User1)->setGuiItem(KStandardGuiItem::Add);
 
     KVBox *pLayoutBox= new KVBox();
