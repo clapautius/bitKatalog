@@ -99,6 +99,7 @@ void AddDiskBox::layout()
     mpAddRootCheckBox->setChecked(false);
 
     KHBox *pShaBox=new KHBox(mpGroupBox);
+    pShaBox->setSpacing(20);
 
     mpComputeSha256SumCheckBox=
         new QCheckBox("Compute sha256 sums for this disk", pShaBox);
