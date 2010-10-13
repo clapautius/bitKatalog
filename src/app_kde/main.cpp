@@ -105,7 +105,7 @@ int main(int argc, char **argv)
         QByteArray("bitKatalog"), QByteArray("bitKatalog"), ki18n("bitKatalog"),
         QByteArray(version),
         ki18n("A KDE file & disk catalog that uses plain-text XML to store catalog information."),
-        KAboutData::License_GPL_V2, ki18n("(C) 2009 Tudor Marian Pristavu"));
+        KAboutData::License_GPL_V2, ki18n("(C) 2010 Tudor Marian Pristavu"));
 
     about.addAuthor(ki18n("Tudor Marian Pristavu"), ki18n(""), QByteArray("clapautiusAtGmailDotCom") );
     about.setProgramIconName("media-optical");
