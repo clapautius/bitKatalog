@@ -1,5 +1,9 @@
 2010-10-13  Tudor M.P.  <clapautiusAtGmailDotCom>
 
+	* src/app_kde/detailsbox.cpp: GUI improvements.
+
+2010-10-13  Tudor M.P.  <clapautiusAtGmailDotCom>
+
 	* src/app_kde/: fixed 'Edit' menu (removed unused entries).
 
 	* src/app_kde/: replaced K3ListView with QTreeWidget in main view.

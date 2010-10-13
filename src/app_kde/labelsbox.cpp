@@ -95,6 +95,7 @@ void LabelsBox::layout(vector<QString> allLabels)
 
     mpLabels=new QTreeWidget(pBox1);
     mpLabels->setColumnCount(1);
+    mpLabels->setAlternatingRowColors(true);
     mpLabels->setHeaderLabels(QStringList("Available labels"));
     for (unsigned int i=0; i<allLabels.size(); i++) {
         addLabelInList(allLabels[i], contains(mSelectedLabels, allLabels[i]));

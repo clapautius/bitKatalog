@@ -108,6 +108,7 @@ int main(int argc, char **argv)
         KAboutData::License_GPL_V2, ki18n("(C) 2009 Tudor Marian Pristavu"));
 
     about.addAuthor(ki18n("Tudor Marian Pristavu"), ki18n(""), QByteArray("clapautiusAtGmailDotCom") );
+    about.setProgramIconName("media-optical");
     
     KCmdLineArgs::init(argc, argv, &about);
     KCmdLineOptions options;

@@ -22,6 +22,7 @@
 #include <qpainter.h>
 #include <qlayout.h>
 #include <vector>
+#include <QHeaderView>
 #include <string>
 #include <klineedit.h>
 
@@ -91,7 +92,13 @@ void DetailsBox::editLabels()
         mCurrentLabels=pLabelsBox->getSelectedLabels();
         mpLabels->clear();
         for (uint i=0; i<mCurrentLabels.size(); i++) {
-            mpLabels->insertItem(mCurrentLabels[i]);
+            QStringList list;
+            list.push_back("");
+            list.push_back(mCurrentLabels[i]);
+            QTreeWidgetItem *pLabel=new
+                QTreeWidgetItem(list);
+            pLabel->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
+            mpLabels->addTopLevelItem(pLabel);
         }
     }
 }
@@ -112,7 +119,7 @@ void DetailsBox::layout()
     QSize lSize;
     QFontMetrics *lpFontMetrics;
 
-    resize(500,500);
+    resize(500,400);
 
     KVBox *pBox1= new KVBox();
     KPageWidgetItem *pPage1=addPage(pBox1, QString("General"));
@@ -120,6 +127,7 @@ void DetailsBox::layout()
     
     mpName=new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
+    mpName->setTextInteractionFlags(Qt::TextSelectableByMouse);
     lFont=mpName->font();
     lFont.setBold(true);
     mpName->setFont(lFont);
@@ -134,7 +142,14 @@ void DetailsBox::layout()
     mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
     
     KHBox *pLabelsBox=new KHBox(mpLabelGroup);
-    mpLabels=new K3ListBox(pLabelsBox);
+    mpLabels=new QTreeWidget(pLabelsBox);
+    mpLabels->setColumnCount(2);
+    mpLabels->header()->hide();
+    mpLabels->setSelectionMode(QAbstractItemView::NoSelection);
+    mpLabels->sortByColumn(1, Qt::AscendingOrder);
+    mpLabels->setSortingEnabled(true);
+    mpLabels->setColumnHidden(0, true);
+    mpLabels->setAlternatingRowColors(true);
     lSize=mpLabels->size();
     lFont=mpLabels->font();
     lpFontMetrics=new QFontMetrics(lFont);
@@ -143,7 +158,12 @@ void DetailsBox::layout()
 
     mCurrentLabels=vectWstringToVectWQString(mpXmlItem->getLabels());
     for (uint i=0; i<mCurrentLabels.size(); i++) {
-        mpLabels->insertItem(mCurrentLabels[i]);
+        QStringList list;
+        list.push_back("");
+        list.push_back(mCurrentLabels[i]);
+        QTreeWidgetItem *pLabel=new QTreeWidgetItem(list);
+        pLabel->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
+        mpLabels->addTopLevelItem(pLabel);
     }
     
     KHBox *pLabelButtons=new KHBox(mpLabelGroup);
@@ -164,21 +184,34 @@ void DetailsBox::layout()
           pPage2=addPage(pBox2, QString("File details"));
           pPage2->setHeader(QString("File details"));
           KVBox *pLayoutBox2=new KVBox(pBox2);
-          str="Sha1 sum: ";
+          pLayoutBox2->setSpacing(20);
+
+          // size
+          str=sizeToHumanReadableSize(details["size"]);
+          addDetailLabels(pLayoutBox2, "Size   :", str.c_str());
+
+          // sha1
           if (details[SHA1LABEL].empty())
-              str+="-";
-          else
-              str+=details[SHA1LABEL];
-          mpSha1Label=new QLabel(str.c_str(), pLayoutBox2);
-          str="Sha256 sum: ";
+              str="-";
+          else {
+              str=details[SHA1LABEL].substr(0, details[SHA1LABEL].size()/2);
+              str+="\n";
+              str+=details[SHA1LABEL].substr(details[SHA1LABEL].size()/2);
+          }
+          addDetailLabels(pLayoutBox2, "SHA1   :", str.c_str());
+
+          // sha256
           if (details[SHA256LABEL].empty())
-              str+="-";
-          else
-              str+=details[SHA256LABEL];
-          mpSha256Label=new QLabel(str.c_str(), pLayoutBox2);
-          str="Size: ";
-          str+=sizeToHumanReadableSize(details["size"]);
-          mpSizeLabel=new QLabel(str.c_str(), pLayoutBox2);
+              str="-";
+          else {
+              str=details[SHA256LABEL].substr(0, details[SHA256LABEL].size()/2);
+              str+="\n";
+              str+=details[SHA256LABEL].substr(details[SHA256LABEL].size()/2);
+          }
+          addDetailLabels(pLayoutBox2, "SHA256 :", str.c_str());
+
+          pLayoutBox2->layout()->addItem(
+              new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding));
       }
       else if (2 == fileType) {
           pBox2= new KVBox();
@@ -194,6 +227,8 @@ void DetailsBox::layout()
         pTmpLabel=new QLabel("Creation date: ", mpCdateBox);
         mpCdateEdit=new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(details["cdate"].c_str());
+        pBox2->layout()->addItem(
+            new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding));
     }
 }
 
@@ -285,3 +320,20 @@ DetailsBox::labelsWereModified() const
 {
     return mLabelsWereModified;
 }
+
+
+void
+DetailsBox::addDetailLabels(QFrame *pFrame,
+                            const char *pText1, const char *pText2)
+{
+    KHBox *pBox=new KHBox(pFrame);
+    pBox->setSpacing(10);
+    pBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    QLabel *pLabel1=new QLabel(pText1, pBox);
+    pLabel1->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    pLabel1->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    QLabel *pLabel2=new QLabel(pText2, pBox);
+    pLabel2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    pLabel2->setTextInteractionFlags(Qt::TextSelectableByMouse);
+}
+

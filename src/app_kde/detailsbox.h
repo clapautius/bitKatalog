@@ -29,7 +29,6 @@
 #include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
 #include <QTreeWidget>
-#include <k3listbox.h>
 #include <kvbox.h>
 #include <klineedit.h>
 
@@ -69,6 +68,9 @@ private:
     
     void layout();
 
+    static void addDetailLabels(QFrame *pFrame,
+                                const char *pText1, const char *pText2);
+
     Xfc *mpCatalog;
     
     XfcEntity *mpXmlItem;
@@ -102,7 +104,7 @@ private:
     KLineEdit *mpDescriptionEdit; // on heap
     KLineEdit *mpCdateEdit;
             
-    K3ListBox *mpLabels;
+    QTreeWidget *mpLabels;
 
     const std::vector<QString> & mrAllLabels;
     std::vector<QString> mCurrentLabels;
