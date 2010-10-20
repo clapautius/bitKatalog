@@ -170,6 +170,10 @@ tokenizePath(std::string path)
 }  
 
 
+/**
+ * Copy file src to dest.
+ * Overwrites destination if exists.
+ **/
 int
 copyFile(string src, string dest)
 {
@@ -181,13 +185,6 @@ copyFile(string src, string dest)
     fin.open(src.c_str(), ios::in | ios::binary);
     if (!fin.good()) {
         rc=-1;
-    }
-    if (0==rc) {
-        fout.open(dest.c_str(), ios::in);
-        if (fout.good()) { // dest. exists
-            rc=-3;
-        }
-        fout.close();
     }
     if (0==rc) {
         fout.open(dest.c_str(), ios::out);

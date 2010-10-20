@@ -201,37 +201,21 @@ getTimeSinceMidnight()
 int
 saveWithBackup(Xfc *pXfcCat, std::string path, std::string &error)
 {
-    char aux[5];
-    int i, rc=0;
+    int rc=0;
     string name;
     char pathBuf[PATH_MAX+1];
     string realPath;
     if (fileExists(path)) {
-        char *p=realpath(path.c_str(), pathBuf);
-        if (p) {
-            realPath=p;
-        }
-        else {
+        realPath=realpath(path.c_str(), pathBuf);
+        if (realPath.empty()) {
             error=strerror(errno);
             return -3;
         }
         if (fileExists(realPath)) {
-            for (i=0;i<999;i++) {
-                sprintf(aux, ".%03d", i);
-                name=realPath+aux;
-                if(!fileExists(name))
-                    break;
-            }
-            if (i==1000) { // wow, 1000 backups
+            name=realPath+"~";
+            if (copyFile(realPath, name)!=0) {
                 rc=-1;
-                error="too many backups";
-            }
-            else {
-                name=realPath+aux;
-                if (copyFile(realPath, name)!=0) {
-                    rc=-1;
-                    error="copy error";
-                }
+                error="copy error";
             }
         }
     }

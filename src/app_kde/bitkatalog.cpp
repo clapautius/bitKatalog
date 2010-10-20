@@ -289,25 +289,29 @@ bitKatalog::fileSave()
   if (gCatalogState==1) {
     Xfc *lpCatalog=m_view->getCatalog();
     if(lpCatalog==NULL) {
-      KMessageBox::error(this, "No catalog! You should load a catalog from file or create a new one");
+      KMessageBox::error(this,
+                         "No catalog! You should load a catalog from file \
+or create a new one");
     }
     else {
-      if (mCatalogPath=="") {
-        fileSaveAs();
-      }
-      else {
-          string err;
-          // :fixme: - check global config
-          if (saveWithBackup(lpCatalog, mCatalogPath, err)==0) {
-              //m_view->resetModifiedFlag();
-              gCatalogState=2;
-              gpMainWindow->updateTitle(false);
-              //KMessageBox::information(this, "File succesfully saved");
-          }
-          else {
-              KMessageBox::error(this, QString("Error saving xml file. Error was: ")+QString(err.c_str()));
+        if (mCatalogPath=="") {
+            fileSaveAs();
         }
-      }
+        else {
+            string err;
+            // :fixme: - check global config
+            if (saveWithBackup(lpCatalog, mCatalogPath, err)==0) {
+                //m_view->resetModifiedFlag();
+                gCatalogState=2;
+                gpMainWindow->updateTitle(false);
+                //KMessageBox::information(this, "File succesfully saved");
+            }
+            else {
+                KMessageBox::error(this,
+                                   QString("Error saving xml file. Error was: ")
+                                   +err.c_str());
+            }
+        }
     }
   }
 }

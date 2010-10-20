@@ -1,3 +1,8 @@
+2010-10-20  Tudor M.P.  <clapautiusAtGmailDotCom>
+
+	* src/misc.cpp (saveWithBackup): make a proper backup function (use
+	standard '~' suffix for the backup filename).
+
 2010-10-13  Tudor M.P.  <clapautiusAtGmailDotCom>
 
 	* src/app_kde/detailsbox.cpp: GUI improvements.
