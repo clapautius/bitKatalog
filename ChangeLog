@@ -125,4 +125,3 @@
 	of file. Files and dirs are distinct elements ('file' and 'dir'). Added
 	an xslt script to convert from the old xml format to the new one
 	(xfc0ToXfc.xsl).
-
