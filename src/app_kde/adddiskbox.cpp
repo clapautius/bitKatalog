@@ -220,7 +220,9 @@ void AddDiskBox::slotUser1()
             mpCatalog->setDescriptionOf(std::string("/")+lDiskName, lDiskDescription);
         }
         catch(std::string e) {
-            KMessageBox::error(this, "Cannot add description to disk");
+            QString err_msg = "Cannot add description to disk";
+            err_msg += e.c_str();
+            KMessageBox::error(this, err_msg);
         }
     }
     if (lDiskCDate!="") {

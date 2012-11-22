@@ -105,7 +105,7 @@ getFileListInDir(std::string path)
 std::string
 getLastComponentOfPath(std::string path)
 {
-    unsigned int pos;
+    size_t pos;
     pos=path.find_last_of('/');
     if (pos==std::string::npos)
         return path;

@@ -451,7 +451,10 @@ xmlNodePtr Xfc::addNewDiskToXmlTree(std::string lDiskName, std::string lDiskCate
     if(lpNode==NULL)
         throw std::string("Xfc::addNewDiskToXmlTree(): xmlNewTextChild() error");
     
-    xmlNewTextChild(lpNode, NULL, (xmlChar*)"name", (xmlChar*)lDiskName.c_str());
+    if (xmlNewTextChild(lpNode, NULL, (xmlChar*)"name",
+                        (xmlChar*)lDiskName.c_str()) == NULL) {
+        throw string(__FUNCTION__) + "xmlNewTextChild() error";
+    }
 
     if(lDiskCategory!="")
         xmlNewTextChild(lpNode, NULL, (xmlChar*)"category", (xmlChar*)lDiskCategory.c_str());
@@ -704,7 +707,7 @@ xmlNodePtr Xfc::getNodeForPathRec(std::string lPath, xmlNodePtr lpNode) const
     bool lLastComponent=false;
     if (lPath=="")
         return NULL;
-    unsigned int lSeparatorPos=lPath.find_first_of('/');
+    size_t lSeparatorPos = lPath.find_first_of('/');
     if (lSeparatorPos==std::string::npos) { // last component
         lFileName=lPath;
         lLastComponent=true;
@@ -984,15 +987,13 @@ Xfc::addLabelsTo(xmlNodePtr pNode, const vector<string> *pLabels,
 }
 
 
-void Xfc::removeLabelFrom(std::string lPath,
-                     std::string lLabel)
+void Xfc::removeLabelFrom(std::string lPath, std::string lLabel)
         throw (std::string)
 {
     xmlNodePtr lpNode;
     lpNode=getNodeForPath(lPath);
     if(lpNode==NULL)
         throw std::string("No such node");
-    bool lFound=false;
     
     // labels
     xmlNodePtr lpChildNode;
@@ -1000,7 +1001,6 @@ void Xfc::removeLabelFrom(std::string lPath,
     while (lpChildNode!=NULL) {
         if (isLabel(lpChildNode)) {
             if (getValueOfNode(lpChildNode)==lLabel) {
-                lFound=true;
                 xmlUnlinkNode(lpChildNode);
                 xmlFreeNode(lpChildNode);
                 break;
