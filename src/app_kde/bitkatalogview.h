@@ -142,7 +142,12 @@ private:
     void addCatalogLabels(std::vector<std::string>);
 
     void addCatalogLabel(std::string);
-    
+
+    /**
+     * Sort first columnt, etc.
+     */
+    void treeRedrawn();
+
     KParts::ReadOnlyPart *m_html;
     
     QTreeWidget *mListView; // :tmp: - rename this

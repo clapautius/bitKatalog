@@ -122,6 +122,7 @@ bitKatalogView::openUrl(const KUrl& url)
         gCatalogState=2;
         gpMainWindow->setCatalogPath(url.path());
         gpMainWindow->updateTitle(false);
+        treeRedrawn();
     }
 }
 
@@ -492,6 +493,7 @@ bitKatalogView::renameDisk() throw()
         lpItem->setText(NAME_COLUMN, newName);
         gCatalogState=1;
         gpMainWindow->updateTitle(true);
+        treeRedrawn();
     }
   }
   else {
@@ -525,6 +527,7 @@ bitKatalogView::deleteDisk() throw()
           mCurrentItemPath.clear();
           gCatalogState=1;
           gpMainWindow->updateTitle(true);
+          treeRedrawn();
       }
       catch (string s) {
           string err="Cannot delete disk. Error was: ";
@@ -571,6 +574,7 @@ bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
     if (pTempIterator->hasMoreChildren())
         pItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
     delete pTempIterator;
+    treeRedrawn();
 }
 
 
@@ -694,3 +698,8 @@ bitKatalogView::collapseItem(QTreeWidgetItem *pItem)
     static_cast<XmlEntityItem*>(pItem)->setOpened(false);
 }
 
+
+void bitKatalogView::treeRedrawn()
+{
+    mListView->sortItems(0, Qt::AscendingOrder);
+}
