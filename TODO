@@ -1,1 +1,3 @@
+- duplicate disks (e.g. z_x04, twice in x.xfc from 201005-25)
 - implement 'add label rec.' in cli app;
+- x59 - verification issues;
