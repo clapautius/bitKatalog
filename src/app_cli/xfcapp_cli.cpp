@@ -505,7 +505,7 @@ static int processCommand(std::vector<std::string> &rCmd)
           try {
               XfcEntity ent = gXfc.getEntityFromPath(rCmd[3]);
               ent.setOrAddParam(rCmd[1], rCmd[2]);
-              displayError("Ok");
+              displayError("OK");
           }
           catch (std::string e) {
               displayError(std::string("Error setting param. value for: ") + rCmd[3]);

@@ -248,9 +248,12 @@ void XfcEntity::setOrAddParam(const std::string &elt_name,
         if (p_new_node) {
             // keep elements at the beginning (right after 'name')
             xmlNodePtr p_name_node = mpXfc->getSubelementByName(p_node, "name");
-            xmlNodePtr p_result = xmlAddNextSibling(p_name_node, p_new_node);
-            if (!p_result) {
-                throw std::string(__FUNCTION__) + ": Error moving xml element";
+            // if 'name' node exists, move after it; if not, don't move
+            if (p_name_node) {
+                xmlNodePtr p_result = xmlAddNextSibling(p_name_node, p_new_node);
+                if (!p_result) {
+                    throw std::string(__FUNCTION__) + ": Error moving xml element";
+                }
             }
         } else {
             throw std::string(__FUNCTION__) + ": Error creating xml element";
