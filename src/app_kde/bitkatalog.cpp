@@ -473,10 +473,9 @@ void bitKatalog::addDisk()
             gCatalogState=1; // modified
             gpMainWindow->updateTitle(true);
             if (pAddDiskBox->resultOk()) {
-                XfcEntity ent;
                 string newDiskPath=pAddDiskBox->addedDiskPath();
-                ent=m_view->getCatalog()->getEntityFromPath(
-                    newDiskPath.c_str());
+                XfcEntity ent =
+                  m_view->getCatalog()->getEntityFromPath(newDiskPath.c_str());
                 m_view->addFirstLevelElement(ent);
             }
             else {

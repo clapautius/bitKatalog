@@ -35,6 +35,7 @@
 #include "xfcapp.h"
 #include "interface.h"
 #include "xfc.h"
+#include "xfcEntity.h"
 #include "misc.h"
 #include "fs.h"
 #include "plugins.h"
@@ -480,6 +481,36 @@ static int processCommand(std::vector<std::string> &rCmd)
       }
       else {
           cmdVerifyDisk(rCmd);
+      }
+  }
+  else if ("get" == rCmd[0]) {
+      if (rCmd.size() < 3) {
+          displayError("Usage: get <param> <path>");
+      } else {
+          try {
+              XfcEntity ent = gXfc.getEntityFromPath(rCmd[2]);
+              string s = ent.getParamValue(rCmd[1]);
+              displayMessage(s);
+          }
+          catch (std::string e) {
+              displayError(std::string("Error getting param. value for: ") + rCmd[2]);
+              displayError(e);
+          }
+      }
+  }
+  else if ("set" == rCmd[0]) {
+      if (rCmd.size() < 4) {
+          displayError("Usage: set <param> <value> <path>");
+      } else {
+          try {
+              XfcEntity ent = gXfc.getEntityFromPath(rCmd[3]);
+              ent.setOrAddParam(rCmd[1], rCmd[2]);
+              displayError("Ok");
+          }
+          catch (std::string e) {
+              displayError(std::string("Error setting param. value for: ") + rCmd[3]);
+              displayError(e);
+          }
       }
   }
 #if defined(XFC_DEBUG)

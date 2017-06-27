@@ -136,11 +136,13 @@ XfcEntity::getLabels()
 }
 
 
+/*
 void
 XfcEntity::setParams(std::vector<std::string> lVect, bool lIsFile, bool lIsDisk)
 {
 
 }
+*/
 
 
 void
@@ -214,4 +216,55 @@ XfcEntity::getLabelsAsString() const
         ret+=labels[i];
     }
     return ret;
+}
+
+
+void XfcEntity::setComment(const std::string &comment)
+{
+}
+
+
+std::string XfcEntity::getComment() const
+{
+    return getParamValue("comment");
+}
+
+
+void XfcEntity::setOrAddParam(const std::string &elt_name,
+                              const std::string &elt_value)
+{
+    xmlNodePtr p_node = mpXmlNode; // just an alias
+    xmlNodePtr p_subelement_node;
+    std::string s;
+
+    // first try to find existing node
+    p_subelement_node = mpXfc->getSubelementByName(p_node, elt_name);
+    if (p_subelement_node) {
+        mpXfc->setNodeText(p_subelement_node, elt_value);
+    } else {
+        xmlNodePtr p_new_node = NULL;
+        p_new_node = xmlNewTextChild(p_node , NULL, (xmlChar*)elt_name.c_str(),
+                                     (xmlChar*)elt_value.c_str());
+        if (p_new_node) {
+            // keep elements at the beginning (right after 'name')
+            xmlNodePtr p_name_node = mpXfc->getSubelementByName(p_node, "name");
+            xmlNodePtr p_result = xmlAddNextSibling(p_name_node, p_new_node);
+            if (!p_result) {
+                throw std::string(__FUNCTION__) + ": Error moving xml element";
+            }
+        } else {
+            throw std::string(__FUNCTION__) + ": Error creating xml element";
+        }
+    }
+}
+
+
+std::string XfcEntity::getParamValue(const std::string &elt_name) const
+{
+    xmlNodePtr p_subelement_node = mpXfc->getSubelementByName(mpXmlNode, elt_name);
+    if (p_subelement_node) {
+        return mpXfc->getNodeText(p_subelement_node);
+    } else {
+        return "";
+    }
 }

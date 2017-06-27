@@ -601,11 +601,10 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     EntityIterator *lpIterator;
     std::string lS="/";
     lpIterator=new EntityIterator(*mpCatalog, lS);
-    XfcEntity lEnt;
 
     // add first level elements without opening root element
     while (lpIterator->hasMoreChildren()) {
-        lEnt=lpIterator->getNextChild();
+        XfcEntity lEnt = lpIterator->getNextChild();
         addFirstLevelElement(lEnt);
     }
     mRootItem->setAsOpened();

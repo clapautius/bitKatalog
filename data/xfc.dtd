@@ -1,11 +1,13 @@
 <!ELEMENT catalog (disk)*>
 
-<!ELEMENT disk (name, cdate?, category?, description?, label*, file*, dir*)>
+<!ELEMENT disk (name, cdate?, category?, description?, storage_dev?, details?, label*, file*, dir*)>
 
 <!ELEMENT name (#PCDATA)>
 <!ELEMENT category (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 <!ELEMENT label (#PCDATA)>
+<!ELEMENT storage_dev (#PCDATA)>
+<!ELEMENT comment (#PCDATA)>
 
 <!ELEMENT file (name, size?, sum?, category?, descrption?, label*)>
 <!ELEMENT dir (name, size?, category?, descrption?, label*, file*, dir*)>

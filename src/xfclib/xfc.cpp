@@ -1129,10 +1129,9 @@ XfcEntity Xfc::getEntityFromNode(xmlNodePtr lpNode)
 XfcEntity
 Xfc::getEntityFromPath(std::string path) throw (std::string)
 {
-    XfcEntity ent;
     xmlNodePtr pNode=getNodeForPath(path);
     if (pNode) {
-        ent=getEntityFromNode(pNode);
+        XfcEntity ent = getEntityFromNode(pNode);
         return ent;
     }
     throw string(__FUNCTION__)+": No such node";
@@ -1374,7 +1373,6 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefi
     map<string, string> details;
     vector<string> namesOnDisk;
     EntityDiff diff;
-    XfcEntity ent;
     bool shaWasMissing=false;
 
     gLog<<xfcDebug<<"Verifying dir: "<<diskPath<<eol;
@@ -1387,7 +1385,7 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefi
     
     EntityIterator entIterator(*this, catalogPath);
     while (entIterator.hasMoreChildren()) {
-        ent=entIterator.getNextChild();
+        XfcEntity ent = entIterator.getNextChild();
         entitiesInCatalog.push_back(ent);
         namesInCatalog.push_back(ent.getName());
     }
@@ -1472,4 +1470,37 @@ Xfc::verifyDirectory(string catalogPath, string diskPath, unsigned int pathPrefi
         return 2;
     else
         return 1;
+}
+
+
+xmlNodePtr Xfc::getSubelementByName(xmlNodePtr pNode, const std::string &name)
+{
+    xmlNodePtr pNameNode = pNode->xmlChildrenNode;
+    while (pNameNode != NULL) {
+        if (!strcmp((const char*)pNameNode->name, name.c_str())) {
+            return pNameNode;
+        }
+        pNameNode = pNameNode->next;
+    }
+    return NULL;
+}
+
+
+std::string Xfc::getNodeText(xmlNodePtr pNode)
+{
+    std::string s;
+    if (pNode) {
+        xmlChar *pStr = xmlNodeListGetString(mpDoc, pNode->xmlChildrenNode, 1);
+        s = (char*)pStr;
+        xmlFree(pStr);
+    }
+    return s;
+}
+
+
+void Xfc::setNodeText(xmlNodePtr p_node, const std::string &text)
+{
+    if (p_node) {
+        xmlNodeSetContent(p_node, (xmlChar*)text.c_str());
+    }
 }

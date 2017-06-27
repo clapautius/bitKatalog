@@ -99,14 +99,13 @@ void XmlEntityItem::setOpened(bool lOpen)
         " entity "<<xmlName()<<eol;
     if(lOpen && !mAlreadyOpened)
     {
-        XfcEntity ent;
         XmlEntityItem *lpItem;
         EntityIterator *lpTempIterator;
         // :fixme: - assert(mpNode)
         EntityIterator *lpIterator=new EntityIterator(*mspCatalog, mpNode);
         while(lpIterator->hasMoreChildren())
         {
-            ent=lpIterator->getNextChild();
+            XfcEntity ent=lpIterator->getNextChild();
             details=ent.getDetails();
             QString labelsString=str2qstr(ent.getLabelsAsString());
             QStringList columns;

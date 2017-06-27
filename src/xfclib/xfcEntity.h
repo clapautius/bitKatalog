@@ -35,7 +35,9 @@ class XfcEntity
 {
 public:
   
-  XfcEntity(xmlNodePtr pNode=NULL, Xfc *pXfc=NULL);
+    XfcEntity(xmlNodePtr pNode, Xfc *pXfc);
+
+    XfcEntity& operator=(const XfcEntity &rhs);
   
   std::string getName() const;
   
@@ -62,10 +64,24 @@ public:
 
   std::vector<std::string> getLabels();
 
+  /* not used atm
   void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool lIsDisk=false);
+  */
 
   std::string getLabelsAsString() const;
-  
+
+  void setComment(const std::string &comment);
+
+  std::string getComment() const;
+
+  void setOrAddParam(const std::string &elt_name, const std::string &elt_value);
+
+  /**
+   * @return The value of the specified parameter (sub-element), or empty string if no
+   * such sub-element exists.
+   */
+  std::string getParamValue(const std::string &elt_name) const;
+
 private:
 
   void checkValidData(bool xfcMustBeValid=true) const throw (std::string);

@@ -193,6 +193,15 @@ public:
         std::string catalogPath, std::string diskPath, uint pathPrefixLen,
         std::vector<EntityDiff> *pDiffs, volatile const bool *pAbortFlag=NULL);
 
+    /**
+     * @return the xml node or NULL if no such element exists.
+     */
+    xmlNodePtr getSubelementByName(xmlNodePtr p_node, const std::string &name);
+
+    std::string getNodeText(xmlNodePtr p_node);
+
+    void setNodeText(xmlNodePtr p_node, const std::string &text);
+
 private:    
 
     std::string getValueOfNode(xmlNodePtr) throw (std::string);
