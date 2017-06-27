@@ -97,7 +97,7 @@ private:
     //KLineEdit *mpSimpleSearchEdit; // on heap
     
     KHBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3,
-        *mpLayoutBox4; // on heap
+      *mpLayoutBox4, *mpLayoutBox5, *mpLayoutBox6; // on heap
 
     // on heap
     KPushButton *mpBrowseButton, *mpTodayCDateButton, *mpSomeDayCDateButton;
@@ -107,7 +107,7 @@ private:
     Q3VGroupBox *mpGroupBox;
     
     KLineEdit *mpDiskNameEdit, *mpDiskDescriptionEdit,
-        *mpDiskCDateEdit;
+      *mpDiskCDateEdit, *mpDiskCommentEdit, *mpDiskStorageDevEdit;
     
     QCheckBox *mpAddRootCheckBox;
     QCheckBox *mpComputeSha1SumCheckBox, *mpComputeSha256SumCheckBox;

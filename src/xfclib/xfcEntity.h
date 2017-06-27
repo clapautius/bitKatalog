@@ -74,6 +74,10 @@ public:
 
   std::string getComment() const;
 
+  void setStorageDev(const std::string &storage_dev);
+
+  std::string getStorageDev() const;
+
   void setOrAddParam(const std::string &elt_name, const std::string &elt_value);
 
   /**

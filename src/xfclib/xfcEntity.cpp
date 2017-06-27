@@ -219,17 +219,6 @@ XfcEntity::getLabelsAsString() const
 }
 
 
-void XfcEntity::setComment(const std::string &comment)
-{
-}
-
-
-std::string XfcEntity::getComment() const
-{
-    return getParamValue("comment");
-}
-
-
 void XfcEntity::setOrAddParam(const std::string &elt_name,
                               const std::string &elt_value)
 {
@@ -270,4 +259,28 @@ std::string XfcEntity::getParamValue(const std::string &elt_name) const
     } else {
         return "";
     }
+}
+
+
+void XfcEntity::setComment(const std::string &comment)
+{
+    return setOrAddParam("comment", comment);
+}
+
+
+std::string XfcEntity::getComment() const
+{
+    return getParamValue("comment");
+}
+
+
+void XfcEntity::setStorageDev(const std::string &storage_dev)
+{
+    return setOrAddParam("storage_dev", storage_dev);
+}
+
+
+std::string XfcEntity::getStorageDev() const
+{
+    return getParamValue("storage_dev");
 }

@@ -102,8 +102,11 @@ private:
     QLabel *mpSha1Label, *mpSha256Label, *mpSizeLabel;
     
     KLineEdit *mpDescriptionEdit; // on heap
+    KLineEdit *mpStorageDevEdit;
+
     KLineEdit *mpCdateEdit;
-            
+    KLineEdit *mpCommentEdit;
+
     QTreeWidget *mpLabels;
 
     const std::vector<QString> & mrAllLabels;

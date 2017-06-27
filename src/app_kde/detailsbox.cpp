@@ -137,6 +137,12 @@ void DetailsBox::layout()
     details=mpXmlItem->getDetails();
     mpDescriptionEdit->setText(str2qstr(details["description"]));
 
+    KHBox *pCommentBox = new KHBox(pBox1);
+    mpTmpLabel1=new QLabel("Comment: ", pCommentBox);
+    mpCommentEdit = new KLineEdit(pCommentBox);
+    string comment = mpXmlItem->getComment();
+    mpCommentEdit->setText(str2qstr(comment));
+
     // labels group box
     mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
     
@@ -226,6 +232,13 @@ void DetailsBox::layout()
         new QLabel("Creation date: ", mpCdateBox);
         mpCdateEdit=new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(details["cdate"].c_str());
+
+        KHBox *pStorageDevBox = new KHBox(pBox2);
+        mpTmpLabel1=new QLabel("Storage devices: ", pStorageDevBox);
+        mpStorageDevEdit = new KLineEdit(pStorageDevBox);
+        string storage_dev = mpXmlItem->getStorageDev();
+        mpStorageDevEdit->setText(str2qstr(storage_dev));
+
         pBox2->layout()->addItem(
             new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding));
     }
@@ -282,22 +295,40 @@ void DetailsBox::accept()
         mpListItem->setText(LABELS_COLUMN, str2qstr(labelsString));
     }
 
+    // update comment
+    lQString = mpCommentEdit->text();
+    string comment = mpXmlItem->getComment();
+    if (lQString != str2qstr(comment)) {
+        // :fixme: TODO update column if needed (or tooltip)
+        mpXmlItem->setComment(qstr2cchar(lQString));
+        mCatalogWasModified=true;
+    }
+
     if (mpXmlItem->isDisk()) {
-      // update cdate
-      lQString=mpCdateEdit->text();
-      if (lQString!=details["cdate"].c_str()) {
         try {
-            mpCatalog->setCDate(mCompletePath, qstr2cchar(lQString));
-            mCatalogWasModified=true;
+            // update cdate
+            lQString=mpCdateEdit->text();
+            if (lQString!=details["cdate"].c_str()) {
+                mpCatalog->setCDate(mCompletePath, qstr2cchar(lQString));
+                mCatalogWasModified=true;
+            }
+
+            // update storage_dev
+            lQString = mpStorageDevEdit->text();
+            string storage_dev = mpXmlItem->getStorageDev();
+            if (lQString != str2qstr(storage_dev)) {
+                // :fixme: TODO update column if needed (or tooltip)
+                mpXmlItem->setStorageDev(qstr2cchar(lQString));
+                mCatalogWasModified=true;
+            }
         }
         catch(...) {
-            KMessageBox::error(this, "Error setting cdate");
+            KMessageBox::error(this, "Error updating disk");
         }
-      }
     }
-    
+
     KPageDialog::accept();
-} 
+}
 
 
 void

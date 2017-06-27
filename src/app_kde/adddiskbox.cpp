@@ -30,11 +30,12 @@
 #include <kvbox.h>
 
 #include <sstream>
- 
+
 #include "adddiskbox.h"
 #include "main.h"
 #include "scanthread.h"
 #include "misc.h"
+#include "xfcEntity.h"
 
 
 AddDiskBox::AddDiskBox(Xfc *lpCatalog)
@@ -84,7 +85,15 @@ void AddDiskBox::layout()
     //mpLayout1->addWidget(mpLayoutBox3);
     mpTmpLabel3=new QLabel("Disk description: ", mpLayoutBox3);
     mpDiskDescriptionEdit=new KLineEdit(mpLayoutBox3);
-    
+
+    mpLayoutBox5 = new KHBox(mpGroupBox);
+    new QLabel("Comment: ", mpLayoutBox5);
+    mpDiskCommentEdit = new KLineEdit(mpLayoutBox5);
+
+    mpLayoutBox6 = new KHBox(mpGroupBox);
+    new QLabel("Storage devices: ", mpLayoutBox6);
+    mpDiskStorageDevEdit = new KLineEdit(mpLayoutBox6);
+
     // creation date
     mpLayoutBox4=new KHBox(mpGroupBox);
     //mpLayout1->addWidget(mpLayoutBox4);
@@ -121,14 +130,18 @@ void AddDiskBox::slotUser1()
     std::string lDiskName;
     std::string lDiskDescription;
     std::string lDiskCDate;
+    std::string comment;
+    std::string storage_dev;
     bool computeSha1=false, computeSha256=false;
     volatile bool abortScan=false;
-    
+
     lPath=qstr2str(mpPathLabel->text());
     lDiskName=qstr2str(mpDiskNameEdit->text());
     lDiskDescription=qstr2str(mpDiskDescriptionEdit->text());
     lDiskCDate=qstr2str(mpDiskCDateEdit->text());
-    
+    comment = qstr2str(mpDiskCommentEdit->text());
+    storage_dev = qstr2str(mpDiskStorageDevEdit->text());
+
     if (lPath=="") {
         KMessageBox::error(this, "Invalid path");
         return;
@@ -216,9 +229,12 @@ void AddDiskBox::slotUser1()
         close();
         return;
     }
+    std::string disk_path = "/";
+    disk_path += lDiskName;
+    XfcEntity new_disk = mpCatalog->getEntityFromPath(disk_path);
     if (lDiskDescription!="") {
         try {
-            mpCatalog->setDescriptionOf(std::string("/")+lDiskName, lDiskDescription);
+            mpCatalog->setDescriptionOf(disk_path, lDiskDescription);
         }
         catch(std::string e) {
             QString err_msg = "Cannot add description to disk";
@@ -233,6 +249,19 @@ void AddDiskBox::slotUser1()
         catch(std::string e) {
             KMessageBox::error(this, "Cannot set cdate for disk");
         }
+    }
+    try {
+        if (!comment.empty()) {
+            new_disk.setComment(comment);
+        }
+        if (!storage_dev.empty()) {
+            new_disk.setStorageDev(storage_dev);
+        }
+    }
+    catch (std::string &e) {
+            QString err_msg = "Error setting params for the new disk: ";
+            err_msg += e.c_str();
+            KMessageBox::error(this, err_msg);
     }
     mResultOk=true;
     gCatalogState=1;
