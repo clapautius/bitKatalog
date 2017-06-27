@@ -506,7 +506,6 @@ bitKatalogView::renameDisk() throw()
 void
 bitKatalogView::deleteDisk() throw()
 {
-  QTreeWidgetItem *lpItem;
   std::string completePath;
   std::string lOldName, lNewName;
   string confirmDialog="Are you sure you want to delete the disk ";
@@ -514,7 +513,6 @@ bitKatalogView::deleteDisk() throw()
     KMessageBox::error(this, "No catalog!");
     return;
   }
-  lpItem=mpCurrentItem;
   completePath=mCurrentItemPath;
   confirmDialog+=completePath;
   confirmDialog+=" ?";

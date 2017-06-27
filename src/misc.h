@@ -35,7 +35,7 @@ throw (std::string);
 
 std::string execChecksum(std::string lPath, std::string lShaProgramPath,
                          volatile const bool*)
-throw (std::string);  
+throw (std::string);
 
 std::string getTimeSinceMidnight();
 
@@ -48,6 +48,6 @@ std::string vectorWStringsToString(std::vector<std::string>& vect,
 
 bool contains(std::vector<std::string> vect, std::string elt);
 
-unsigned long int stringToUint(std::string) throw (std::string);
+long int stringToInt(std::string) throw (std::string);
 
 #endif

@@ -286,10 +286,10 @@ contains(vector<string> vect, string elt)
 }
 
 
-unsigned long int
-stringToUint(std::string str) throw (std::string)
+long int
+stringToInt(std::string str) throw (std::string)
 {
-    unsigned long int sizeNum;
+    long int sizeNum;
     char *pRet=NULL;
     sizeNum=strtol(str.c_str(), &pRet, 10);
     if (pRet==str.c_str()) {

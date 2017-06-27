@@ -68,7 +68,7 @@ matchesSize(const QFileInfo &rFsFileInfo, const string &,
         return false;
     }
     else {
-        return rFsFileInfo.size() == stringToUint(size);
+        return rFsFileInfo.size() == stringToInt(size);
     }
 }
 
@@ -235,7 +235,6 @@ void SearchBox::connectButtons()
 void SearchBox::search()
 {
     vector<string> *pResultsPaths=NULL;
-    vector<xmlNodePtr> *pResultsNodes;
 
     if (mpCatalog==NULL) {
         KMessageBox::error(this, "No catalog!");
@@ -251,7 +250,6 @@ void SearchBox::search()
     mSearchStruct.mString=qstr2str(mpTextEdit->text());
     mSearchStruct.mLabels=mSearchLabels;
     pResultsPaths=&mSearchStruct.mSearchResultsPaths;
-    pResultsNodes=&mSearchStruct.mSearchResultsNodes;
 
     // prepare progress dialog
     mpProgress=new KProgressDialog(this, "Searching ...", "Searching");

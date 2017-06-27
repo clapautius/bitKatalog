@@ -112,7 +112,6 @@ void DetailsBox::connectButtons()
 
 void DetailsBox::layout()
 {
-    QLabel *pTmpLabel;
     std::string str;
     QFont lFont;
     map<string, string> details;
@@ -224,7 +223,7 @@ void DetailsBox::layout()
         pPage2=addPage(pBox2, QString("Disk details"));
         pPage2->setHeader(QString("Disk details"));
         mpCdateBox=new KHBox(pBox2);
-        pTmpLabel=new QLabel("Creation date: ", mpCdateBox);
+        new QLabel("Creation date: ", mpCdateBox);
         mpCdateEdit=new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(details["cdate"].c_str());
         pBox2->layout()->addItem(
