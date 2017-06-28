@@ -45,7 +45,7 @@ class Xfc;
  * When func ret -1 = abandon parsing
  * It is called for elements of type dir, disk, file or root.
  **/
-typedef int(*ParserFuncType)(uint depth, std::string path, Xfc& rCatalog,
+typedef int(*ParserFuncType)(uint depth, const std::string &path, Xfc& rCatalog,
                              xmlNodePtr pNode, void *pParam);
 
     
@@ -218,7 +218,7 @@ private:
     xmlNodePtr addDirToXmlTree(xmlNodePtr pParent, std::string path)
         throw (std::string);
     
-    void parseRec(uint depth, std::string path, xmlNodePtr pNode,
+    void parseRec(uint depth, const std::string &path, xmlNodePtr pNode,
                   ParserFuncType func, void *pParam)
             throw (std::string);               
     

@@ -135,7 +135,7 @@ private:
 };
 
 
-int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
-                void *lpParam);
+int findInTree(unsigned int lDepth, const std::string &lPath, Xfc& lrXfc,
+               xmlNodePtr lpNode, void *lpParam);
 
 #endif

@@ -614,7 +614,7 @@ void bitKatalogView::setCatalog(Xfc *lpNewCatalog)
  *
  * @sa bitKatalogView::populateCatalogLabels
  **/
-int collectLabels(uint, std::string, Xfc& rCatalog, xmlNodePtr pNode,
+int collectLabels(uint, const string&, Xfc& rCatalog, xmlNodePtr pNode,
                   void *pParam)
 {
     vector<string> labels;

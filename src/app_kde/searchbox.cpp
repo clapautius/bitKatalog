@@ -330,7 +330,7 @@ SearchBox::disableButtons()
  * @retval -2 : error;
  **/
 int
-findInTree(unsigned int depth __attribute__((unused)), std::string lPath, Xfc& lrXfc,
+findInTree(unsigned int depth __attribute__((unused)), const string &lPath, Xfc& lrXfc,
            xmlNodePtr lpNode, void *lpParam)
 {
     static unsigned long int lPosInProgressBar=1;

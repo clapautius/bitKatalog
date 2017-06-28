@@ -49,7 +49,7 @@ int collectLabels(uint depth, std::string path, Xfc& rCatalog, xmlNodePtr pNode,
  */
 class bitKatalogView : public QWidget
 {
-    friend int collectLabels(uint depth, std::string path, Xfc& rCatalog,
+    friend int collectLabels(uint depth, const std::string &path, Xfc& rCatalog,
                              xmlNodePtr pNode, void *pParam);
 
     Q_OBJECT

@@ -47,7 +47,7 @@ using std::map;
  * @retval -2 : error;
  **/
 int
-addLabelCallback(unsigned int depth __attribute__((unused)), std::string path, Xfc& rXfc,
+addLabelCallback(unsigned int depth __attribute__((unused)), const string &path, Xfc& rXfc,
                  xmlNodePtr pNode, void *pParam)
 {
     std::string curName;
@@ -64,7 +64,7 @@ addLabelCallback(unsigned int depth __attribute__((unused)), std::string path, X
  * @retval -2 : error;
  **/
 int
-addLabelsCallback(unsigned int depth __attribute__((unused)), string path,
+addLabelsCallback(unsigned int depth __attribute__((unused)), const string &path,
                   Xfc& rXfc, xmlNodePtr pNode, void *pParam)
 {
     rXfc.addLabelsTo(pNode, static_cast<const vector<string>*>(pParam), true);
@@ -182,7 +182,7 @@ std::vector<std::string> Xfc::getDiskList()
 }    
 
 
-void Xfc::parseRec(unsigned int lDepth, std::string lPath, xmlNodePtr lpNode,
+void Xfc::parseRec(unsigned int lDepth, const std::string &lPath, xmlNodePtr lpNode,
                    ParserFuncType callBackFunc, void *lpParam)
     throw (std::string)
 {

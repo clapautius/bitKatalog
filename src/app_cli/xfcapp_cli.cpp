@@ -49,9 +49,9 @@ XfcLogger gcLog; // cli logger
 string gStartFile;
 string gCatalogPath;
 
-int printToStdout(unsigned int lDepth, std::string lPath, Xfc&,
+int printToStdout(unsigned int lDepth, const std::string &lPath, Xfc&,
                    xmlNodePtr lpNode, void *lpParam);
-int findInTree(unsigned int lDepth, std::string lPath, Xfc&,
+int findInTree(unsigned int lDepth, const std::string &lPath, Xfc&,
                 xmlNodePtr lpNode, void *lpParam);
 void initStuff();
 
@@ -624,7 +624,7 @@ static void cmdRenameDisk(std::vector<std::string> cmd)
 }
 
 
-int printToStdout(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
+int printToStdout(unsigned int lDepth, const string &lPath, Xfc& lrXfc, xmlNodePtr lpNode,
                   void *lpParam)
 {
     for(unsigned short i=0;i<lDepth; i++)
@@ -634,7 +634,7 @@ int printToStdout(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr
 }  
 
 
-int findInTree(unsigned int lDepth, std::string lPath, Xfc& lrXfc, xmlNodePtr lpNode,
+int findInTree(unsigned int lDepth, const string &lPath, Xfc& lrXfc, xmlNodePtr lpNode,
                void *lpParam)
 {
     std::string lName;
