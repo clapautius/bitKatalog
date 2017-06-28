@@ -122,111 +122,101 @@ xmlDocPtr Xfc::getXmlDocPtr() throw (std::string)
  * file or root.
  * When callBackFunc returns -1, it abandons parsing.
  **/
-void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
+void Xfc::parseFileTree(ParserFuncType callback_func, void *p_param)
     throw (std::string)
 {
-#ifdef XFC_TIMING
-    auto entry = MONO_TIME_NOW;
-#endif
+    XFC_TIMING_FN_ENTRY;
     // :fixme: - check state
-    xmlNodePtr lpChild;
-    lpChild=xmlDocGetRootElement(mpDoc);
-    if (lpChild==NULL) // empty document
+    xmlNodePtr p_child;
+    p_child = xmlDocGetRootElement(mpDoc);
+    if (p_child == NULL) // empty document
         return;
-    if (callBackFunc(0, "/", *this, lpChild, lpParam) == -1)
+    if (callback_func(0, "/", *this, p_child, p_param) == -1)
         return; // abandon
-    lpChild=mpDoc->xmlChildrenNode;
-    while (lpChild!=NULL) {
-        parseRec(0, "/", lpChild, callBackFunc, lpParam);
-        lpChild=lpChild->next;
+    p_child = mpDoc->xmlChildrenNode;
+    while (p_child != NULL) {
+        parseRec(0, "/", p_child, callback_func, p_param);
+        p_child = p_child->next;
     }
-#ifdef XFC_TIMING
-    auto exit = MONO_TIME_NOW;
-    std::cout << __FUNCTION__ << ": time (ms): " << MONO_TIME_DIFF_MS(entry, exit)
-              << std::endl;
-#endif
+    XFC_TIMING_FN_EXIT;
 }
 
 
-void Xfc::parseDisk(ParserFuncType callBackFunc, 
-                   std::string lDiskName, void *lpParam)
+void Xfc::parseDisk(ParserFuncType callback_func, std::string disk_name, void *p_param)
 {
-    xmlNodePtr lpChild;
-    lpChild=getNodeForPath(std::string("/")+lDiskName);
-    if(lpChild==NULL) // no such disk
+    xmlNodePtr p_child = getNodeForPath(std::string("/") + disk_name);
+    if(p_child == NULL) // no such disk
         throw std::string("No such disk");
-    parseRec(0, std::string("/")+lDiskName, lpChild, callBackFunc, lpParam);
-}            
+    parseRec(0, std::string("/") + disk_name, p_child, callback_func, p_param);
+}
 
 
 std::vector<std::string> Xfc::getDiskList()
 {
-    std::vector<std::string> lVect;
-    std::string lS;
-    xmlNodePtr lpChild;
-    xmlNodePtr lpRoot;
-    lpRoot=xmlDocGetRootElement(mpDoc);
-    if(lpRoot==NULL) // empty document
-        return lVect;
-    lpChild=lpRoot->xmlChildrenNode;
-    while(lpChild!=NULL)
-    {
-        lS=getNameOfElement(lpChild);
-        lVect.push_back(lS);
+    std::vector<std::string> ret_vect;
+    xmlNodePtr p_child;
+    xmlNodePtr p_root;
+    p_root = xmlDocGetRootElement(mpDoc);
+    if (p_root == NULL) // empty document
+        return ret_vect;
+    p_child = p_root->xmlChildrenNode;
+    while (p_child != NULL) {
+        ret_vect.push_back(getNameOfElement(p_child));
 #if defined(XFC_DEBUG)
-        cout<<":debug: new disk: "<<lS.c_str()<<endl;
-#endif 
-        lpChild=lpChild->next;
+        cout << ":debug: new disk: " << getNameOfElement(p_child) << endl;
+#endif
+        p_child = p_child->next;
     }
-    return lVect;
-}    
+    return ret_vect;
+}
 
 
-void Xfc::parseRec(unsigned int lDepth, const std::string &lPath, xmlNodePtr lpNode,
-                   ParserFuncType callBackFunc, void *lpParam)
+void Xfc::parseRec(unsigned int depth, const std::string &path, xmlNodePtr p_node,
+                   ParserFuncType callback_func, void *p_param)
     throw (std::string)
 {
-    int lRet;
-    xmlNodePtr lpChild;
-    std::string lS;
-    lpChild=lpNode->xmlChildrenNode;
-    
+    int rc;
+    xmlNodePtr p_child;
+    std::string s;
+    p_child = p_node->xmlChildrenNode;
+
 #if defined(XFC_DEBUG)
-    cout<<":debug: parseRec(): addr="<<lpNode<<", depth="<<lDepth;
-    cout<<", path="<<lPath.c_str()<<", lpNode->name="<<lpNode->name<<endl;
+    cout << ":debug: parseRec(): addr=" << p_node << ", depth=" << depth;
+    cout << ", path=" << path.c_str() << ", p_node->name=" << p_node->name << endl;
 #endif
 
-    while (lpChild!=NULL) {
+    while (p_child != NULL) {
 #if defined(XFC_DEBUG)
-        std::cout<<":debug: child addr="<<lpChild<<endl;
-#endif 
-        if (isFileOrDir(lpChild) || isDisk(lpChild)) {
-#if defined(XFC_DEBUG)
-            cout<<":debug: calling callbackFunc for element at addr: "<<lpChild<<endl;
+        std::cout << ":debug: child addr=" << p_child << endl;
 #endif
-            lRet=callBackFunc(lDepth, lPath, *this, lpChild, lpParam);
-            if (lRet==-1) // abandon
+        ElementType type = getTypeOfElement(p_child);
+        if (type == eFile || type == eDir || type == eDisk) {
+#if defined(XFC_DEBUG)
+            cout << ":debug: calling callback for element at addr: " << p_child << endl;
+#endif
+            rc = callback_func(depth, path, *this, p_child, p_param);
+            if (rc == -1) // abandon
                 return;
-            lS=getNameOfElement(lpChild);
-            if (lPath=="/")
-                parseRec(lDepth+1, "/"+lS, lpChild, callBackFunc, lpParam);
+            s = getNameOfElement(p_child);
+            if (path == "/")
+                parseRec(depth + 1, "/" + s, p_child, callback_func, p_param);
             else
-                parseRec(lDepth+1, lPath+"/"+lS, lpChild, callBackFunc, lpParam);
+                parseRec(depth + 1, path + "/" + s, p_child, callback_func, p_param);
         }
         else
-            parseRec(lDepth+1, lPath, lpChild, callBackFunc, lpParam);
-        lpChild=lpChild->next;
+            parseRec(depth + 1, path, p_child, callback_func, p_param);
+        p_child = p_child->next;
     }
 }
 
 
-bool Xfc::isFileOrDir(xmlNodePtr lpNode) const throw()
+bool Xfc::isFileOrDir(xmlNodePtr p_node) const throw()
 {
 #if defined(XFC_DEBUG)
-    //cout<<":debug: checking if it is a file/dir: "<<lpNode->name<<endl;
+    //cout<<":debug: checking if it is a file/dir: "<<p_node->name<<endl;
 #endif
-    ElementType type=getTypeOfElement(lpNode);
-    if (eFile==type || eDir==type)
+    ElementType type = getTypeOfElement(p_node);
+    if (eFile == type || eDir == type)
         return true;
     else
         return false;
@@ -292,48 +282,47 @@ std::string Xfc::getNameOfDisk(xmlNodePtr lpNode)
 }
 
 
-std::string Xfc::getNameOfElement(xmlNodePtr lpNode)
+std::string Xfc::getNameOfElement(xmlNodePtr p_node)
         const throw (std::string)
 {
     // :fixme: - check state
 #if defined(XFC_DEBUG)
 //    cout<<":debug: entering function "<<__FUNCTION__<<endl;
-#endif 
-    std::string lS;
-    if (lpNode==NULL)
-        lS="";
-    else if (eRoot == getTypeOfElement(lpNode)) {
-        xmlChar *pStr;
-        pStr=xmlGetProp(lpNode, (const xmlChar*)"name");
-        if (pStr) {
-            lS=(char*)pStr;
-            xmlFree(pStr);
-        }
-    }
-    else {
-        xmlNodePtr lNameNode;
-        lNameNode=lpNode->xmlChildrenNode; 
-#if defined(XFC_DEBUG)
-        //cout<<"    :debug: searching name of element"<<endl;
-#endif 
-        while (lNameNode!=NULL) {
-#if defined(XFC_DEBUG)
-            //cout<<"    :debug: found "<<(const char*)lNameNode->name<<endl;
-#endif 
-            if (!strcmp((const char*)lNameNode->name, "name")) {
-                xmlChar *lpStr;
-                lpStr=xmlNodeListGetString(mpDoc, lNameNode->xmlChildrenNode, 1);
-                lS=(char*)lpStr;
-                xmlFree(lpStr);
-                break;
+#endif
+    std::string s;
+    if (p_node) {
+        if (eRoot == getTypeOfElement(p_node)) {
+            xmlChar *p_str;
+            p_str = xmlGetProp(p_node, (const xmlChar*)"name");
+            if (p_str) {
+                s = (char*)p_str;
+                xmlFree(p_str);
             }
-            lNameNode=lNameNode->next;
+        } else {
+            xmlNodePtr p_name_node;
+            p_name_node = p_node->xmlChildrenNode;
+#if defined(XFC_DEBUG)
+            //cout<<"    :debug: searching name of element"<<endl;
+#endif
+            while (p_name_node != NULL) {
+#if defined(XFC_DEBUG)
+                //cout<<"    :debug: found "<<(const char*)lNameNode->name<<endl;
+#endif
+                if (!strcmp((const char*)p_name_node->name, "name")) {
+                    xmlChar *p_str;
+                    p_str = xmlNodeListGetString(mpDoc, p_name_node->xmlChildrenNode, 1);
+                    s = (char*)p_str;
+                    xmlFree(p_str);
+                    break;
+                }
+                p_name_node = p_name_node->next;
+            }
         }
     }
 #if defined(XFC_DEBUG)
 //    cout<<":debug: name is: "<<lS.c_str()<<". Exiting function "<<__FUNCTION__<<endl;
-#endif 
-    return lS;
+#endif
+    return s;
 }
 
 
@@ -354,37 +343,36 @@ Xfc::setNameOfElement(xmlNodePtr pNode, std::string newName) throw (std::string)
 }
          
 
-Xfc::ElementType
-Xfc::getTypeOfElement(xmlNodePtr lpNode)
-  const throw (std::string)
+Xfc::ElementType Xfc::getTypeOfElement(xmlNodePtr p_node)
+    const throw (std::string)
 {
     // :fixme: - check state
-    ElementType retVal=eUnknown;
+    ElementType ret_val = eUnknown;
 #if defined(XFC_DEBUG)
     //cout<<":debug: in getTypeOfElement()"<<endl;
-#endif 
-    if (lpNode==NULL)
-        retVal=eUnknown;
-    else {
-        const char *pElemName=(const char*)lpNode->name;
-        if (pElemName) {
-            if (!strcmp(pElemName, "disk"))
-                retVal=eDisk;
-            else if (!strcmp(pElemName, "file"))
-                retVal=eFile;
-            else if (!strcmp(pElemName, "dir"))
-                retVal=eDir;
-            else if (!strcmp(pElemName, "catalog"))
-                retVal=eRoot;
+#endif
+    if (p_node == NULL) {
+        ret_val = eUnknown;
+    } else {
+        const char *p_elt_name = (const char*)p_node->name;
+        if (p_elt_name) {
+            if (!strcmp(p_elt_name, "disk"))
+                ret_val = eDisk;
+            else if (!strcmp(p_elt_name, "file"))
+                ret_val = eFile;
+            else if (!strcmp(p_elt_name, "dir"))
+                ret_val = eDir;
+            else if (!strcmp(p_elt_name, "catalog"))
+                ret_val = eRoot;
             else
-                retVal=eUnknown;
+                ret_val = eUnknown;
         }
     }
 #if defined(XFC_DEBUG)
-    //cout<<":debug: type is: "<<retVal<<endl;
+    //cout<<":debug: type is: "<<ret_val<<endl;
     //cout<<":debug: out of getTypeOfElement()"<<endl;
-#endif 
-    return retVal;
+#endif
+    return ret_val;
 }
 
 
