@@ -125,6 +125,9 @@ xmlDocPtr Xfc::getXmlDocPtr() throw (std::string)
 void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
     throw (std::string)
 {
+#ifdef XFC_TIMING
+    auto entry = MONO_TIME_NOW;
+#endif
     // :fixme: - check state
     xmlNodePtr lpChild;
     lpChild=xmlDocGetRootElement(mpDoc);
@@ -134,10 +137,15 @@ void Xfc::parseFileTree(ParserFuncType callBackFunc, void *lpParam)
         return; // abandon
     lpChild=mpDoc->xmlChildrenNode;
     while (lpChild!=NULL) {
-        parseRec(0, "/", lpChild, callBackFunc, lpParam);        
+        parseRec(0, "/", lpChild, callBackFunc, lpParam);
         lpChild=lpChild->next;
     }
-} 
+#ifdef XFC_TIMING
+    auto exit = MONO_TIME_NOW;
+    std::cout << __FUNCTION__ << ": time (ms): " << MONO_TIME_DIFF_MS(entry, exit)
+              << std::endl;
+#endif
+}
 
 
 void Xfc::parseDisk(ParserFuncType callBackFunc, 
