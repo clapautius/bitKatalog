@@ -1,4 +1,4 @@
-add_executable(xfctst xfc-unit-tests.cpp ../fs.cpp ../misc.cpp ../plugins.cpp ../sha1.c ../sha2.c) # :fixme: move these files to xfclib
+add_executable(xfctst xfc-unit-tests.cpp)
 include_directories(${LIBXML_INCLUDE} ${BOOST_UNITTEST_INCLUDE} ${bitKatalog_SOURCE_DIR}/src ${bitKatalog_SOURCE_DIR}/src/xfclib)
 
 find_library(BOOST_TEST_LIB_DIR boost_unit_test_framework)
