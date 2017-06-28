@@ -29,10 +29,6 @@
 #include "xfc.h"
 #include "xmlentityitem.h"
 
-#define NAME_COLUMN 0
-#define DESCRIPTION_COLUMN 1
-#define LABELS_COLUMN 2
-
 class QPainter;
 class KUrl;
 
@@ -100,6 +96,35 @@ public:
      */
     void print(QPainter *, int height, int width);
 
+    int getNameColumnIndex() const
+    {
+        return k_name_column_idx;
+    }
+
+    int getDescriptionColumnIndex() const
+    {
+        return k_description_column_idx;
+    }
+
+    int getLabelsColumnIndex() const
+    {
+        return k_labels_column_idx;
+    }
+
+    int getStorageDevColumnIndex() const
+    {
+        return k_storage_column_idx;
+    }
+
+    int getNoColumns() const
+    {
+        return k_max_columns;
+    }
+
+    void fillColumnValues(QStringList &columns, const QString &name,
+                          const QString &description, const QString &labels,
+                          const XfcEntity &ent);
+
 signals:
     /**
      * Use this signal to change the content of the statusbar
@@ -166,6 +191,17 @@ private:
     XmlEntityItem *mpCurrentItem;
 
     std::string mCurrentItemPath;
+
+protected:
+
+    void setupColumns();
+
+    const int k_name_column_idx = 0;
+    const int k_description_column_idx = 1;
+    const int k_storage_column_idx = 2;
+    const int k_labels_column_idx = 3;
+    const int k_max_columns = 4;
+
 };
 
 #endif // _BITKATALOGVIEW_H_

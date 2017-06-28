@@ -144,18 +144,8 @@ bitKatalogView::setupListView()
 {
     mListView=new QTreeWidget(this);    
     mListView->setRootIsDecorated(true);
-    mListView->setAllColumnsShowFocus(true);
-    mListView->setColumnCount(3);
-    // :fixme: - proportional
-    mListView->setColumnWidth(0, 400);
-    mListView->setColumnWidth(1, 250);
-    mListView->setColumnWidth(2, 300);
     mListView->setAlternatingRowColors(true);
-    QStringList columns;
-    columns.push_back("Name");
-    columns.push_back("Description");
-    columns.push_back("Labels");
-    mListView->setHeaderLabels(columns);
+    setupColumns();
     mListView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(mListView, SIGNAL(itemExpanded(QTreeWidgetItem*)),
             this, SLOT(expandItem(QTreeWidgetItem*)));
@@ -490,7 +480,7 @@ bitKatalogView::renameDisk() throw()
     newName=KInputDialog::getText("Rename disk", "Name: ", oldName, &lRetButton);
     if (lRetButton && newName != oldName) {
         lEnt.setName(qstr2cchar(newName));
-        lpItem->setText(NAME_COLUMN, newName);
+        lpItem->setText(k_name_column_idx, newName);
         gCatalogState=1;
         gpMainWindow->updateTitle(true);
         treeRedrawn();
@@ -557,9 +547,8 @@ bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
     if (!pCatalog) {
         throw string("No catalog");
     }
-    columns.push_back(str2qstr(rEnt.getName()));
-    columns.push_back(str2qstr(details["description"]));
-    columns.push_back(labelsString);
+    fillColumnValues(columns, str2qstr(rEnt.getName()), str2qstr(details["description"]),
+                     labelsString, rEnt);
     pItem=new XmlEntityItem(mRootItem, columns);
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<": adding element with name ";
@@ -592,9 +581,8 @@ bitKatalogView::populateTree(Xfc *mpCatalog)
     details=rootEnt.getDetails();
     labelsString=str2qstr(rootEnt.getLabelsAsString());
     catalogName+=rootEnt.getName();
-    columns.push_back(str2qstr(catalogName));
-    columns.push_back(str2qstr(details["description"]));
-    columns.push_back(labelsString);
+    fillColumnValues(columns, str2qstr(catalogName), str2qstr(details["description"]),
+                     labelsString, rootEnt);
     mRootItem=new XmlEntityItem(mListView, columns);
     mRootItem->setXmlNode(pRootNode);
     
@@ -699,4 +687,39 @@ bitKatalogView::collapseItem(QTreeWidgetItem *pItem)
 void bitKatalogView::treeRedrawn()
 {
     mListView->sortItems(0, Qt::AscendingOrder);
+}
+
+
+void bitKatalogView::setupColumns()
+{
+    mListView->setAllColumnsShowFocus(true);
+    mListView->setColumnCount(k_max_columns);
+    // :fixme: - proportional
+    mListView->setColumnWidth(k_name_column_idx, 300);
+    mListView->setColumnWidth(k_description_column_idx, 250);
+    mListView->setColumnWidth(k_storage_column_idx, 150);
+    mListView->setColumnWidth(k_labels_column_idx, 250);
+    QStringList columns;
+    for (int i = 0; i < k_max_columns; i++) {
+        columns.push_back("");
+    }
+    columns[k_name_column_idx] = "Name";
+    columns[k_description_column_idx] = "Description";
+    columns[k_storage_column_idx] = "Storage dev.";
+    columns[k_labels_column_idx] = "Labels";
+    mListView->setHeaderLabels(columns);
+}
+
+
+void bitKatalogView::fillColumnValues(QStringList &columns, const QString &name,
+                                      const QString &description, const QString &labels,
+                                      const XfcEntity &ent)
+{
+    for (int i = 0; i < k_max_columns; i++) {
+        columns.push_back("");
+    }
+    columns[k_name_column_idx] = name;
+    columns[k_description_column_idx] = description;
+    columns[k_labels_column_idx] = labels;
+    columns[k_storage_column_idx] = str2qstr(ent.getStorageDev());
 }

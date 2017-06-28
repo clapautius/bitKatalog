@@ -257,7 +257,7 @@ void DetailsBox::accept()
     // update description
     lQString=mpDescriptionEdit->text();
     if (lQString!=str2qstr(details["description"])) {
-        mpListItem->setText(DESCRIPTION_COLUMN, lQString);
+        mpListItem->setText(gpView->getDescriptionColumnIndex(), lQString);
         mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(lQString));
         mCatalogWasModified=true;
     }
@@ -292,7 +292,7 @@ void DetailsBox::accept()
         mCatalogWasModified=true;
         mLabelsWereModified=true;
         string labelsString=mpXmlItem->getLabelsAsString();
-        mpListItem->setText(LABELS_COLUMN, str2qstr(labelsString));
+        mpListItem->setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
     }
 
     // update comment
@@ -317,7 +317,7 @@ void DetailsBox::accept()
             lQString = mpStorageDevEdit->text();
             string storage_dev = mpXmlItem->getStorageDev();
             if (lQString != str2qstr(storage_dev)) {
-                // :fixme: TODO update column if needed (or tooltip)
+                mpListItem->setText(gpView->getStorageDevColumnIndex(), lQString);
                 mpXmlItem->setStorageDev(qstr2cchar(lQString));
                 mCatalogWasModified=true;
             }

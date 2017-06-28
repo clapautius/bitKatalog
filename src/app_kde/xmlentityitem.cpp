@@ -65,14 +65,15 @@ void XmlEntityItem::redisplay(bool first)
     XfcEntity lEnt(mpNode, mspCatalog);
     map<string, string> details;
     string labelsString;
-    setText(NAME_COLUMN, str2qstr(lEnt.getName()));
+    setText(gpView->getNameColumnIndex(), str2qstr(lEnt.getName()));
     details=lEnt.getDetails();
     if( !details["description"].empty())
-        setText(DESCRIPTION_COLUMN, str2qstr(details["description"]));
+        setText(gpView->getDescriptionColumnIndex(), str2qstr(details["description"]));
     else
-        setText(DESCRIPTION_COLUMN, "");
+        setText(gpView->getDescriptionColumnIndex(), "");
     labelsString=lEnt.getLabelsAsString();
-    setText(LABELS_COLUMN, str2qstr(labelsString));
+    setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
+    setText(gpView->getStorageDevColumnIndex(), str2qstr(lEnt.getStorageDev()));
 
 #if defined(XFC_DEBUG)
     cout<<":debug:"<<__FUNCTION__<<": this="<<this<<endl;
@@ -109,9 +110,8 @@ void XmlEntityItem::setOpened(bool lOpen)
             details=ent.getDetails();
             QString labelsString=str2qstr(ent.getLabelsAsString());
             QStringList columns;
-            columns.push_back(str2qstr(ent.getName()));
-            columns.push_back(str2qstr(details["description"]));
-            columns.push_back(labelsString);
+            gpView->fillColumnValues(columns, str2qstr(ent.getName()),
+                                     str2qstr(details["description"]), labelsString, ent);
             lpItem=new XmlEntityItem(this, columns);
             lpItem->setXmlNode(ent.getXmlNode());
 #if defined(XFC_DEBUG)
