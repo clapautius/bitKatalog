@@ -5,33 +5,28 @@
 
 class XfcLogger;
 
-XfcLogger& xfcWarn(XfcLogger&);
-XfcLogger& xfcError(XfcLogger&);
-XfcLogger& xfcInfo(XfcLogger&);
-XfcLogger& xfcDebug(XfcLogger&);
-XfcLogger& eol(XfcLogger&);
+XfcLogger &xfcWarn(XfcLogger &);
+XfcLogger &xfcError(XfcLogger &);
+XfcLogger &xfcInfo(XfcLogger &);
+XfcLogger &xfcDebug(XfcLogger &);
+XfcLogger &eol(XfcLogger &);
 
 class XfcLogger
 {
-public:
-    
-    XfcLogger(int verboseLevel=0);
+   public:
+    XfcLogger(int verboseLevel = 0);
 
     void setVerboseLevel(int);
 
-    int getVerboseLevel() const
-    {
-        return mVerbLevel;
-    }
-    
+    int getVerboseLevel() const { return mVerbLevel; }
+
     void setLevel(int);
 
-    XfcLogger& operator<<(XfcLogger& (*)(XfcLogger&));
-    XfcLogger& operator<<(std::string);
-    XfcLogger& operator<<(int);
+    XfcLogger &operator<<(XfcLogger &(*)(XfcLogger &));
+    XfcLogger &operator<<(std::string);
+    XfcLogger &operator<<(int);
 
-private:
-
+   private:
     int mVerbLevel;
 
     int mCurrentLevel;
@@ -46,9 +41,8 @@ typedef enum {
     eDiffSize,
     eDiffSha1Sum,
     eDiffSha256Sum,
-    eDiffErrorOnDisk /// diskValue contains some clues regarding the error
+    eDiffErrorOnDisk  /// diskValue contains some clues regarding the error
 } EntityDiffType;
-
 
 struct EntityDiff
 {

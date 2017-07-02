@@ -24,17 +24,18 @@
 
 using namespace std;
 
-
 int sha1Callback(string fileName, string *pParam, string *pValue,
-                 volatile const bool *pAbortFlag=NULL);
+                 volatile const bool *pAbortFlag = NULL);
 
 int sha256Callback(string fileName, string *pParam, string *pValue,
-                   volatile const bool *pAbortFlag=NULL);
+                   volatile const bool *pAbortFlag = NULL);
 
-int sha1UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
-                         string *, string *, volatile const bool *pAbortFlag=NULL);
+int sha1UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk,
+                         bool isLastChunk, string *, string *,
+                         volatile const bool *pAbortFlag = NULL);
 
-int sha256UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk, bool isLastChunk,
-                           string *, string *, volatile const bool *pAbortFlag=NULL);
+int sha256UsingBufCallback(const char *buf, unsigned bufLen, bool isFirstChunk,
+                           bool isLastChunk, string *, string *,
+                           volatile const bool *pAbortFlag = NULL);
 
 #endif

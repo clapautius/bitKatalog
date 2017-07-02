@@ -19,96 +19,86 @@
  ***************************************************************************/
 #include "detailsbox.h"
 
-#include <qpainter.h>
+#include <klineedit.h>
 #include <qlayout.h>
-#include <vector>
+#include <qpainter.h>
 #include <QHeaderView>
 #include <string>
-#include <klineedit.h>
+#include <vector>
 
-#include <kmessagebox.h>
 #include <kinputdialog.h>
+#include <kmessagebox.h>
 
 #include "bitkatalogview.h"
-#include "xfcEntity.h"
-#include "misc.h"
 #include "labelsbox.h"
 #include "main.h"
+#include "misc.h"
+#include "xfcEntity.h"
 
 #if defined(XFC_DEBUG)
-    #include <iostream>
-    using std::cout;
-    using std::endl;
+#include <iostream>
+using std::cout;
+using std::endl;
 #endif
 
 using std::string;
 using std::vector;
 using std::map;
 
-
-DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath,
-                       XfcEntity *lpXmlItem, QTreeWidgetItem *pListItem,
-                       const vector<QString> &rAllLabels)
-  : KPageDialog(),
-    mrAllLabels(rAllLabels)
+DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath, XfcEntity *lpXmlItem,
+                       QTreeWidgetItem *pListItem, const vector<QString> &rAllLabels)
+    : KPageDialog(), mrAllLabels(rAllLabels)
 
 {
     setFaceType(KPageDialog::Tabbed);
     setCaption(QString("Details"));
     setButtons(KDialog::Ok | KDialog::Cancel);
     setModal(true);
-    mCompletePath=lCompletePath;
-    mpXmlItem=lpXmlItem;
-    mpCatalog=lpCatalog;
-    mpListItem=pListItem;
-    mCatalogWasModified=false;
-    mLabelsWereModified=false;
-    layout();    
+    mCompletePath = lCompletePath;
+    mpXmlItem = lpXmlItem;
+    mpCatalog = lpCatalog;
+    mpListItem = pListItem;
+    mCatalogWasModified = false;
+    mLabelsWereModified = false;
+    layout();
     connectButtons();
 }
 
-
-DetailsBox::~DetailsBox()
-{
-}
-
+DetailsBox::~DetailsBox() {}
 
 void DetailsBox::editLabels()
 {
 #if defined(XFC_DEBUG)
-    cout<<":debug:"<<__FUNCTION__<<endl;
+    cout << ":debug:" << __FUNCTION__ << endl;
 #endif
-    vector<QString> allCurrentLabels; // all catalog labels + current labels
+    vector<QString> allCurrentLabels;  // all catalog labels + current labels
     // we need this to avoid bugs when editing an element multiple times
     // (without hitting 'OK').
-    allCurrentLabels=mrAllLabels;
-    for(uint i=0; i<mCurrentLabels.size(); i++) {
+    allCurrentLabels = mrAllLabels;
+    for (uint i = 0; i < mCurrentLabels.size(); i++) {
         if (!contains(allCurrentLabels, mCurrentLabels[i])) {
             allCurrentLabels.push_back(mCurrentLabels[i]);
         }
     }
-    LabelsBox *pLabelsBox=new LabelsBox(allCurrentLabels, mCurrentLabels);
+    LabelsBox *pLabelsBox = new LabelsBox(allCurrentLabels, mCurrentLabels);
     if (QDialog::Accepted == pLabelsBox->exec()) {
-        mCurrentLabels=pLabelsBox->getSelectedLabels();
+        mCurrentLabels = pLabelsBox->getSelectedLabels();
         mpLabels->clear();
-        for (uint i=0; i<mCurrentLabels.size(); i++) {
+        for (uint i = 0; i < mCurrentLabels.size(); i++) {
             QStringList list;
             list.push_back("");
             list.push_back(mCurrentLabels[i]);
-            QTreeWidgetItem *pLabel=new
-                QTreeWidgetItem(list);
+            QTreeWidgetItem *pLabel = new QTreeWidgetItem(list);
             pLabel->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
             mpLabels->addTopLevelItem(pLabel);
         }
     }
 }
 
-
 void DetailsBox::connectButtons()
 {
     connect(mpEditLabelsButton, SIGNAL(clicked()), this, SLOT(editLabels()));
-} 
-
+}
 
 void DetailsBox::layout()
 {
@@ -118,36 +108,36 @@ void DetailsBox::layout()
     QSize lSize;
     QFontMetrics *lpFontMetrics;
 
-    resize(500,400);
+    resize(500, 400);
 
-    KVBox *pBox1= new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("General"));
+    KVBox *pBox1 = new KVBox();
+    KPageWidgetItem *pPage1 = addPage(pBox1, QString("General"));
     pPage1->setHeader(QString("General"));
-    
-    mpName=new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
+
+    mpName = new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
     mpName->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    lFont=mpName->font();
+    lFont = mpName->font();
     lFont.setBold(true);
     mpName->setFont(lFont);
 
-    KHBox *pDescriptionBox=new KHBox(pBox1);
-    mpTmpLabel1=new QLabel("Description: ", pDescriptionBox);
-    mpDescriptionEdit=new KLineEdit(pDescriptionBox);
-    details=mpXmlItem->getDetails();
+    KHBox *pDescriptionBox = new KHBox(pBox1);
+    mpTmpLabel1 = new QLabel("Description: ", pDescriptionBox);
+    mpDescriptionEdit = new KLineEdit(pDescriptionBox);
+    details = mpXmlItem->getDetails();
     mpDescriptionEdit->setText(str2qstr(details["description"]));
 
     KHBox *pCommentBox = new KHBox(pBox1);
-    mpTmpLabel1=new QLabel("Comment: ", pCommentBox);
+    mpTmpLabel1 = new QLabel("Comment: ", pCommentBox);
     mpCommentEdit = new KLineEdit(pCommentBox);
     string comment = mpXmlItem->getComment();
     mpCommentEdit->setText(str2qstr(comment));
 
     // labels group box
-    mpLabelGroup=new Q3VGroupBox("Labels", pBox1);
-    
-    KHBox *pLabelsBox=new KHBox(mpLabelGroup);
-    mpLabels=new QTreeWidget(pLabelsBox);
+    mpLabelGroup = new Q3VGroupBox("Labels", pBox1);
+
+    KHBox *pLabelsBox = new KHBox(mpLabelGroup);
+    mpLabels = new QTreeWidget(pLabelsBox);
     mpLabels->setColumnCount(2);
     mpLabels->header()->hide();
     mpLabels->setSelectionMode(QAbstractItemView::NoSelection);
@@ -155,86 +145,84 @@ void DetailsBox::layout()
     mpLabels->setSortingEnabled(true);
     mpLabels->setColumnHidden(0, true);
     mpLabels->setAlternatingRowColors(true);
-    lSize=mpLabels->size();
-    lFont=mpLabels->font();
-    lpFontMetrics=new QFontMetrics(lFont);
-    mpLabels->resize(lSize.width(), 2*lpFontMetrics->height());
+    lSize = mpLabels->size();
+    lFont = mpLabels->font();
+    lpFontMetrics = new QFontMetrics(lFont);
+    mpLabels->resize(lSize.width(), 2 * lpFontMetrics->height());
     delete lpFontMetrics;
 
-    mCurrentLabels=vectWstringToVectWQString(mpXmlItem->getLabels());
-    for (uint i=0; i<mCurrentLabels.size(); i++) {
+    mCurrentLabels = vectWstringToVectWQString(mpXmlItem->getLabels());
+    for (uint i = 0; i < mCurrentLabels.size(); i++) {
         QStringList list;
         list.push_back("");
         list.push_back(mCurrentLabels[i]);
-        QTreeWidgetItem *pLabel=new QTreeWidgetItem(list);
+        QTreeWidgetItem *pLabel = new QTreeWidgetItem(list);
         pLabel->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
         mpLabels->addTopLevelItem(pLabel);
     }
-    
-    KHBox *pLabelButtons=new KHBox(mpLabelGroup);
-    mpEditLabelsButton=new QPushButton("Edit labels", pLabelButtons);
+
+    KHBox *pLabelButtons = new KHBox(mpLabelGroup);
+    mpEditLabelsButton = new QPushButton("Edit labels", pLabelButtons);
 
     // end labels group box
-    
+
     // page2
-    KPageWidgetItem *pPage2=NULL;
-    KVBox *pBox2=NULL;
+    KPageWidgetItem *pPage2 = NULL;
+    KVBox *pBox2 = NULL;
     if (mpXmlItem->isFileOrDir()) {
-      int fileType;
-      fileType=mpXmlItem->getTypeOfFile();
-      if (0 == fileType) // not good
-        ;
-      else if (1 == fileType) {
-          pBox2= new KVBox();
-          pPage2=addPage(pBox2, QString("File details"));
-          pPage2->setHeader(QString("File details"));
-          KVBox *pLayoutBox2=new KVBox(pBox2);
-          pLayoutBox2->setSpacing(20);
+        int fileType;
+        fileType = mpXmlItem->getTypeOfFile();
+        if (0 == fileType)  // not good
+            ;
+        else if (1 == fileType) {
+            pBox2 = new KVBox();
+            pPage2 = addPage(pBox2, QString("File details"));
+            pPage2->setHeader(QString("File details"));
+            KVBox *pLayoutBox2 = new KVBox(pBox2);
+            pLayoutBox2->setSpacing(20);
 
-          // size
-          str=sizeToHumanReadableSize(details["size"]);
-          addDetailLabels(pLayoutBox2, "Size   :", str.c_str());
+            // size
+            str = sizeToHumanReadableSize(details["size"]);
+            addDetailLabels(pLayoutBox2, "Size   :", str.c_str());
 
-          // sha1
-          if (details[SHA1LABEL].empty())
-              str="-";
-          else {
-              str=details[SHA1LABEL].substr(0, details[SHA1LABEL].size()/2);
-              str+="\n";
-              str+=details[SHA1LABEL].substr(details[SHA1LABEL].size()/2);
-          }
-          addDetailLabels(pLayoutBox2, "SHA1   :", str.c_str());
+            // sha1
+            if (details[SHA1LABEL].empty())
+                str = "-";
+            else {
+                str = details[SHA1LABEL].substr(0, details[SHA1LABEL].size() / 2);
+                str += "\n";
+                str += details[SHA1LABEL].substr(details[SHA1LABEL].size() / 2);
+            }
+            addDetailLabels(pLayoutBox2, "SHA1   :", str.c_str());
 
-          // sha256
-          if (details[SHA256LABEL].empty())
-              str="-";
-          else {
-              str=details[SHA256LABEL].substr(0, details[SHA256LABEL].size()/2);
-              str+="\n";
-              str+=details[SHA256LABEL].substr(details[SHA256LABEL].size()/2);
-          }
-          addDetailLabels(pLayoutBox2, "SHA256 :", str.c_str());
+            // sha256
+            if (details[SHA256LABEL].empty())
+                str = "-";
+            else {
+                str = details[SHA256LABEL].substr(0, details[SHA256LABEL].size() / 2);
+                str += "\n";
+                str += details[SHA256LABEL].substr(details[SHA256LABEL].size() / 2);
+            }
+            addDetailLabels(pLayoutBox2, "SHA256 :", str.c_str());
 
-          pLayoutBox2->layout()->addItem(
-              new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding));
-      }
-      else if (2 == fileType) {
-          pBox2= new KVBox();
-          pPage2=addPage(pBox2, QString("Directory details"));
-          pPage2->setHeader(QString("Directory details"));
-      }
-    }
-    else if (mpXmlItem->isDisk()) { // disk
-        pBox2= new KVBox();
-        pPage2=addPage(pBox2, QString("Disk details"));
+            pLayoutBox2->layout()->addItem(
+                new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Expanding));
+        } else if (2 == fileType) {
+            pBox2 = new KVBox();
+            pPage2 = addPage(pBox2, QString("Directory details"));
+            pPage2->setHeader(QString("Directory details"));
+        }
+    } else if (mpXmlItem->isDisk()) {  // disk
+        pBox2 = new KVBox();
+        pPage2 = addPage(pBox2, QString("Disk details"));
         pPage2->setHeader(QString("Disk details"));
-        mpCdateBox=new KHBox(pBox2);
+        mpCdateBox = new KHBox(pBox2);
         new QLabel("Creation date: ", mpCdateBox);
-        mpCdateEdit=new KLineEdit(mpCdateBox);
+        mpCdateEdit = new KLineEdit(mpCdateBox);
         mpCdateEdit->setText(details["cdate"].c_str());
 
         KHBox *pStorageDevBox = new KHBox(pBox2);
-        mpTmpLabel1=new QLabel("Storage devices: ", pStorageDevBox);
+        mpTmpLabel1 = new QLabel("Storage devices: ", pStorageDevBox);
         mpStorageDevEdit = new KLineEdit(pStorageDevBox);
         string storage_dev = mpXmlItem->getStorageDev();
         mpStorageDevEdit->setText(str2qstr(storage_dev));
@@ -244,54 +232,53 @@ void DetailsBox::layout()
     }
 }
 
-
 void DetailsBox::accept()
 {
     QString lQString;
-    //std::vector<std::string> lDetails;
+    // std::vector<std::string> lDetails;
     map<string, string> details;
-    bool lModifiedLabels=false;
-    
-    details=mpXmlItem->getDetails();
-    
+    bool lModifiedLabels = false;
+
+    details = mpXmlItem->getDetails();
+
     // update description
-    lQString=mpDescriptionEdit->text();
-    if (lQString!=str2qstr(details["description"])) {
+    lQString = mpDescriptionEdit->text();
+    if (lQString != str2qstr(details["description"])) {
         mpListItem->setText(gpView->getDescriptionColumnIndex(), lQString);
         mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(lQString));
-        mCatalogWasModified=true;
+        mCatalogWasModified = true;
     }
 
     // check labels and update if modified
-    vector<QString> labels=vectWstringToVectWQString(mpXmlItem->getLabels());
-    if (mCurrentLabels.size()!=labels.size())
-        lModifiedLabels=true;
+    vector<QString> labels = vectWstringToVectWQString(mpXmlItem->getLabels());
+    if (mCurrentLabels.size() != labels.size())
+        lModifiedLabels = true;
     else {
         // :fixme: optimize - use set or something else
-        for (uint i=0;i<mCurrentLabels.size() && !lModifiedLabels;i++) {
+        for (uint i = 0; i < mCurrentLabels.size() && !lModifiedLabels; i++) {
             if (!contains(labels, mCurrentLabels[i])) {
-                lModifiedLabels=true;
+                lModifiedLabels = true;
             }
         }
-        for (uint i=0;i<labels.size() && !lModifiedLabels;i++) {
+        for (uint i = 0; i < labels.size() && !lModifiedLabels; i++) {
             if (!contains(mCurrentLabels, labels[i])) {
-                lModifiedLabels=true;
+                lModifiedLabels = true;
             }
         }
     }
     if (lModifiedLabels) {
         // remove all labels
-        for(unsigned int i=0; i<labels.size(); i++)
+        for (unsigned int i = 0; i < labels.size(); i++)
             mpCatalog->removeLabelFrom(mCompletePath, qstr2cchar(labels[i]));
         // add new labels
-        for(unsigned int i=0;i<mCurrentLabels.size();i++) {
-            gkLog<<xfcDebug<<"adding new label to element: ";
-            gkLog<<qstr2cchar(mCurrentLabels[i])<<eol;
+        for (unsigned int i = 0; i < mCurrentLabels.size(); i++) {
+            gkLog << xfcDebug << "adding new label to element: ";
+            gkLog << qstr2cchar(mCurrentLabels[i]) << eol;
             mpCatalog->addLabelTo(mCompletePath, qstr2cchar(mCurrentLabels[i]));
         }
-        mCatalogWasModified=true;
-        mLabelsWereModified=true;
-        string labelsString=mpXmlItem->getLabelsAsString();
+        mCatalogWasModified = true;
+        mLabelsWereModified = true;
+        string labelsString = mpXmlItem->getLabelsAsString();
         mpListItem->setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
     }
 
@@ -301,16 +288,16 @@ void DetailsBox::accept()
     if (lQString != str2qstr(comment)) {
         // :fixme: TODO update column if needed (or tooltip)
         mpXmlItem->setComment(qstr2cchar(lQString));
-        mCatalogWasModified=true;
+        mCatalogWasModified = true;
     }
 
     if (mpXmlItem->isDisk()) {
         try {
             // update cdate
-            lQString=mpCdateEdit->text();
-            if (lQString!=details["cdate"].c_str()) {
+            lQString = mpCdateEdit->text();
+            if (lQString != details["cdate"].c_str()) {
                 mpCatalog->setCDate(mCompletePath, qstr2cchar(lQString));
-                mCatalogWasModified=true;
+                mCatalogWasModified = true;
             }
 
             // update storage_dev
@@ -319,10 +306,9 @@ void DetailsBox::accept()
             if (lQString != str2qstr(storage_dev)) {
                 mpListItem->setText(gpView->getStorageDevColumnIndex(), lQString);
                 mpXmlItem->setStorageDev(qstr2cchar(lQString));
-                mCatalogWasModified=true;
+                mCatalogWasModified = true;
             }
-        }
-        catch(...) {
+        } catch (...) {
             KMessageBox::error(this, "Error updating disk");
         }
     }
@@ -330,40 +316,21 @@ void DetailsBox::accept()
     KPageDialog::accept();
 }
 
+void DetailsBox::reject() { KPageDialog::reject(); }
 
-void
-DetailsBox::reject()
+bool DetailsBox::catalogWasModified() const { return mCatalogWasModified; }
+
+bool DetailsBox::labelsWereModified() const { return mLabelsWereModified; }
+
+void DetailsBox::addDetailLabels(QFrame *pFrame, const char *pText1, const char *pText2)
 {
-    KPageDialog::reject();
-} 
-
-
-bool
-DetailsBox::catalogWasModified() const
-{
-    return mCatalogWasModified;
-} 
-
-
-bool
-DetailsBox::labelsWereModified() const
-{
-    return mLabelsWereModified;
-}
-
-
-void
-DetailsBox::addDetailLabels(QFrame *pFrame,
-                            const char *pText1, const char *pText2)
-{
-    KHBox *pBox=new KHBox(pFrame);
+    KHBox *pBox = new KHBox(pFrame);
     pBox->setSpacing(10);
     pBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    QLabel *pLabel1=new QLabel(pText1, pBox);
+    QLabel *pLabel1 = new QLabel(pText1, pBox);
     pLabel1->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     pLabel1->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    QLabel *pLabel2=new QLabel(pText2, pBox);
+    QLabel *pLabel2 = new QLabel(pText2, pBox);
     pLabel2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     pLabel2->setTextInteractionFlags(Qt::TextSelectableByMouse);
 }
-

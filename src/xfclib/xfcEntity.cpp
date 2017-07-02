@@ -19,13 +19,12 @@
  ***************************************************************************/
 #include <map>
 
-#include "xfcEntity.h"
 #include "xfc.h"
+#include "xfcEntity.h"
 
 using std::vector;
 using std::string;
 using std::map;
-
 
 /*
 XfcEntity::XfcEntity()
@@ -35,64 +34,45 @@ XfcEntity::XfcEntity()
 }
 */
 
-
 XfcEntity::XfcEntity(xmlNodePtr lpNode, Xfc *pXfc)
 {
-  mpXmlNode=lpNode;
-  mpXfc=pXfc;
+    mpXmlNode = lpNode;
+    mpXfc = pXfc;
 }
 
-
-void
-XfcEntity::setName(std::string lS)
+void XfcEntity::setName(std::string lS)
 {
-  checkValidData();
-  return mpXfc->setNameOfElement(mpXmlNode, lS);
+    checkValidData();
+    return mpXfc->setNameOfElement(mpXmlNode, lS);
 }
 
-
-std::string
-XfcEntity::getName() const
+std::string XfcEntity::getName() const
 {
-  checkValidData();
-  return mpXfc->getNameOfElement(mpXmlNode);
+    checkValidData();
+    return mpXfc->getNameOfElement(mpXmlNode);
 }
 
+xmlNodePtr XfcEntity::getXmlNode() const { return mpXmlNode; }
 
-xmlNodePtr
-XfcEntity::getXmlNode() const
-{
-    return mpXmlNode;
-}
-
-
-Xfc::ElementType
-XfcEntity::getElementType() const
+Xfc::ElementType XfcEntity::getElementType() const
 {
     checkValidData();
     return mpXfc->getTypeOfElement(mpXmlNode);
 }
 
-
-bool
-XfcEntity::isFileOrDir() const
+bool XfcEntity::isFileOrDir() const
 {
-  checkValidData();
-  return mpXfc->isFileOrDir(mpXmlNode);
-}
-        
-
-bool
-XfcEntity::isDisk() const
-{
-  checkValidData();
-  return mpXfc->isDisk(mpXmlNode);
+    checkValidData();
+    return mpXfc->isFileOrDir(mpXmlNode);
 }
 
+bool XfcEntity::isDisk() const
+{
+    checkValidData();
+    return mpXfc->isDisk(mpXmlNode);
+}
 
-int
-XfcEntity::getTypeOfFile() const
-  throw (std::string)
+int XfcEntity::getTypeOfFile() const throw(std::string)
 // 0 - unknown
 // 1 - regular file
 // 2 - directory
@@ -100,17 +80,16 @@ XfcEntity::getTypeOfFile() const
     Xfc::ElementType type;
     if (!isFileOrDir())
         throw std::string("Not a file/dir");
-    type=mpXfc->getTypeOfElement(mpXmlNode);
-    switch(type) {
-    case Xfc::eFile:
-        return 1;
-    case Xfc::eDir:
-        return 2;
-    default:
-        return 0;
+    type = mpXfc->getTypeOfElement(mpXmlNode);
+    switch (type) {
+        case Xfc::eFile:
+            return 1;
+        case Xfc::eDir:
+            return 2;
+        default:
+            return 0;
     }
 }
-
 
 /**
  * Get all the details of a node.
@@ -120,21 +99,17 @@ XfcEntity::getTypeOfFile() const
  *
  * @sa XfcEntity::getLabels
  **/
-std::map<std::string, std::string>
-XfcEntity::getDetails() 
+std::map<std::string, std::string> XfcEntity::getDetails()
 {
-  checkValidData();
-  return mpXfc->getDetailsForNode(mpXmlNode);
+    checkValidData();
+    return mpXfc->getDetailsForNode(mpXmlNode);
 }
 
-
-vector<string>
-XfcEntity::getLabels()
+vector<string> XfcEntity::getLabels()
 {
     checkValidData();
     return mpXfc->getLabelsForNode(mpXmlNode);
 }
-
 
 /*
 void
@@ -144,85 +119,70 @@ XfcEntity::setParams(std::vector<std::string> lVect, bool lIsFile, bool lIsDisk)
 }
 */
 
-
-void
-XfcEntity::checkValidData(bool xfcMustBeValid) const
-  throw (std::string)
+void XfcEntity::checkValidData(bool xfcMustBeValid) const throw(std::string)
 {
-  if (mpXmlNode==NULL)
-    throw std::string("Xml node is NULL");
-  if (xfcMustBeValid && mpXfc==NULL)
-    throw std::string("Xfc is NULL");
+    if (mpXmlNode == NULL)
+        throw std::string("Xml node is NULL");
+    if (xfcMustBeValid && mpXfc == NULL)
+        throw std::string("Xfc is NULL");
 }
 
-
-
-EntityIterator::EntityIterator(Xfc &lrXfc, std::string lPath)
-         throw (std::string)
+EntityIterator::EntityIterator(Xfc &lrXfc, std::string lPath) throw(std::string)
     : mrXfc(lrXfc)
 {
-    mpParentNode=mrXfc.getNodeForPath(lPath);
+    mpParentNode = mrXfc.getNodeForPath(lPath);
     if (mpParentNode)
-        mpCurrentNode=mpParentNode->xmlChildrenNode;
+        mpCurrentNode = mpParentNode->xmlChildrenNode;
     else
-        mpCurrentNode=NULL;
-}    
+        mpCurrentNode = NULL;
+}
 
-
-EntityIterator::EntityIterator(Xfc &lrXfc, xmlNodePtr lpNode)
-            throw (std::string)
+EntityIterator::EntityIterator(Xfc &lrXfc, xmlNodePtr lpNode) throw(std::string)
     : mrXfc(lrXfc)
 {
-    mpParentNode=lpNode;
-    mpCurrentNode=mpParentNode->xmlChildrenNode;
+    mpParentNode = lpNode;
+    mpCurrentNode = mpParentNode->xmlChildrenNode;
 }
-    
 
 bool EntityIterator::hasMoreChildren()
 {
-    while (mpCurrentNode!=NULL) {
+    while (mpCurrentNode != NULL) {
         if (mrXfc.isFileOrDir(mpCurrentNode) || mrXfc.isDisk(mpCurrentNode))
-           return true;
-        mpCurrentNode=mpCurrentNode->next;
-    }    
+            return true;
+        mpCurrentNode = mpCurrentNode->next;
+    }
     return false;
 }
-
 
 XfcEntity EntityIterator::getNextChild()
 {
     if (mpCurrentNode) {
         XfcEntity lEnt(mpCurrentNode, &mrXfc);
-        mpCurrentNode=mpCurrentNode->next;
-        hasMoreChildren(); // go to next child
+        mpCurrentNode = mpCurrentNode->next;
+        hasMoreChildren();  // go to next child
         return lEnt;
-    }
-    else
+    } else
         // :fixme: - make o proper exception hierarchy
         throw std::string("No more children in EntityIterator");
 }
 
-
-string
-XfcEntity::getLabelsAsString() const
+string XfcEntity::getLabelsAsString() const
 {
     string ret;
     vector<string> labels;
-    labels=mpXfc->getLabelsForNode(mpXmlNode);
-    for (uint i=0; i<labels.size(); i++) {
-        if (i>0) {
-            ret+=", ";
+    labels = mpXfc->getLabelsForNode(mpXmlNode);
+    for (uint i = 0; i < labels.size(); i++) {
+        if (i > 0) {
+            ret += ", ";
         }
-        ret+=labels[i];
+        ret += labels[i];
     }
     return ret;
 }
 
-
-void XfcEntity::setOrAddParam(const std::string &elt_name,
-                              const std::string &elt_value)
+void XfcEntity::setOrAddParam(const std::string &elt_name, const std::string &elt_value)
 {
-    xmlNodePtr p_node = mpXmlNode; // just an alias
+    xmlNodePtr p_node = mpXmlNode;  // just an alias
     xmlNodePtr p_subelement_node;
     std::string s;
 
@@ -232,8 +192,8 @@ void XfcEntity::setOrAddParam(const std::string &elt_name,
         mpXfc->setNodeText(p_subelement_node, elt_value);
     } else {
         xmlNodePtr p_new_node = NULL;
-        p_new_node = xmlNewTextChild(p_node , NULL, (xmlChar*)elt_name.c_str(),
-                                     (xmlChar*)elt_value.c_str());
+        p_new_node = xmlNewTextChild(p_node, NULL, (xmlChar *)elt_name.c_str(),
+                                     (xmlChar *)elt_value.c_str());
         if (p_new_node) {
             // keep elements at the beginning (right after 'name')
             xmlNodePtr p_name_node = mpXfc->getSubelementByName(p_node, "name");
@@ -250,7 +210,6 @@ void XfcEntity::setOrAddParam(const std::string &elt_name,
     }
 }
 
-
 std::string XfcEntity::getParamValue(const std::string &elt_name) const
 {
     xmlNodePtr p_subelement_node = mpXfc->getSubelementByName(mpXmlNode, elt_name);
@@ -261,26 +220,16 @@ std::string XfcEntity::getParamValue(const std::string &elt_name) const
     }
 }
 
-
 void XfcEntity::setComment(const std::string &comment)
 {
     return setOrAddParam("comment", comment);
 }
 
-
-std::string XfcEntity::getComment() const
-{
-    return getParamValue("comment");
-}
-
+std::string XfcEntity::getComment() const { return getParamValue("comment"); }
 
 void XfcEntity::setStorageDev(const std::string &storage_dev)
 {
     return setOrAddParam("storage_dev", storage_dev);
 }
 
-
-std::string XfcEntity::getStorageDev() const
-{
-    return getParamValue("storage_dev");
-}
+std::string XfcEntity::getStorageDev() const { return getParamValue("storage_dev"); }

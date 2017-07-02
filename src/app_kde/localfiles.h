@@ -24,42 +24,39 @@
 
 #include <kpagedialog.h>
 
+#include <Qt3Support/q3hbox.h>
+#include <Qt3Support/q3vgroupbox.h>
 #include <k3buttonbox.h>
 #include <kpushbutton.h>
+#include <kvbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
-#include <Qt3Support/q3vgroupbox.h>
-#include <Qt3Support/q3hbox.h>
 #include <qtreewidget.h>
-#include <kvbox.h>
 #include <QFileInfo>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
-
 class LocalFilesBox : public KPageDialog
 {
     Q_OBJECT
-            
-public:
 
+   public:
     LocalFilesBox(std::vector<QFileInfo> &rFiles);
 
     virtual ~LocalFilesBox();
 
-public slots:
+   public slots:
 
-    virtual void launchItem(QTreeWidgetItem* item);
+    virtual void launchItem(QTreeWidgetItem *item);
 
-protected slots:  
-    
+   protected slots:
+
     virtual void accept();
-        
-private:
-    
+
+   private:
     void connectButtons();
-    
+
     void layout();
 
     std::vector<QFileInfo> mFiles;

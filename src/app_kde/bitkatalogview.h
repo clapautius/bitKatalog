@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #ifndef _BITKATALOGVIEW_H_
 #define _BITKATALOGVIEW_H_
 
@@ -35,9 +34,8 @@ class KUrl;
 /**
  * Helper function (callback for recursive collecting labels).
  **/
-int collectLabels(uint depth, std::string path, Xfc& rCatalog, xmlNodePtr pNode,
+int collectLabels(uint depth, std::string path, Xfc &rCatalog, xmlNodePtr pNode,
                   void *pParam);
-
 
 /**
  * This is the main view class for bitKatalog.  Most of the non-menu,
@@ -49,33 +47,33 @@ int collectLabels(uint depth, std::string path, Xfc& rCatalog, xmlNodePtr pNode,
  */
 class bitKatalogView : public QWidget
 {
-    friend int collectLabels(uint depth, const std::string &path, Xfc& rCatalog,
+    friend int collectLabels(uint depth, const std::string &path, Xfc &rCatalog,
                              xmlNodePtr pNode, void *pParam);
 
     Q_OBJECT
-public:
-	/**
-	 * Default constructor
-	 */
+   public:
+    /**
+     * Default constructor
+     */
     bitKatalogView(QWidget *parent);
 
-	/**
-	 * Destructor
-	 */
+    /**
+     * Destructor
+     */
     virtual ~bitKatalogView();
 
-    Xfc* getCatalog();
-    void setCatalog(Xfc*);
+    Xfc *getCatalog();
+    void setCatalog(Xfc *);
     // doesn't modify gCatalogState
     // does refresh
     // does delete old xfc
 
-    const std::vector<std::string>& getCatalogLabels() const;
-    
-    void populateTree(Xfc*);
+    const std::vector<std::string> &getCatalogLabels() const;
+
+    void populateTree(Xfc *);
 
     void addFirstLevelElement(XfcEntity &rEnt);
-        
+
     /**
      * Random 'get' function
      */
@@ -89,77 +87,60 @@ public:
     /**
      * Random 'set' function
      */
-    virtual void openUrl(const KUrl& url);
+    virtual void openUrl(const KUrl &url);
 
     /**
      * Print this view to any medium -- paper or not
      */
     void print(QPainter *, int height, int width);
 
-    int getNameColumnIndex() const
-    {
-        return k_name_column_idx;
-    }
+    int getNameColumnIndex() const { return k_name_column_idx; }
 
-    int getDescriptionColumnIndex() const
-    {
-        return k_description_column_idx;
-    }
+    int getDescriptionColumnIndex() const { return k_description_column_idx; }
 
-    int getLabelsColumnIndex() const
-    {
-        return k_labels_column_idx;
-    }
+    int getLabelsColumnIndex() const { return k_labels_column_idx; }
 
-    int getStorageDevColumnIndex() const
-    {
-        return k_storage_column_idx;
-    }
+    int getStorageDevColumnIndex() const { return k_storage_column_idx; }
 
-    int getNoColumns() const
-    {
-        return k_max_columns;
-    }
+    int getNoColumns() const { return k_max_columns; }
 
     void fillColumnValues(QStringList &columns, const QString &name,
                           const QString &description, const QString &labels,
                           const XfcEntity &ent);
 
-signals:
+   signals:
     /**
      * Use this signal to change the content of the statusbar
      */
-    void signalChangeStatusbar(const QString& text);
+    void signalChangeStatusbar(const QString &text);
 
     /**
      * Use this signal to change the content of the caption
      */
-    void signalChangeCaption(const QString& text);
+    void signalChangeCaption(const QString &text);
 
-private slots:
+   private slots:
 
-    virtual void expandItem(QTreeWidgetItem*);
-    virtual void collapseItem(QTreeWidgetItem*);
+    virtual void expandItem(QTreeWidgetItem *);
+    virtual void collapseItem(QTreeWidgetItem *);
 
     virtual void contextMenu(const QPoint &point);
-    
-    void slotOnUrl(const QString& url);
 
-    void slotSetTitle(const QString& title);
-    
+    void slotOnUrl(const QString &url);
+
+    void slotSetTitle(const QString &title);
 
     void details() throw();
 
     void addLabelRec() throw();
-    
+
     void verifyDisk() throw();
 
     void renameDisk() throw();
 
     void deleteDisk() throw();
-    
-private:
-    
+
+   private:
     void setupListView();
 
     void populateCatalogLabels();
@@ -174,26 +155,25 @@ private:
     void treeRedrawn();
 
     KParts::ReadOnlyPart *m_html;
-    
-    QTreeWidget *mListView; // :tmp: - rename this
-    
+
+    QTreeWidget *mListView;  // :tmp: - rename this
+
     XmlEntityItem *mRootItem;
-    
+
     Xfc *mCatalog;
-    
+
     bool mModifiedCatalog;
 
     /**
      * A list of the labels in the catalog.
      **/
     std::vector<std::string> mCatalogLabels;
-    
+
     XmlEntityItem *mpCurrentItem;
 
     std::string mCurrentItemPath;
 
-protected:
-
+   protected:
     void setupColumns();
 
     const int k_name_column_idx = 0;
@@ -201,7 +181,6 @@ protected:
     const int k_storage_column_idx = 2;
     const int k_labels_column_idx = 3;
     const int k_max_columns = 4;
-
 };
 
-#endif // _BITKATALOGVIEW_H_
+#endif  // _BITKATALOGVIEW_H_

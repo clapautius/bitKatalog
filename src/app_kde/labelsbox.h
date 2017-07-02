@@ -24,55 +24,52 @@
 
 #include <kpagedialog.h>
 
+#include <Qt3Support/q3hbox.h>
+#include <Qt3Support/q3vgroupbox.h>
 #include <k3buttonbox.h>
+#include <klineedit.h>
 #include <kpushbutton.h>
+#include <kvbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
-#include <Qt3Support/q3vgroupbox.h>
-#include <Qt3Support/q3hbox.h>
 #include <QTreeWidget>
-#include <kvbox.h>
-#include <klineedit.h>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
-
 class LabelsBox : public KPageDialog
 {
     Q_OBJECT
-            
-public:
+
+   public:
     LabelsBox();
-    
-    LabelsBox(std::vector<QString> allLabels,
-              std::vector<QString> selectedLabels,
-              bool addEnabled=true);
+
+    LabelsBox(std::vector<QString> allLabels, std::vector<QString> selectedLabels,
+              bool addEnabled = true);
 
     virtual ~LabelsBox();
 
     std::vector<QString> getSelectedLabels() const;
-    
-public slots:
 
-protected slots:  
-    
+   public slots:
+
+   protected slots:
+
     virtual void accept();
     virtual void reject();
     virtual void addNewLabel();
-        
-private:
-    
+
+   private:
     void connectButtons();
-    
+
     void layout(std::vector<QString>);
 
-    void addLabelInList(QString labelText, bool checked=false);
+    void addLabelInList(QString labelText, bool checked = false);
 
     std::vector<QString> mSelectedLabels;
 
     bool mAddEnabled;
-    
+
     QTreeWidget *mpLabels;
     KLineEdit *mpLabelEdit;
     QPushButton *mpAddNewButton;

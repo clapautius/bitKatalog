@@ -26,28 +26,25 @@
 
 class Xfc;
 
-
-std::string executeCommand(
-    const char *lpPrg, volatile const bool*,
-    const char *lpArg1=NULL, const char *lpArg2=NULL,
-    const char *lpArg3=NULL, const char *lpArg4=NULL)
-throw (std::string);
+std::string executeCommand(const char *lpPrg, volatile const bool *,
+                           const char *lpArg1 = NULL, const char *lpArg2 = NULL,
+                           const char *lpArg3 = NULL,
+                           const char *lpArg4 = NULL) throw(std::string);
 
 std::string execChecksum(std::string lPath, std::string lShaProgramPath,
-                         volatile const bool*)
-throw (std::string);
+                         volatile const bool *) throw(std::string);
 
 std::string getTimeSinceMidnight();
 
-int saveWithBackup(Xfc*, std::string path, std::string &error);
+int saveWithBackup(Xfc *, std::string path, std::string &error);
 
 std::string sizeToHumanReadableSize(std::string sizeInBytes);
 
-std::string vectorWStringsToString(std::vector<std::string>& vect,
-                                   const char* pDelim=", ");
+std::string vectorWStringsToString(std::vector<std::string> &vect,
+                                   const char *pDelim = ", ");
 
 bool contains(std::vector<std::string> vect, std::string elt);
 
-long int stringToInt(std::string) throw (std::string);
+long int stringToInt(std::string) throw(std::string);
 
 #endif

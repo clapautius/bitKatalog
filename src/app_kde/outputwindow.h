@@ -26,46 +26,40 @@
 #include <ktextedit.h>
 #include <QTableWidget>
 
-
 class OutputWindow : public KPageDialog
 {
-public:
+   public:
     OutputWindow();
 
     ~OutputWindow();
-    
+
     void addText(std::string);
 
-private:
-
+   private:
     void layout();
-    
-    KTextEdit *mpEditArea;
-    
-};
 
+    KTextEdit *mpEditArea;
+};
 
 class DiffOutputWindow : public KPageDialog
 {
-public:
+   public:
     DiffOutputWindow(int);
 
     ~DiffOutputWindow();
-    
-    void addText(std::string, std::string, std::string, unsigned int lines=1);
+
+    void addText(std::string, std::string, std::string, unsigned int lines = 1);
 
     void finishedText();
-    
-private:
 
+   private:
     void layout();
 
     unsigned int mRows;
 
     unsigned int mCurrentRow;
-    
+
     QTableWidget *mpList;
-    
 };
 
 #endif

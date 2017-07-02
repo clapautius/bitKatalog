@@ -19,78 +19,56 @@
  ***************************************************************************/
 #include <kmessagebox.h>
 
-#include "scanthread.h"
 #include "plugins.h"
-
+#include "scanthread.h"
 
 ScanThread::ScanThread(Xfc *lpCatalog, string lPath, string lDiskName,
-            ScanThreadParams &scanParams)
- : QThread()
+                       ScanThreadParams &scanParams)
+    : QThread()
 {
-    mpCatalog=lpCatalog;
-    mPath=lPath;
-    mDiskName=lDiskName;
-    mStopNow=false;
-    mComputeSha1=scanParams.computeSha1;
-    mComputeSha256=scanParams.computeSha256;
-    mpAbortFlag=scanParams.pAbortFlag;
+    mpCatalog = lpCatalog;
+    mPath = lPath;
+    mDiskName = lDiskName;
+    mStopNow = false;
+    mComputeSha1 = scanParams.computeSha1;
+    mComputeSha256 = scanParams.computeSha256;
+    mpAbortFlag = scanParams.pAbortFlag;
 }
 
+ScanThread::~ScanThread() {}
 
-ScanThread::~ScanThread()
-{
-}
-
-
-void
-ScanThread::run()
+void ScanThread::run()
 {
     vector<Xfc::XmlParamForFileCallback> cbList1;
     vector<Xfc::XmlParamForFileChunkCallback> cbList2;
 
     if (mComputeSha1) {
-        //cbList1.push_back(sha1Callback); // - used for testing
+        // cbList1.push_back(sha1Callback); // - used for testing
         cbList2.push_back(sha1UsingBufCallback);
     }
     if (mComputeSha256) {
-        //cbList1.push_back(sha256Callback); // - used for testing
+        // cbList1.push_back(sha256Callback); // - used for testing
         cbList2.push_back(sha256UsingBufCallback);
-    }        
-    try {
-        mpCatalog->addPathToXmlTree(mPath, -1, mpAbortFlag, cbList1, cbList2, mDiskName, "","","");
     }
-    catch(std::string e) {
-        mReturnValue=1;
-        mErrorMessage=e;
+    try {
+        mpCatalog->addPathToXmlTree(mPath, -1, mpAbortFlag, cbList1, cbList2, mDiskName,
+                                    "", "", "");
+    } catch (std::string e) {
+        mReturnValue = 1;
+        mErrorMessage = e;
         return;
     }
-    mReturnValue=0;
+    mReturnValue = 0;
 }
 
+int ScanThread::returnValue() { return mReturnValue; }
 
-int
-ScanThread::returnValue()
-{
-    return mReturnValue;
-} 
+void ScanThread::stopThread() { mStopNow = true; }
 
-
-void
-ScanThread::stopThread()
-{
-    mStopNow=true;
-} 
-
-
-std::string
-ScanThread::getErrorMessage() const
-{
-    return mErrorMessage;
-}
-
+std::string ScanThread::getErrorMessage() const { return mErrorMessage; }
 
 ScanThread::ScanThreadParams::ScanThreadParams()
 {
-    computeSha1=computeSha256=false;
-    pAbortFlag=NULL;
+    computeSha1 = computeSha256 = false;
+    pAbortFlag = NULL;
 }

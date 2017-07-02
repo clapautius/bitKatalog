@@ -20,100 +20,89 @@
 #ifndef ADDDISKBOX_H
 #define ADDDISKBOX_H
 
-#include <kpagedialog.h>
-#include <klineedit.h>
-#include <qlabel.h>
-#include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
+#include <Qt3Support/q3vgroupbox.h>
 #include <k3listbox.h>
+#include <kdatepicker.h>
+#include <klineedit.h>
+#include <kpagedialog.h>
 #include <kprogressdialog.h>
 #include <kpushbutton.h>
-#include <qlayout.h>
 #include <qcheckbox.h>
-#include <kdatepicker.h>
+#include <qlabel.h>
+#include <qlayout.h>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
-
 class AddDiskBox : public KPageDialog
-{      
-Q_OBJECT
-            
-public:
+{
+    Q_OBJECT
+
+   public:
     AddDiskBox(Xfc *);
 
     ~AddDiskBox();
-    
+
     bool catalogWasModified();
 
-    const std::string addedDiskPath() const
-    {
-        return mAddedDiskPath;
-    }
+    const std::string addedDiskPath() const { return mAddedDiskPath; }
 
-    bool resultOk() const
-    {
-        return mResultOk;
-    }
-    
-protected:
+    bool resultOk() const { return mResultOk; }
 
+   protected:
     void disableButtons();
-    
-protected slots:  
-    
-//    virtual void close();
-//    void add();
-   
-    virtual void slotUser1();
-    
-    virtual void browseButtonClicked();
-    
-    virtual void todayCDateButtonClicked();
-    
-    virtual void someDayCDateButtonClicked();
-    
-private:
 
+   protected slots:
+
+    //    virtual void close();
+    //    void add();
+
+    virtual void slotUser1();
+
+    virtual void browseButtonClicked();
+
+    virtual void todayCDateButtonClicked();
+
+    virtual void someDayCDateButtonClicked();
+
+   private:
     void layout();
-    
+
     Xfc *mpCatalog;
-    
+
     bool mCatalogWasModified;
 
     bool mResultOk;
 
     std::string mAddedDiskPath;
-    
-    //QFrame *mpPage; // on heap
 
-    //QVBoxLayout *mpLayout1; // on heap
-    
-    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3,
-        *mpTmpLabel4; // on heap
-    
-    QLabel *mpPathLabel; // on heap
-    //KLineEdit *mpSimpleSearchEdit; // on heap
-    
-    KHBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3,
-      *mpLayoutBox4, *mpLayoutBox5, *mpLayoutBox6; // on heap
+    // QFrame *mpPage; // on heap
+
+    // QVBoxLayout *mpLayout1; // on heap
+
+    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3, *mpTmpLabel4;  // on heap
+
+    QLabel *mpPathLabel;  // on heap
+    // KLineEdit *mpSimpleSearchEdit; // on heap
+
+    KHBox *mpLayoutBox1, *mpLayoutBox2, *mpLayoutBox3, *mpLayoutBox4, *mpLayoutBox5,
+        *mpLayoutBox6;  // on heap
 
     // on heap
     KPushButton *mpBrowseButton, *mpTodayCDateButton, *mpSomeDayCDateButton;
-            
+
     KProgressDialog *mpProgress;
-    
+
     Q3VGroupBox *mpGroupBox;
-    
-    KLineEdit *mpDiskNameEdit, *mpDiskDescriptionEdit,
-      *mpDiskCDateEdit, *mpDiskCommentEdit, *mpDiskStorageDevEdit;
-    
+
+    KLineEdit *mpDiskNameEdit, *mpDiskDescriptionEdit, *mpDiskCDateEdit,
+        *mpDiskCommentEdit, *mpDiskStorageDevEdit;
+
     QCheckBox *mpAddRootCheckBox;
     QCheckBox *mpComputeSha1SumCheckBox, *mpComputeSha256SumCheckBox;
-    
-    KDatePicker *mpCDatePicker;
 
+    KDatePicker *mpCDatePicker;
 };
 
 #endif

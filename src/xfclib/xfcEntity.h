@@ -20,104 +20,97 @@
 #if !defined(_XFCENTITY_H_)
 #define _XFCENTITY_H_
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include <libxml/parser.h>
 
 #include "xfc.h"
 
-
 /// wrapper class for an xml item from the catalog
 /// may be a disk or a file
 class XfcEntity
 {
-public:
-  
+   public:
     XfcEntity(xmlNodePtr pNode, Xfc *pXfc);
 
-    XfcEntity& operator=(const XfcEntity &rhs);
-  
-  std::string getName() const;
-  
-  xmlNodePtr getXmlNode() const;
-  
-  void setName(std::string);
-  
-  //void setXmlNode(xmlNodePtr) throw();
+    XfcEntity &operator=(const XfcEntity &rhs);
 
-  Xfc::ElementType getElementType() const;
+    std::string getName() const;
 
-  // DEPRECATED
-  bool isFileOrDir() const;
+    xmlNodePtr getXmlNode() const;
 
-  // DEPRECATED
-  bool isDisk() const;
+    void setName(std::string);
 
-  // DEPRECATED
-  int getTypeOfFile() const throw (std::string);
-  // 0 - regular file
-  // 1 - directory
-  
-  std::map<std::string, std::string> getDetails();
+    // void setXmlNode(xmlNodePtr) throw();
 
-  std::vector<std::string> getLabels();
+    Xfc::ElementType getElementType() const;
 
-  /* not used atm
-  void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool lIsDisk=false);
-  */
+    // DEPRECATED
+    bool isFileOrDir() const;
 
-  std::string getLabelsAsString() const;
+    // DEPRECATED
+    bool isDisk() const;
 
-  void setComment(const std::string &comment);
+    // DEPRECATED
+    int getTypeOfFile() const throw(std::string);
+    // 0 - regular file
+    // 1 - directory
 
-  std::string getComment() const;
+    std::map<std::string, std::string> getDetails();
 
-  void setStorageDev(const std::string &storage_dev);
+    std::vector<std::string> getLabels();
 
-  std::string getStorageDev() const;
+    /* not used atm
+    void setParams(std::vector<std::string> lVect, bool lIsFile=false, bool
+    lIsDisk=false);
+    */
 
-  void setOrAddParam(const std::string &elt_name, const std::string &elt_value);
+    std::string getLabelsAsString() const;
 
-  /**
-   * @return The value of the specified parameter (sub-element), or empty string if no
-   * such sub-element exists.
-   */
-  std::string getParamValue(const std::string &elt_name) const;
+    void setComment(const std::string &comment);
 
-private:
+    std::string getComment() const;
 
-  void checkValidData(bool xfcMustBeValid=true) const throw (std::string);
-  
-  Xfc *mpXfc;
-  
-  xmlNodePtr mpXmlNode;
-  
-  //std::string mName;
-  
-  //bool mIsFile;
-  
-  //bool mIsDisk;
-  
+    void setStorageDev(const std::string &storage_dev);
+
+    std::string getStorageDev() const;
+
+    void setOrAddParam(const std::string &elt_name, const std::string &elt_value);
+
+    /**
+     * @return The value of the specified parameter (sub-element), or empty string if no
+     * such sub-element exists.
+     */
+    std::string getParamValue(const std::string &elt_name) const;
+
+   private:
+    void checkValidData(bool xfcMustBeValid = true) const throw(std::string);
+
+    Xfc *mpXfc;
+
+    xmlNodePtr mpXmlNode;
+
+    // std::string mName;
+
+    // bool mIsFile;
+
+    // bool mIsDisk;
 };
-
 
 class EntityIterator
 {
-public:
-    
-    EntityIterator(Xfc &lrXfc, std::string lPath)
-            throw (std::string);
+   public:
+    EntityIterator(Xfc &lrXfc, std::string lPath) throw(std::string);
 
-    EntityIterator(Xfc &lrXfc, xmlNodePtr lpNode)
-            throw (std::string);
-    
+    EntityIterator(Xfc &lrXfc, xmlNodePtr lpNode) throw(std::string);
+
     bool hasMoreChildren();
-    
+
     XfcEntity getNextChild();
-    
-private:
+
+   private:
     xmlNodePtr mpParentNode;
     xmlNodePtr mpCurrentNode;
     Xfc &mrXfc;

@@ -30,15 +30,15 @@
 */
 class ScanThread : public QThread
 {
-private:
+   private:
     Xfc *mpCatalog;
-    
+
     std::string mPath, mDiskName;
 
     std::string mErrorMessage;
 
     int mReturnValue;
-    
+
     bool mStopNow;
 
     bool mComputeSha1;
@@ -47,29 +47,28 @@ private:
 
     volatile const bool *mpAbortFlag;
 
-public:
-
-    struct ScanThreadParams {
+   public:
+    struct ScanThreadParams
+    {
         ScanThreadParams();
-        
+
         bool computeSha1;
         bool computeSha256;
 
         volatile const bool *pAbortFlag;
     };
-            
-    ScanThread(Xfc*, std::string, std::string, ScanThreadParams&);
+
+    ScanThread(Xfc *, std::string, std::string, ScanThreadParams &);
 
     ~ScanThread();
-    
+
     virtual void run();
-    
+
     int returnValue();
-    
+
     void stopThread();
 
     std::string getErrorMessage() const;
-
 };
 
 #endif

@@ -20,14 +20,12 @@
 #include <kvbox.h>
 #include <QHeaderView>
 
-#include "outputwindow.h"
 #include "main.h"
+#include "outputwindow.h"
 
 using namespace std;
 
-
-OutputWindow::OutputWindow()
-    : KPageDialog()
+OutputWindow::OutputWindow() : KPageDialog()
 {
     setCaption("Result");
     setButtons(KDialog::Close);
@@ -35,98 +33,85 @@ OutputWindow::OutputWindow()
     layout();
 }
 
-
-OutputWindow::~OutputWindow()
-{
-}
-
+OutputWindow::~OutputWindow() {}
 
 void OutputWindow::layout()
 {
-    resize(800,450);
-    KVBox *pBox1=new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("Results"));
+    resize(800, 450);
+    KVBox *pBox1 = new KVBox();
+    KPageWidgetItem *pPage1 = addPage(pBox1, QString("Results"));
     pPage1->setHeader(QString("Results"));
 
-    mpEditArea=new KTextEdit(pBox1);
+    mpEditArea = new KTextEdit(pBox1);
     mpEditArea->setReadOnly(true);
 }
 
-
-void OutputWindow::addText( std::string lText)
+void OutputWindow::addText(std::string lText)
 {
     mpEditArea->insertPlainText(str2qstr(lText));
     mpEditArea->insertPlainText("\n");
 }
 
-
-DiffOutputWindow::DiffOutputWindow(int rows)
-    : KPageDialog(),
-      mRows(rows)
+DiffOutputWindow::DiffOutputWindow(int rows) : KPageDialog(), mRows(rows)
 {
     setCaption("Result");
     setButtons(KDialog::Close);
     setModal(true);
-    mCurrentRow=0;
+    mCurrentRow = 0;
     layout();
-    gkLog<<xfcInfo<<"Created new diff output window. No. of rows="<<rows<<eol;
+    gkLog << xfcInfo << "Created new diff output window. No. of rows=" << rows << eol;
 }
 
-
-DiffOutputWindow::~DiffOutputWindow()
-{
-}
-
+DiffOutputWindow::~DiffOutputWindow() {}
 
 void DiffOutputWindow::layout()
 {
-    resize(800,450);
-    KVBox *pBox1=new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("Results"));
+    resize(800, 450);
+    KVBox *pBox1 = new KVBox();
+    KPageWidgetItem *pPage1 = addPage(pBox1, QString("Results"));
     pPage1->setHeader(QString("Results"));
-    mpList=new QTableWidget(mRows, 3, pBox1);
+    mpList = new QTableWidget(mRows, 3, pBox1);
     mpList->setShowGrid(false);
     QStringList headers;
-    headers<<"Catalog"<<""<<"Disk";
+    headers << "Catalog"
+            << ""
+            << "Disk";
     mpList->setHorizontalHeaderLabels(headers);
     mpList->setStyleSheet("QTableWidgetItem { border-style: none solid; }");
 }
 
-
-void
-DiffOutputWindow::addText(string s1, string s2, string s3, unsigned int lines)
+void DiffOutputWindow::addText(string s1, string s2, string s3, unsigned int lines)
 {
-    gkLog<<xfcDebug<<"Adding text to current row: "<<s1<<", "<<s2<<", "<<s3<<eol;
-    gkLog<<"Current row is "<<mCurrentRow<<eol;
+    gkLog << xfcDebug << "Adding text to current row: " << s1 << ", " << s2 << ", " << s3
+          << eol;
+    gkLog << "Current row is " << mCurrentRow << eol;
     string verticalHeader;
-    if (lines>1) {
-        for (unsigned int i=1; i<lines; i++)
-            verticalHeader+="\n";
+    if (lines > 1) {
+        for (unsigned int i = 1; i < lines; i++) verticalHeader += "\n";
     }
-    mpList->setVerticalHeaderItem(mCurrentRow, new QTableWidgetItem(verticalHeader.c_str()));
+    mpList->setVerticalHeaderItem(mCurrentRow,
+                                  new QTableWidgetItem(verticalHeader.c_str()));
     QColor background;
-    if (mCurrentRow%2)
-        background=QApplication::palette().color(QPalette::AlternateBase);
+    if (mCurrentRow % 2)
+        background = QApplication::palette().color(QPalette::AlternateBase);
     else
-        background=QApplication::palette().color(QPalette::Base);
-    QTableWidgetItem *pItem=new QTableWidgetItem(str2qstr(s1));
+        background = QApplication::palette().color(QPalette::Base);
+    QTableWidgetItem *pItem = new QTableWidgetItem(str2qstr(s1));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 0, pItem);
-    pItem=new QTableWidgetItem(str2qstr(s2));
+    pItem = new QTableWidgetItem(str2qstr(s2));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 1, pItem);
-    pItem=new QTableWidgetItem(str2qstr(s3));
+    pItem = new QTableWidgetItem(str2qstr(s3));
     pItem->setFlags(Qt::ItemIsEnabled);
     pItem->setBackgroundColor(background);
     mpList->setItem(mCurrentRow, 2, pItem);
     mCurrentRow++;
 }
 
-
-void
-DiffOutputWindow::finishedText()
+void DiffOutputWindow::finishedText()
 {
     mpList->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
 }

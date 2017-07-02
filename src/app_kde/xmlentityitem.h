@@ -30,36 +30,32 @@
 */
 class XmlEntityItem : public QTreeWidgetItem
 {
-public:
-    XmlEntityItem(QTreeWidget*, QStringList list);
+   public:
+    XmlEntityItem(QTreeWidget *, QStringList list);
 
-    XmlEntityItem(XmlEntityItem*, QStringList list);
-    
+    XmlEntityItem(XmlEntityItem *, QStringList list);
+
     virtual ~XmlEntityItem();
-    
+
     virtual void setOpened(bool);
 
-    void redisplay(bool first=true);
-    
+    void redisplay(bool first = true);
+
     void setXmlNode(xmlNodePtr);
 
-    void setAsOpened() {
-        mAlreadyOpened=true;
-    }
+    void setAsOpened() { mAlreadyOpened = true; }
 
     std::string xmlName() const;
-    
+
     static Xfc *mspCatalog;
     // :fixme: - maybe fix this
-      
-private:
 
-    QTreeWidgetItem* nextSibling();
-    
+   private:
+    QTreeWidgetItem *nextSibling();
+
     xmlNodePtr mpNode;
-    
-    bool mAlreadyOpened;
 
+    bool mAlreadyOpened;
 };
 
 #endif

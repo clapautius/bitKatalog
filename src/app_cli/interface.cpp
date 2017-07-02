@@ -17,96 +17,82 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-  
-#include <vector>
-#include <string>
-#include <sstream>
-#include <iostream>
 
-#include "xfcapp.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "interface.h"
+#include "xfcapp.h"
 #include "xfclib.h"
 
 using namespace std;
 
-std::string gPrompt=">";
+std::string gPrompt = ">";
 
 extern XfcLogger gcLog;
 
-typedef enum {
-    eStInitial,
-    eStParam,
-    eStSpace,
-    eStString,
-    eStEscape
-} States;
-
+typedef enum { eStInitial, eStParam, eStSpace, eStString, eStEscape } States;
 
 vector<string> getCommand()
 {
     vector<string> cmd;
     std::string str;
-    char *pPtr=readline("$");
-    States state=eStInitial, prevState=eStInitial;
-    for (unsigned int i=0; pPtr[i]; i++) {
-        switch(state) {
-        case eStInitial:
-        case eStParam:
-            if ('"'==pPtr[i]) {
-                state=eStString;
-            }
-            else if (isspace(pPtr[i])) {
-                if (!str.empty()) {
-                    cmd.push_back(str);
-                    str.clear();
-                    state=eStSpace;
+    char *pPtr = readline("$");
+    States state = eStInitial, prevState = eStInitial;
+    for (unsigned int i = 0; pPtr[i]; i++) {
+        switch (state) {
+            case eStInitial:
+            case eStParam:
+                if ('"' == pPtr[i]) {
+                    state = eStString;
+                } else if (isspace(pPtr[i])) {
+                    if (!str.empty()) {
+                        cmd.push_back(str);
+                        str.clear();
+                        state = eStSpace;
+                    }
+                } else if ('\\' == pPtr[i]) {
+                    state = eStEscape;
+                    prevState = eStParam;
+                } else {
+                    state = eStParam;
+                    str += pPtr[i];
                 }
-            }
-            else if ('\\'==pPtr[i]) {
-                state=eStEscape;
-                prevState=eStParam;
-            }
-            else {
-                state=eStParam;
-                str+=pPtr[i];
-            }
-            break;
-        case eStSpace:
-            if ('"'==pPtr[i]) {
-                state=eStString;
-            }
-            else if(isspace(pPtr[i]))
-                ;
-            else if ('\\'==pPtr[i]) {
-                state=eStEscape;
-                prevState=eStParam;
-            }
-            else {
-                state=eStParam;
-                str+=pPtr[i];
-            }
-            break;
-        case eStEscape:
-            str+=pPtr[i];
-            state=prevState;
-            break;
-        case eStString:
-            if ('"'==pPtr[i]) {
-                state=eStParam;
-            }
-            else if ('\\'==pPtr[i]) {
-                state=eStEscape;
-                prevState=eStString;
-            }
-            else {
-                str+=pPtr[i];
-            }
-            break;
-        } // end switch
+                break;
+            case eStSpace:
+                if ('"' == pPtr[i]) {
+                    state = eStString;
+                } else if (isspace(pPtr[i]))
+                    ;
+                else if ('\\' == pPtr[i]) {
+                    state = eStEscape;
+                    prevState = eStParam;
+                } else {
+                    state = eStParam;
+                    str += pPtr[i];
+                }
+                break;
+            case eStEscape:
+                str += pPtr[i];
+                state = prevState;
+                break;
+            case eStString:
+                if ('"' == pPtr[i]) {
+                    state = eStParam;
+                } else if ('\\' == pPtr[i]) {
+                    state = eStEscape;
+                    prevState = eStString;
+                } else {
+                    str += pPtr[i];
+                }
+                break;
+        }  // end switch
     }
     // finished
     if (!str.empty()) {
@@ -115,39 +101,32 @@ vector<string> getCommand()
     add_history(pPtr);
     free(pPtr);
 
-    gcLog<<xfcInfo<<"new user command: ";
-    for (unsigned int i=0; i<cmd.size(); i++) {
-        if (0!=i)
-            gcLog<<", ";
-        gcLog<<cmd[i];
+    gcLog << xfcInfo << "new user command: ";
+    for (unsigned int i = 0; i < cmd.size(); i++) {
+        if (0 != i)
+            gcLog << ", ";
+        gcLog << cmd[i];
     }
-    gcLog<<eol;
+    gcLog << eol;
     return cmd;
 }
-    
-    
-void displayError(std::string lS)
-{
-    cout<<lS.c_str()<<endl;
-} 
 
+void displayError(std::string lS) { cout << lS.c_str() << endl; }
 
 void displayError(std::string lS, std::string lS2)
 {
-    cout<<lS.c_str()<<lS2.c_str()<<endl;
-} 
-
-
-void displayMessage(std::string lMsg1, std::string lMsg2, 
-                    std::string lMsg3, std::string lMsg4)
-{
-    cout<<lMsg1.c_str();
-    if(lMsg2!="")
-        cout<<lMsg2.c_str();
-    if(lMsg3!="")
-        cout<<lMsg3.c_str();
-    if(lMsg4!="")
-        cout<<lMsg4.c_str();
-    cout<<endl;
+    cout << lS.c_str() << lS2.c_str() << endl;
 }
 
+void displayMessage(std::string lMsg1, std::string lMsg2, std::string lMsg3,
+                    std::string lMsg4)
+{
+    cout << lMsg1.c_str();
+    if (lMsg2 != "")
+        cout << lMsg2.c_str();
+    if (lMsg3 != "")
+        cout << lMsg3.c_str();
+    if (lMsg4 != "")
+        cout << lMsg4.c_str();
+    cout << endl;
+}

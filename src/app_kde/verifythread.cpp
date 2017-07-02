@@ -19,75 +19,55 @@
  ***************************************************************************/
 #include <sstream>
 
-#include "verifythread.h"
 #include "fs.h"
-#include "misc.h"
-#include "xfcEntity.h"
 #include "main.h"
+#include "misc.h"
+#include "verifythread.h"
+#include "xfcEntity.h"
 
 using std::string;
 using std::vector;
 using std::map;
 
-
-VerifyThread::VerifyThread(Xfc* pCatalog, string catalogPath, string diskPath,
+VerifyThread::VerifyThread(Xfc *pCatalog, string catalogPath, string diskPath,
                            vector<EntityDiff> *pDifferences)
-    : QThread(),
-      mpDifferences(pDifferences)
+    : QThread(), mpDifferences(pDifferences)
 {
-    mpCatalog=pCatalog;
-    mCatalogPath=catalogPath;
-    mDiskPath=diskPath;
-    mAbortFlag=false;
+    mpCatalog = pCatalog;
+    mCatalogPath = catalogPath;
+    mDiskPath = diskPath;
+    mAbortFlag = false;
 }
 
+VerifyThread::~VerifyThread() {}
 
-VerifyThread::~VerifyThread()
+void VerifyThread::run()
 {
+    mResultCode = mpCatalog->verifyDirectory(mCatalogPath, mDiskPath, mDiskPath.length(),
+                                             mpDifferences, &mAbortFlag);
 }
 
+int VerifyThread::getResultCode() const { return mResultCode; }
 
-void
-VerifyThread::run()
-{
-    mResultCode=mpCatalog->verifyDirectory(mCatalogPath, mDiskPath, mDiskPath.length(),
-                                           mpDifferences, &mAbortFlag);
-}
-
-
-
-
-int
-VerifyThread::getResultCode() const
-{
-  return mResultCode;
-}
-
-
-std::string
-VerifyThread::getCurrentFile()
+std::string VerifyThread::getCurrentFile()
 {
     std::string lS;
     mMutex.lock();
-    lS=mCurrentFile;
+    lS = mCurrentFile;
     mMutex.unlock();
     return lS;
 }
 
-
-void
-VerifyThread::setCurrentFile(std::string lFile)
+void VerifyThread::setCurrentFile(std::string lFile)
 {
     mMutex.lock();
-    mCurrentFile=lFile;
+    mCurrentFile = lFile;
     mMutex.unlock();
 }
 
-
-void
-VerifyThread::stopThread()
+void VerifyThread::stopThread()
 {
     mMutex.lock();
-    mAbortFlag=true;
+    mAbortFlag = true;
     mMutex.unlock();
 }

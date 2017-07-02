@@ -25,40 +25,30 @@
 #include "kmessagebox.h"
 
 #if defined(XFC_DEBUG)
-    #include <iostream>
-    using std::cout;
-    using std::endl;
+#include <iostream>
+using std::cout;
+using std::endl;
 #endif
 
 using std::string;
 using std::vector;
 using std::map;
 
-
 XmlEntityItem::XmlEntityItem(QTreeWidget *pTreeWidget, QStringList list)
     : QTreeWidgetItem(pTreeWidget, list)
 {
-    mAlreadyOpened=false;
+    mAlreadyOpened = false;
 }
-
 
 XmlEntityItem::XmlEntityItem(XmlEntityItem *lpItem, QStringList list)
     : QTreeWidgetItem(lpItem, list)
 {
-    mAlreadyOpened=false;
+    mAlreadyOpened = false;
 }
 
+XmlEntityItem::~XmlEntityItem() {}
 
-XmlEntityItem::~XmlEntityItem()
-{
-}
-
-
-void XmlEntityItem::setXmlNode(xmlNodePtr lpNode)
-{
-    mpNode=lpNode;
-}
-
+void XmlEntityItem::setXmlNode(xmlNodePtr lpNode) { mpNode = lpNode; }
 
 void XmlEntityItem::redisplay(bool first)
 {
@@ -66,106 +56,97 @@ void XmlEntityItem::redisplay(bool first)
     map<string, string> details;
     string labelsString;
     setText(gpView->getNameColumnIndex(), str2qstr(lEnt.getName()));
-    details=lEnt.getDetails();
-    if( !details["description"].empty())
+    details = lEnt.getDetails();
+    if (!details["description"].empty())
         setText(gpView->getDescriptionColumnIndex(), str2qstr(details["description"]));
     else
         setText(gpView->getDescriptionColumnIndex(), "");
-    labelsString=lEnt.getLabelsAsString();
+    labelsString = lEnt.getLabelsAsString();
     setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
     setText(gpView->getStorageDevColumnIndex(), str2qstr(lEnt.getStorageDev()));
 
 #if defined(XFC_DEBUG)
-    cout<<":debug:"<<__FUNCTION__<<": this="<<this<<endl;
+    cout << ":debug:" << __FUNCTION__ << ": this=" << this << endl;
 #endif
-    
+
     XmlEntityItem *pCurrentItem;
-    pCurrentItem=(XmlEntityItem*)child(0);
+    pCurrentItem = (XmlEntityItem *)child(0);
     if (pCurrentItem) {
         pCurrentItem->redisplay(false);
     }
     if (!first) {
-        pCurrentItem=(XmlEntityItem*)nextSibling();
+        pCurrentItem = (XmlEntityItem *)nextSibling();
         if (pCurrentItem) {
             pCurrentItem->redisplay(false);
         }
     }
 }
 
-
 void XmlEntityItem::setOpened(bool lOpen)
 {
     map<string, string> details;
-    gkLog<<xfcDebug<<__FUNCTION__<<(lOpen?": expanding":": collapsing")<<
-        " entity "<<xmlName()<<eol;
-    if(lOpen && !mAlreadyOpened)
-    {
+    gkLog << xfcDebug << __FUNCTION__ << (lOpen ? ": expanding" : ": collapsing")
+          << " entity " << xmlName() << eol;
+    if (lOpen && !mAlreadyOpened) {
         XmlEntityItem *lpItem;
         EntityIterator *lpTempIterator;
         // :fixme: - assert(mpNode)
-        EntityIterator *lpIterator=new EntityIterator(*mspCatalog, mpNode);
-        while(lpIterator->hasMoreChildren())
-        {
-            XfcEntity ent=lpIterator->getNextChild();
-            details=ent.getDetails();
-            QString labelsString=str2qstr(ent.getLabelsAsString());
+        EntityIterator *lpIterator = new EntityIterator(*mspCatalog, mpNode);
+        while (lpIterator->hasMoreChildren()) {
+            XfcEntity ent = lpIterator->getNextChild();
+            details = ent.getDetails();
+            QString labelsString = str2qstr(ent.getLabelsAsString());
             QStringList columns;
             gpView->fillColumnValues(columns, str2qstr(ent.getName()),
                                      str2qstr(details["description"]), labelsString, ent);
-            lpItem=new XmlEntityItem(this, columns);
+            lpItem = new XmlEntityItem(this, columns);
             lpItem->setXmlNode(ent.getXmlNode());
 #if defined(XFC_DEBUG)
-            cout<<":debug:"<<__FUNCTION__<<": adding child: "<<
-                ent.getName()<<endl;
-            cout<<":debug:"<<__FUNCTION__<<":   labels: "<<
-                qstr2cchar(labelsString)<<endl;
+            cout << ":debug:" << __FUNCTION__ << ": adding child: " << ent.getName()
+                 << endl;
+            cout << ":debug:" << __FUNCTION__
+                 << ":   labels: " << qstr2cchar(labelsString) << endl;
 #endif
             switch (ent.getElementType()) {
-            case Xfc::eFile:
-                lpItem->setIcon(0, *gpFileIcon);
-                break;
-            case Xfc::eDir:
-                lpItem->setIcon(0, *gpDirIcon);
-                break;
-            case Xfc::eDisk:
-                lpItem->setIcon(0, *gpDiskIcon);
-                break;
-            default:
-                throw std::string("You've just found a bug! (The application shouldn't be here)");
+                case Xfc::eFile:
+                    lpItem->setIcon(0, *gpFileIcon);
+                    break;
+                case Xfc::eDir:
+                    lpItem->setIcon(0, *gpDirIcon);
+                    break;
+                case Xfc::eDisk:
+                    lpItem->setIcon(0, *gpDiskIcon);
+                    break;
+                default:
+                    throw std::string(
+                        "You've just found a bug! (The application shouldn't be here)");
             }
-            lpTempIterator=new EntityIterator(*mspCatalog, ent.getXmlNode());
-            if(lpTempIterator->hasMoreChildren())
+            lpTempIterator = new EntityIterator(*mspCatalog, ent.getXmlNode());
+            if (lpTempIterator->hasMoreChildren())
                 lpItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
             delete lpTempIterator;
         }
-        mAlreadyOpened=true;
+        mAlreadyOpened = true;
     }
     QTreeWidgetItem::setExpanded(lOpen);
 }
 
-
-QTreeWidgetItem*
-XmlEntityItem::nextSibling()
+QTreeWidgetItem *XmlEntityItem::nextSibling()
 {
-    QTreeWidgetItem *pParent=parent();
-    QTreeWidgetItem *next=NULL;
+    QTreeWidgetItem *pParent = parent();
+    QTreeWidgetItem *next = NULL;
     if (pParent) {
-        next=pParent->child(pParent->indexOfChild(this)+1);
-    }
-    else {
-        QTreeWidget *pTreeWidget=treeWidget();
-        next=pTreeWidget->topLevelItem(
-            pTreeWidget->indexOfTopLevelItem(this)+1);
+        next = pParent->child(pParent->indexOfChild(this) + 1);
+    } else {
+        QTreeWidget *pTreeWidget = treeWidget();
+        next = pTreeWidget->topLevelItem(pTreeWidget->indexOfTopLevelItem(this) + 1);
     }
     return next;
 }
 
-
-std::string
-XmlEntityItem::xmlName() const
+std::string XmlEntityItem::xmlName() const
 {
     return mspCatalog->getNameOfElement(mpNode);
 }
 
-
-Xfc* XmlEntityItem::mspCatalog=NULL;
+Xfc *XmlEntityItem::mspCatalog = NULL;

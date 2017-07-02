@@ -20,71 +20,65 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <kmessagebox.h>
+#include <kdatepicker.h>
 #include <kfiledialog.h>
 #include <kglobal.h>
-#include <klocale.h>
-#include <qcheckbox.h>
-#include <kdatepicker.h>
 #include <khbox.h>
+#include <klocale.h>
+#include <kmessagebox.h>
 #include <kvbox.h>
+#include <qcheckbox.h>
 
 #include <sstream>
 
 #include "adddiskbox.h"
 #include "main.h"
-#include "scanthread.h"
 #include "misc.h"
+#include "scanthread.h"
 #include "xfcEntity.h"
 
-
-AddDiskBox::AddDiskBox(Xfc *lpCatalog)
-    : KPageDialog()
+AddDiskBox::AddDiskBox(Xfc *lpCatalog) : KPageDialog()
 {
     setButtons(KDialog::Close | KDialog::User1);
     setCaption("Add disk");
-    mpCatalog=lpCatalog;
-    mCatalogWasModified=false;
-    mResultOk=false;
+    mpCatalog = lpCatalog;
+    mCatalogWasModified = false;
+    mResultOk = false;
     setModal(true);
     layout();
 }
 
-
-AddDiskBox::~AddDiskBox()
-{
-}
-
+AddDiskBox::~AddDiskBox() {}
 
 void AddDiskBox::layout()
 {
-    //resize(800,450);
+    // resize(800,450);
     button(KDialog::User1)->setGuiItem(KStandardGuiItem::Add);
 
-    KVBox *pLayoutBox= new KVBox();
-    KPageWidgetItem *pPage=addPage(pLayoutBox, QString("Add disk"));
+    KVBox *pLayoutBox = new KVBox();
+    KPageWidgetItem *pPage = addPage(pLayoutBox, QString("Add disk"));
     pPage->setHeader(QString("Add disk"));
 
-    mpLayoutBox1=new KHBox(pLayoutBox);
-    //mpLayout1->addWidget(mpLayoutBox1);
-    mpTmpLabel1=new QLabel("Path to add: ", mpLayoutBox1);
-    mpPathLabel=new QLabel("", mpLayoutBox1);
-    mpBrowseButton=new KPushButton("Browse ...", mpLayoutBox1);
+    mpLayoutBox1 = new KHBox(pLayoutBox);
+    // mpLayout1->addWidget(mpLayoutBox1);
+    mpTmpLabel1 = new QLabel("Path to add: ", mpLayoutBox1);
+    mpPathLabel = new QLabel("", mpLayoutBox1);
+    mpBrowseButton = new KPushButton("Browse ...", mpLayoutBox1);
     mpBrowseButton->setMaximumSize(mpBrowseButton->sizeHint());
     connect(mpBrowseButton, SIGNAL(clicked()), this, SLOT(browseButtonClicked()));
-    
-    mpLayoutBox2=new KHBox(pLayoutBox);
-    //mpLayout1->addWidget(mpLayoutBox2);
-    mpTmpLabel2=new QLabel("Disk name: ", mpLayoutBox2);
-    mpDiskNameEdit=new KLineEdit(mpLayoutBox2);
-    
-    mpGroupBox=new Q3VGroupBox(" Parameters ", pLayoutBox);
-    //mpLayout1->addWidget(mpGroupBox);
 
-    mpLayoutBox3=new KHBox(mpGroupBox);
-    //mpLayout1->addWidget(mpLayoutBox3);
-    mpTmpLabel3=new QLabel("Disk description: ", mpLayoutBox3);
-    mpDiskDescriptionEdit=new KLineEdit(mpLayoutBox3);
+    mpLayoutBox2 = new KHBox(pLayoutBox);
+    // mpLayout1->addWidget(mpLayoutBox2);
+    mpTmpLabel2 = new QLabel("Disk name: ", mpLayoutBox2);
+    mpDiskNameEdit = new KLineEdit(mpLayoutBox2);
+
+    mpGroupBox = new Q3VGroupBox(" Parameters ", pLayoutBox);
+    // mpLayout1->addWidget(mpGroupBox);
+
+    mpLayoutBox3 = new KHBox(mpGroupBox);
+    // mpLayout1->addWidget(mpLayoutBox3);
+    mpTmpLabel3 = new QLabel("Disk description: ", mpLayoutBox3);
+    mpDiskDescriptionEdit = new KLineEdit(mpLayoutBox3);
 
     mpLayoutBox5 = new KHBox(mpGroupBox);
     new QLabel("Comment: ", mpLayoutBox5);
@@ -95,34 +89,33 @@ void AddDiskBox::layout()
     mpDiskStorageDevEdit = new KLineEdit(mpLayoutBox6);
 
     // creation date
-    mpLayoutBox4=new KHBox(mpGroupBox);
-    //mpLayout1->addWidget(mpLayoutBox4);
-    mpTmpLabel4=new QLabel("Disk creation date: ", mpLayoutBox4);
-    
-    mpDiskCDateEdit=new KLineEdit(mpLayoutBox4);
-    mpTodayCDateButton=new KPushButton("Today", mpLayoutBox4);
+    mpLayoutBox4 = new KHBox(mpGroupBox);
+    // mpLayout1->addWidget(mpLayoutBox4);
+    mpTmpLabel4 = new QLabel("Disk creation date: ", mpLayoutBox4);
+
+    mpDiskCDateEdit = new KLineEdit(mpLayoutBox4);
+    mpTodayCDateButton = new KPushButton("Today", mpLayoutBox4);
     connect(mpTodayCDateButton, SIGNAL(clicked()), this, SLOT(todayCDateButtonClicked()));
-    mpSomeDayCDateButton=new KPushButton("Other creation date", mpLayoutBox4);
-    connect(mpSomeDayCDateButton, SIGNAL(clicked()), this, SLOT(someDayCDateButtonClicked()));
-    
-    mpAddRootCheckBox=new QCheckBox("Add also the root dir. to catalog", mpGroupBox);
+    mpSomeDayCDateButton = new KPushButton("Other creation date", mpLayoutBox4);
+    connect(mpSomeDayCDateButton, SIGNAL(clicked()), this,
+            SLOT(someDayCDateButtonClicked()));
+
+    mpAddRootCheckBox = new QCheckBox("Add also the root dir. to catalog", mpGroupBox);
     mpAddRootCheckBox->setChecked(false);
 
-    KHBox *pShaBox=new KHBox(mpGroupBox);
+    KHBox *pShaBox = new KHBox(mpGroupBox);
     pShaBox->setSpacing(20);
 
-    mpComputeSha256SumCheckBox=
+    mpComputeSha256SumCheckBox =
         new QCheckBox("Compute sha256 sums for this disk", pShaBox);
     mpComputeSha256SumCheckBox->setChecked(true);
 
-    mpComputeSha1SumCheckBox=
-        new QCheckBox("Compute sha1 sums for this disk", pShaBox);
+    mpComputeSha1SumCheckBox = new QCheckBox("Compute sha1 sums for this disk", pShaBox);
     mpComputeSha1SumCheckBox->setChecked(false);
 
     // connect button
-    connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1())); // add
-} 
-
+    connect(this, SIGNAL(user1Clicked()), this, SLOT(slotUser1()));  // add
+}
 
 void AddDiskBox::slotUser1()
 {
@@ -132,40 +125,40 @@ void AddDiskBox::slotUser1()
     std::string lDiskCDate;
     std::string comment;
     std::string storage_dev;
-    bool computeSha1=false, computeSha256=false;
-    volatile bool abortScan=false;
+    bool computeSha1 = false, computeSha256 = false;
+    volatile bool abortScan = false;
 
-    lPath=qstr2str(mpPathLabel->text());
-    lDiskName=qstr2str(mpDiskNameEdit->text());
-    lDiskDescription=qstr2str(mpDiskDescriptionEdit->text());
-    lDiskCDate=qstr2str(mpDiskCDateEdit->text());
+    lPath = qstr2str(mpPathLabel->text());
+    lDiskName = qstr2str(mpDiskNameEdit->text());
+    lDiskDescription = qstr2str(mpDiskDescriptionEdit->text());
+    lDiskCDate = qstr2str(mpDiskCDateEdit->text());
     comment = qstr2str(mpDiskCommentEdit->text());
     storage_dev = qstr2str(mpDiskStorageDevEdit->text());
 
-    if (lPath=="") {
+    if (lPath == "") {
         KMessageBox::error(this, "Invalid path");
         return;
     }
-    if (lDiskName=="") {
+    if (lDiskName == "") {
         KMessageBox::error(this, "Please enter a name for disk");
         return;
     }
-    if (mpCatalog->getNodeForPath(std::string("/")+lDiskName)!=NULL) {
+    if (mpCatalog->getNodeForPath(std::string("/") + lDiskName) != NULL) {
         KMessageBox::error(this, "Disk already exists");
         return;
     }
     if (!mpAddRootCheckBox->isChecked()) {
-        lPath=lPath+"/";
+        lPath = lPath + "/";
     }
     if (mpComputeSha1SumCheckBox->isChecked()) {
-        computeSha1=true;
+        computeSha1 = true;
     }
     if (mpComputeSha256SumCheckBox->isChecked()) {
-        computeSha256=true;
+        computeSha256 = true;
     }
     msgDebug("Adding path to disk. Path=", lPath);
 
-    KProgressDialog *lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
+    KProgressDialog *lpProgress = new KProgressDialog(this, "Scanning ...", "Scanning");
     lpProgress->progressBar()->setRange(0, 0);
     lpProgress->progressBar()->setValue(0);
     lpProgress->progressBar()->reset();
@@ -174,55 +167,53 @@ void AddDiskBox::slotUser1()
     lpProgress->setAutoClose(true);
     lpProgress->setAllowCancel(true);
     lpProgress->setButtonText("Stop");
-    int i=0;
+    int i = 0;
 
     disableButtons();
     ScanThread::ScanThreadParams params;
-    params.computeSha1=computeSha1;
-    params.computeSha256=computeSha256;
-    params.pAbortFlag=&abortScan;
-    ScanThread *lpScanThread=new ScanThread(mpCatalog, lPath, lDiskName, params);
+    params.computeSha1 = computeSha1;
+    params.computeSha256 = computeSha256;
+    params.pAbortFlag = &abortScan;
+    ScanThread *lpScanThread = new ScanThread(mpCatalog, lPath, lDiskName, params);
     msgDebug("Start time: ", getTimeSinceMidnight());
     lpScanThread->start();
-    mCatalogWasModified=true;
-    mAddedDiskPath="/";
-    mAddedDiskPath+=lDiskName;
+    mCatalogWasModified = true;
+    mAddedDiskPath = "/";
+    mAddedDiskPath += lDiskName;
 
     msgDebug("Add thread started, progress bar created, waiting for scan thread ...");
     while (!lpScanThread->isFinished()) {
         if (lpProgress->wasCancelled()) {
-            if (KMessageBox::questionYesNo(this, "Are you sure?")==KMessageBox::Yes) {
-                abortScan=true;
+            if (KMessageBox::questionYesNo(this, "Are you sure?") == KMessageBox::Yes) {
+                abortScan = true;
                 msgInfo("Waiting for scanthread to finish");
-                while (!lpScanThread->isFinished())
-                    usleep(250000);
+                while (!lpScanThread->isFinished()) usleep(250000);
                 msgInfo("Scanthread is finished");
                 delete lpProgress;
-                lpProgress=NULL;
+                lpProgress = NULL;
                 KMessageBox::information(
                     this, "Scanning was cancelled. You should not save this catalog!");
                 break;
-            }
-            else {
+            } else {
                 delete lpProgress;
-                lpProgress=new KProgressDialog(this, "Scanning ...", "Scanning");
+                lpProgress = new KProgressDialog(this, "Scanning ...", "Scanning");
                 lpProgress->progressBar()->setRange(0, 0);
                 lpProgress->progressBar()->setTextVisible(false);
                 lpProgress->setMinimumDuration(1000);
                 lpProgress->setAutoClose(true);
                 lpProgress->setAllowCancel(true);
                 lpProgress->setButtonText("Stop");
-            }    
+            }
         }
-        lpProgress->progressBar()->setValue(i+=10);
+        lpProgress->progressBar()->setValue(i += 10);
         gpApplication->processEvents();
         usleep(250000);
     }
     msgDebug("Finish time: ", getTimeSinceMidnight());
-    if (lpScanThread->returnValue()!=0) {        
+    if (lpScanThread->returnValue() != 0) {
         std::string err;
-        err="Error adding path to catalog. ";
-        err+=lpScanThread->getErrorMessage();
+        err = "Error adding path to catalog. ";
+        err += lpScanThread->getErrorMessage();
         delete lpProgress;
         delete lpScanThread;
         KMessageBox::error(this, err.c_str());
@@ -232,21 +223,19 @@ void AddDiskBox::slotUser1()
     std::string disk_path = "/";
     disk_path += lDiskName;
     XfcEntity new_disk = mpCatalog->getEntityFromPath(disk_path);
-    if (lDiskDescription!="") {
+    if (lDiskDescription != "") {
         try {
             mpCatalog->setDescriptionOf(disk_path, lDiskDescription);
-        }
-        catch(std::string e) {
+        } catch (std::string e) {
             QString err_msg = "Cannot add description to disk";
             err_msg += e.c_str();
             KMessageBox::error(this, err_msg);
         }
     }
-    if (lDiskCDate!="") {
+    if (lDiskCDate != "") {
         try {
             mpCatalog->setCDate(lDiskName, lDiskCDate);
-        }
-        catch(std::string e) {
+        } catch (std::string e) {
             KMessageBox::error(this, "Cannot set cdate for disk");
         }
     }
@@ -257,53 +246,50 @@ void AddDiskBox::slotUser1()
         if (!storage_dev.empty()) {
             new_disk.setStorageDev(storage_dev);
         }
+    } catch (std::string &e) {
+        QString err_msg = "Error setting params for the new disk: ";
+        err_msg += e.c_str();
+        KMessageBox::error(this, err_msg);
     }
-    catch (std::string &e) {
-            QString err_msg = "Error setting params for the new disk: ";
-            err_msg += e.c_str();
-            KMessageBox::error(this, err_msg);
-    }
-    mResultOk=true;
-    gCatalogState=1;
+    mResultOk = true;
+    gCatalogState = 1;
     gpMainWindow->updateTitle(true);
     delete lpProgress;
     delete lpScanThread;
-    close();    
-} 
-
+    close();
+}
 
 void AddDiskBox::browseButtonClicked()
 {
     QString prevDir;
-    prevDir=gpConfig->group("").readEntry("LastDirAddDisk", "/");
-    QString dir = KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
-    if (dir!="") {
+    prevDir = gpConfig->group("").readEntry("LastDirAddDisk", "/");
+    QString dir =
+        KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
+    if (dir != "") {
         mpPathLabel->setText(dir);
         gpConfig->group("").writeEntry("LastDirAddDisk", dir);
         gpConfig->sync();
     }
-} 
-
+}
 
 void AddDiskBox::todayCDateButtonClicked()
 {
     char lAux[128];
     struct tm *lpLocalTime;
-    time_t lTime=time(NULL);
-    lpLocalTime=localtime(&lTime);
-    sprintf(lAux, "%04d-%02d-%02d", lpLocalTime->tm_year+1900, lpLocalTime->tm_mon+1, 
-        lpLocalTime->tm_mday);
+    time_t lTime = time(NULL);
+    lpLocalTime = localtime(&lTime);
+    sprintf(lAux, "%04d-%02d-%02d", lpLocalTime->tm_year + 1900, lpLocalTime->tm_mon + 1,
+            lpLocalTime->tm_mday);
     mpDiskCDateEdit->setText(lAux);
 }
 
-
 void AddDiskBox::someDayCDateButtonClicked()
 {
-    KDialog *pDlg=new KDialog();
-    pDlg->setCaption( "Select date" );
-    pDlg->setButtons( KDialog::Ok | KDialog::Cancel);
+    KDialog *pDlg = new KDialog();
+    pDlg->setCaption("Select date");
+    pDlg->setButtons(KDialog::Ok | KDialog::Cancel);
 
-    KDatePicker *pDateWidget=new KDatePicker();
+    KDatePicker *pDateWidget = new KDatePicker();
     pDlg->setMainWidget(pDateWidget);
     if (QDialog::Accepted == pDlg->exec()) {
         mpDiskCDateEdit->setText(pDateWidget->date().toString("yyyy-MM-dd"));
@@ -311,15 +297,9 @@ void AddDiskBox::someDayCDateButtonClicked()
     delete pDlg;
 }
 
+bool AddDiskBox::catalogWasModified() { return mCatalogWasModified; }
 
-bool AddDiskBox::catalogWasModified()
-{
-    return mCatalogWasModified;
-}
-
-
-void
-AddDiskBox::disableButtons()
+void AddDiskBox::disableButtons()
 {
     enableButton(KDialog::Close, false);
     enableButton(KDialog::User1, false);

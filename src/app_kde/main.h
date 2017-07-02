@@ -20,22 +20,21 @@
 #if !defined(MAIN_H)
 #define MAIN_H
 
-#include <qpixmap.h>
 #include <kapplication.h>
 #include <kconfig.h>
-#include <kglobal.h>
-#include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <kglobal.h>
 #include <kicon.h>
+#include <ksharedconfig.h>
+#include <qpixmap.h>
 
 #include <string>
 #include <vector>
 
 #include "bitkatalog.h"
 #include "bitkatalogview.h"
-#include "xfclib.h"
 #include "xfcapp.h"
-
+#include "xfclib.h"
 
 extern KSharedConfigPtr gpConfig;
 
@@ -56,20 +55,20 @@ extern XfcLogger gkLog;
 
 extern std::string gHomeDir;
 
-void msgWarn(std::string, std::string="", std::string="");
-void msgInfo(std::string, std::string="", std::string="");
-void msgDebug(std::string, std::string="", std::string="", std::string="");
+void msgWarn(std::string, std::string = "", std::string = "");
+void msgInfo(std::string, std::string = "", std::string = "");
+void msgDebug(std::string, std::string = "", std::string = "", std::string = "");
 
-//extern std::string gLastDir;
+// extern std::string gLastDir;
 
-//void runningForTheFirstTime();
+// void runningForTheFirstTime();
 
 std::vector<std::string> vectWQStringToVectWstring(std::vector<QString>);
 std::vector<QString> vectWstringToVectWQString(std::vector<std::string>);
 
 bool contains(std::vector<QString> vect, QString elt);
 
-const char* qstr2cchar(const QString &str);
+const char *qstr2cchar(const QString &str);
 std::string qstr2str(const QString &str);
 QString str2qstr(const std::string &s);
 

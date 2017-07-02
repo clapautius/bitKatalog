@@ -20,15 +20,15 @@
 #ifndef SEARCHBOX_H
 #define SEARCHBOX_H
 
-#include <kpagedialog.h>
-#include <klineedit.h>
-#include <qlabel.h>
-#include <kprogressdialog.h>
-#include <Qt3Support/q3vgroupbox.h>
 #include <Qt3Support/q3hbox.h>
-#include <QTreeWidget>
+#include <Qt3Support/q3vgroupbox.h>
 #include <khbox.h>
+#include <klineedit.h>
+#include <kpagedialog.h>
+#include <kprogressdialog.h>
+#include <qlabel.h>
 #include <QDirIterator>
+#include <QTreeWidget>
 
 #include "xfcapp.h"
 #include "xmlentityitem.h"
@@ -37,19 +37,17 @@
 @author Tudor Pristavu
 */
 
-
-typedef bool (*MatchFuncType)(const QFileInfo &, const std::string &,
-                              const xmlNodePtr, Xfc *, KProgressDialog*);
-
+typedef bool (*MatchFuncType)(const QFileInfo &, const std::string &, const xmlNodePtr,
+                              Xfc *, KProgressDialog *);
 
 class SearchStruct
 {
-public:
+   public:
     SearchStruct();
-    
+
     ~SearchStruct();
-    
-    void clear(bool freeMemory=true);
+
+    void clear(bool freeMemory = true);
 
     // public members - not very nice :fixme:
     KProgressDialog *mpProgressDialog;
@@ -57,85 +55,77 @@ public:
     std::vector<std::string> mLabels;
     std::vector<std::string> mSearchResultsPaths;
     std::vector<xmlNodePtr> mSearchResultsNodes;
-
 };
-
 
 class SearchBox : public KPageDialog
 {
     Q_OBJECT
-            
-public:
-    SearchBox(Xfc *, const std::vector<std::string>&);
+
+   public:
+    SearchBox(Xfc *, const std::vector<std::string> &);
 
     ~SearchBox();
 
-protected:
-
+   protected:
     void disableButtons();
     void enableButtons();
-    virtual void findLocalFiles(bool exactly=false);
-    
-protected slots:  
-    
+    virtual void findLocalFiles(bool exactly = false);
+
+   protected slots:
+
     virtual void search();
-    
+
     virtual void findLocalFilesByName();
 
     virtual void findLocalFilesExactly();
 
     virtual void editLabels();
 
-    virtual void contextMenuEvent(QContextMenuEvent* event);
+    virtual void contextMenuEvent(QContextMenuEvent *event);
 
     virtual void selectAll();
 
     virtual void unselectAll();
-    
-private:
 
+   private:
     void connectButtons();
-    
+
     void layout();
 
-    void matchByRelation(std::vector<MatchFuncType>,
-                         QDirIterator &rIt,
+    void matchByRelation(std::vector<MatchFuncType>, QDirIterator &rIt,
                          std::vector<QFileInfo> &rResult,
-                         KProgressDialog *pProgress=NULL);
-    
-    void matchByName(QDirIterator &rIt,
-                     std::vector<QFileInfo> &rResult,
-                     KProgressDialog *pProgress=NULL);
+                         KProgressDialog *pProgress = NULL);
 
-    void matchBySizeAndSha256(QDirIterator &rIt,
-                              std::vector<QFileInfo> &rResult,
-                              KProgressDialog *pProgress=NULL);
+    void matchByName(QDirIterator &rIt, std::vector<QFileInfo> &rResult,
+                     KProgressDialog *pProgress = NULL);
+
+    void matchBySizeAndSha256(QDirIterator &rIt, std::vector<QFileInfo> &rResult,
+                              KProgressDialog *pProgress = NULL);
 
     Xfc *mpCatalog;
-    
-    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
-    
-    KLineEdit *mpTextEdit, *mpLabelsEdit; // on heap
-    
-    KHBox *mpSimpleSearchBox; // on heap
-    
+
+    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3;  // on heap
+
+    KLineEdit *mpTextEdit, *mpLabelsEdit;  // on heap
+
+    KHBox *mpSimpleSearchBox;  // on heap
+
     QTreeWidget *mpSearchResults;
-    
+
     KProgressDialog *mpProgress;
 
     QPushButton *mpEditLabelsButton;
 
     std::vector<std::string> mSearchLabels;
-    
-    const std::vector<std::string> & mrAllLabels;
+
+    const std::vector<std::string> &mrAllLabels;
 
     SearchStruct mSearchStruct;
 
     std::vector<bool> mSearchEltSelected;
 };
 
-
-int findInTree(unsigned int lDepth, const std::string &lPath, Xfc& lrXfc,
+int findInTree(unsigned int lDepth, const std::string &lPath, Xfc &lrXfc,
                xmlNodePtr lpNode, void *lpParam);
 
 #endif

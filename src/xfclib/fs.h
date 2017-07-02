@@ -22,35 +22,34 @@
 #if !defined(FS_H)
 #define FS_H
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 typedef off64_t FileSizeType;
 
 typedef struct stat64 FileStatType;
 
-FileStatType getStatOfFile(std::string path) throw (std::string);
+FileStatType getStatOfFile(std::string path) throw(std::string);
 
-bool isDirectory(std::string path) throw (std::string);
+bool isDirectory(std::string path) throw(std::string);
 
-bool isRegularFile(std::string path) throw (std::string);
+bool isRegularFile(std::string path) throw(std::string);
 
-bool isSymlink(std::string path) throw (std::string);
+bool isSymlink(std::string path) throw(std::string);
 
-std::vector<std::string> getFileListInDir(std::string path) throw (std::string);
+std::vector<std::string> getFileListInDir(std::string path) throw(std::string);
 
 std::string getLastComponentOfPath(std::string path);
 
-FileSizeType getFileSize(std::string path) throw (std::string);
+FileSizeType getFileSize(std::string path) throw(std::string);
 
 bool fileExists(std::string path);
 
-void rename(std::string lOldFile, std::string lNewFile)
-        throw (std::string);
+void rename(std::string lOldFile, std::string lNewFile) throw(std::string);
 
 /**
  * @retval 0 - ok
@@ -64,5 +63,5 @@ int copyFile(std::string src, std::string dest);
 std::vector<std::string> tokenizePath(std::string path);
 // input: a path
 // output: a vector with tokens extracted from that path
-  
+
 #endif

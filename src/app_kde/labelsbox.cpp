@@ -19,26 +19,23 @@
  ***************************************************************************/
 #include "labelsbox.h"
 
-#include <qpainter.h>
-#include <qlayout.h>
-#include <vector>
 #include <klineedit.h>
+#include <qlayout.h>
+#include <qpainter.h>
+#include <vector>
 
-#include <kmessagebox.h>
 #include <kinputdialog.h>
+#include <kmessagebox.h>
 
-#include "misc.h"
 #include "main.h"
+#include "misc.h"
 
 using std::vector;
 
-
-LabelsBox::LabelsBox()
-    : KPageDialog()
+LabelsBox::LabelsBox() : KPageDialog()
 {
     // :fixme: - do something
-} 
-
+}
 
 LabelsBox::LabelsBox(vector<QString> allLabels, vector<QString> selectedLabels,
                      bool addEnabled)
@@ -48,107 +45,83 @@ LabelsBox::LabelsBox(vector<QString> allLabels, vector<QString> selectedLabels,
     setButtons(KDialog::Ok | KDialog::Cancel);
     setModal(true);
 
-    mSelectedLabels=selectedLabels;
+    mSelectedLabels = selectedLabels;
     layout(allLabels);
     connectButtons();
 }
 
+LabelsBox::~LabelsBox() {}
 
-LabelsBox::~LabelsBox()
-{
-}
-
-
-
-
-void
-LabelsBox::connectButtons()
+void LabelsBox::connectButtons()
 {
     if (mAddEnabled) {
         connect(mpAddNewButton, SIGNAL(clicked()), this, SLOT(addNewLabel()));
     }
-} 
+}
 
-
-void
-LabelsBox::addLabelInList(QString labelText, bool checked)
+void LabelsBox::addLabelInList(QString labelText, bool checked)
 {
-    QTreeWidgetItem *pItem=new QTreeWidgetItem(QStringList(labelText));
+    QTreeWidgetItem *pItem = new QTreeWidgetItem(QStringList(labelText));
     pItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     if (checked) {
         pItem->setCheckState(0, Qt::Checked);
-    }
-    else {
+    } else {
         pItem->setCheckState(0, Qt::Unchecked);
     }
     pItem->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
     mpLabels->addTopLevelItem(pItem);
 }
 
-
 void LabelsBox::layout(vector<QString> allLabels)
 {
-    resize(500,500);
-    KVBox *pBox1= new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("Labels"));
+    resize(500, 500);
+    KVBox *pBox1 = new KVBox();
+    KPageWidgetItem *pPage1 = addPage(pBox1, QString("Labels"));
     pPage1->setHeader(QString("Labels"));
 
-    mpLabels=new QTreeWidget(pBox1);
+    mpLabels = new QTreeWidget(pBox1);
     mpLabels->setColumnCount(1);
     mpLabels->setAlternatingRowColors(true);
     mpLabels->setHeaderLabels(QStringList("Available labels"));
-    for (unsigned int i=0; i<allLabels.size(); i++) {
+    for (unsigned int i = 0; i < allLabels.size(); i++) {
         addLabelInList(allLabels[i], contains(mSelectedLabels, allLabels[i]));
     }
     mpLabels->sortByColumn(0, Qt::AscendingOrder);
     mpLabels->setSortingEnabled(true);
 
     if (mAddEnabled) {
-        KHBox *pBox2=new KHBox(pBox1);
-        mpLabelEdit=new KLineEdit(pBox2);
-        mpAddNewButton=new QPushButton("Add new label", pBox2);
+        KHBox *pBox2 = new KHBox(pBox1);
+        mpLabelEdit = new KLineEdit(pBox2);
+        mpAddNewButton = new QPushButton("Add new label", pBox2);
     }
 }
 
-
 void LabelsBox::accept()
 {
-    QList<QTreeWidgetItem*> list;
+    QList<QTreeWidgetItem *> list;
 
     mSelectedLabels.clear();
-    
-    list=mpLabels->invisibleRootItem()->takeChildren();
-    for (int i=0; i<list.size(); i++) {
+
+    list = mpLabels->invisibleRootItem()->takeChildren();
+    for (int i = 0; i < list.size(); i++) {
         if (Qt::Checked == list[i]->checkState(0)) {
             mSelectedLabels.push_back(list[i]->text(0));
         }
     }
 
     KPageDialog::accept();
-} 
+}
 
+void LabelsBox::reject() { KPageDialog::reject(); }
 
-void LabelsBox::reject()
-{
-    KPageDialog::reject();
-} 
-
-
-void
-LabelsBox::addNewLabel()
+void LabelsBox::addNewLabel()
 {
     if (mpLabelEdit->text().isEmpty()) {
         KMessageBox::information(this, "Nothing to add");
-    }
-    else {
+    } else {
         addLabelInList(mpLabelEdit->text(), true);
         mpLabelEdit->clear();
     }
 }
 
-
-vector<QString>
-LabelsBox::getSelectedLabels() const
-{
-    return mSelectedLabels;
-}
+vector<QString> LabelsBox::getSelectedLabels() const { return mSelectedLabels; }

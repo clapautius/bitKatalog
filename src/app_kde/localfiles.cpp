@@ -19,61 +19,51 @@
  ***************************************************************************/
 #include "localfiles.h"
 
-#include <qpainter.h>
-#include <qlayout.h>
-#include <vector>
-#include <string>
-#include <klineedit.h>
-#include <QHeaderView>
-#include <QDirModel>
-#include <QDesktopServices>
-#include <kmessagebox.h>
 #include <kinputdialog.h>
+#include <klineedit.h>
+#include <kmessagebox.h>
+#include <qlayout.h>
+#include <qpainter.h>
+#include <QDesktopServices>
+#include <QDirModel>
+#include <QHeaderView>
+#include <string>
+#include <vector>
 
-#include "misc.h"
 #include "main.h"
+#include "misc.h"
 
 using std::string;
 using std::vector;
 
-
-
-LocalFilesBox::LocalFilesBox(vector<QFileInfo> &rFiles)
-    : KPageDialog(),
-      mpFileList(NULL)
+LocalFilesBox::LocalFilesBox(vector<QFileInfo> &rFiles) : KPageDialog(), mpFileList(NULL)
 {
     setCaption(QString("Files on local storage"));
     setButtons(KDialog::Ok);
     setModal(true);
-    mFiles=rFiles;
+    mFiles = rFiles;
     layout();
     connectButtons();
 }
 
+LocalFilesBox::~LocalFilesBox() {}
 
-LocalFilesBox::~LocalFilesBox()
-{
-}
-
-
-void
-LocalFilesBox::connectButtons()
+void LocalFilesBox::connectButtons()
 {
     if (mpFileList) {
-        connect(mpFileList, SIGNAL(itemActivated(QTreeWidgetItem*, int)),
-                this, SLOT(launchItem(QTreeWidgetItem*)));
+        connect(mpFileList, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this,
+                SLOT(launchItem(QTreeWidgetItem *)));
     }
-} 
-
+}
 
 void LocalFilesBox::layout()
 {
-    resize(600,500);
-    KVBox *pBox1= new KVBox();
-    KPageWidgetItem *pPage1=addPage(pBox1, QString("Local files"));
+    resize(600, 500);
+    KVBox *pBox1 = new KVBox();
+    KPageWidgetItem *pPage1 = addPage(pBox1, QString("Local files"));
     pPage1->setHeader(QString("Files on local storage"));
 
-    mpFileList=new QTreeWidget(pBox1);
+    mpFileList = new QTreeWidget(pBox1);
     mpFileList->setColumnCount(1);
     mpFileList->sortByColumn(0, Qt::AscendingOrder);
     mpFileList->setSortingEnabled(true);
@@ -81,23 +71,21 @@ void LocalFilesBox::layout()
     mpFileList->header()->hide();
     mpFileList->setAlternatingRowColors(true);
     mpFileList->setCursor(Qt::PointingHandCursor);
-    for(uint i=0; i<mFiles.size(); i++) {
-        gkLog<<xfcDebug<<"adding local element to list, complete path: ";
-        gkLog<<mFiles[i].filePath().toStdString()<<eol;
-        gkLog<<xfcDebug<<"path="<<mFiles[i].path().toStdString();
-        gkLog<<", fileName="<<mFiles[i].fileName().toStdString()<<eol;
-        QTreeWidgetItem *pItem=NULL;
+    for (uint i = 0; i < mFiles.size(); i++) {
+        gkLog << xfcDebug << "adding local element to list, complete path: ";
+        gkLog << mFiles[i].filePath().toStdString() << eol;
+        gkLog << xfcDebug << "path=" << mFiles[i].path().toStdString();
+        gkLog << ", fileName=" << mFiles[i].fileName().toStdString() << eol;
+        QTreeWidgetItem *pItem = NULL;
         if (mFiles[i].isDir()) {
-            pItem=new QTreeWidgetItem(
-                QStringList(mFiles[i].filePath()+"\n"));
+            pItem = new QTreeWidgetItem(QStringList(mFiles[i].filePath() + "\n"));
             pItem->setIcon(0, KIcon("folder"));
-            gkLog<<xfcDebug<<"element is dir"<<eol;
-        }
-        else {
-            pItem=new QTreeWidgetItem(
-                QStringList(mFiles[i].path()+"/\n"+mFiles[i].fileName()));
+            gkLog << xfcDebug << "element is dir" << eol;
+        } else {
+            pItem = new QTreeWidgetItem(
+                QStringList(mFiles[i].path() + "/\n" + mFiles[i].fileName()));
             pItem->setIcon(0, KIcon("application-octet-stream"));
-            gkLog<<xfcDebug<<"element is not dir"<<eol;
+            gkLog << xfcDebug << "element is not dir" << eol;
         }
         pItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
         mpFileList->addTopLevelItem(pItem);
@@ -105,32 +93,22 @@ void LocalFilesBox::layout()
     mpFileList->resizeColumnToContents(0);
 }
 
+void LocalFilesBox::accept() { KPageDialog::accept(); }
 
-void LocalFilesBox::accept()
+void LocalFilesBox::launchItem(QTreeWidgetItem *item)
 {
-    KPageDialog::accept();
-} 
-
-
-void
-LocalFilesBox::launchItem(QTreeWidgetItem* item)
-{
-    gkLog<<xfcDebug<<"Launching an item"<<eol;
-    int pos=mpFileList->indexOfTopLevelItem(item);
-    if (pos>=0) {
-        gkLog<<xfcDebug<<"  launching file ";
-        gkLog<<mFiles[pos].filePath().toStdString()<<eol;
-        if (cfgGetDefaultActionForSearch()=="launch") {
-            QDesktopServices::openUrl(
-                QUrl(QString("file://")+mFiles[pos].filePath()));
+    gkLog << xfcDebug << "Launching an item" << eol;
+    int pos = mpFileList->indexOfTopLevelItem(item);
+    if (pos >= 0) {
+        gkLog << xfcDebug << "  launching file ";
+        gkLog << mFiles[pos].filePath().toStdString() << eol;
+        if (cfgGetDefaultActionForSearch() == "launch") {
+            QDesktopServices::openUrl(QUrl(QString("file://") + mFiles[pos].filePath()));
+        } else {
+            QDesktopServices::openUrl(QUrl(QString("file://") + mFiles[pos].path()));
         }
-        else {
-            QDesktopServices::openUrl(
-                QUrl(QString("file://")+mFiles[pos].path()));
-        }
-    }
-    else {
-        gkLog<<xfcWarn<<"Cannot launch item at pos "<<pos<<eol;
+    } else {
+        gkLog << xfcWarn << "Cannot launch item at pos " << pos << eol;
         KMessageBox::error(this, "BUG");
     }
 }

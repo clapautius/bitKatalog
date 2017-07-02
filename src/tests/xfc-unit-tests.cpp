@@ -10,7 +10,7 @@
 
 using std::string;
 
-BOOST_AUTO_TEST_CASE( xfc_test )
+BOOST_AUTO_TEST_CASE(xfc_test)
 {
     Xfc xfc_catalog;
     xmlBufferPtr xmlBuf = xmlBufferCreateSize(1024);
@@ -20,10 +20,10 @@ BOOST_AUTO_TEST_CASE( xfc_test )
 
     // test 1
     xfc_catalog.createNew("tst");
-    len = xmlNodeDump(xmlBuf, xfc_catalog.getXmlDocPtr(),
-                      xfc_catalog.getNodeForPath("/"), 0, 0);
+    len = xmlNodeDump(xmlBuf, xfc_catalog.getXmlDocPtr(), xfc_catalog.getNodeForPath("/"),
+                      0, 0);
     xmlBuf->content[len] = 0;
-    p = (const char*)xmlBuf->content;
+    p = (const char *)xmlBuf->content;
     q = "<catalog name=\"tst\"/>";
     BOOST_TEST(p == q);
 
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( xfc_test )
     root.setComment("test comment");
     len = xmlNodeDump(xmlBuf, xfc_catalog.getXmlDocPtr(), root.getXmlNode(), 0, 0);
     xmlBuf->content[len] = 0;
-    p = (const char*)xmlBuf->content;
+    p = (const char *)xmlBuf->content;
     q = "<catalog name=\"tst\"><comment>test comment</comment></catalog>";
     BOOST_TEST(p == q);
 
@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_CASE( xfc_test )
     xfc_catalog.addNewDiskToXmlTree("test_disk", "", "descr");
     len = xmlNodeDump(xmlBuf, xfc_catalog.getXmlDocPtr(), root.getXmlNode(), 0, 0);
     xmlBuf->content[len] = 0;
-    p = (const char*)xmlBuf->content;
+    p = (const char *)xmlBuf->content;
     q = "<catalog name=\"tst\"><comment>test comment</comment>"
-      "<disk><name>test_disk</name><description>descr</description></disk></catalog>";
+        "<disk><name>test_disk</name><description>descr</description></disk></catalog>";
     BOOST_TEST(p == q);
 
     // test 4
@@ -54,9 +54,9 @@ BOOST_AUTO_TEST_CASE( xfc_test )
     ent.setStorageDev("hda1");
     len = xmlNodeDump(xmlBuf, xfc_catalog.getXmlDocPtr(), root.getXmlNode(), 0, 0);
     xmlBuf->content[len] = 0;
-    p = (const char*)xmlBuf->content;
+    p = (const char *)xmlBuf->content;
     q = "<catalog name=\"tst\"><comment>test comment</comment>"
-      "<disk><name>test_disk</name><storage_dev>hda1</storage_dev>"
-      "<description>descr</description></disk></catalog>";
+        "<disk><name>test_disk</name><storage_dev>hda1</storage_dev>"
+        "<description>descr</description></disk></catalog>";
     BOOST_TEST(p == q);
 }

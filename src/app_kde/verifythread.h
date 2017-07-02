@@ -20,49 +20,47 @@
 #ifndef VERIFYTHREAD_H
 #define VERIFYTHREAD_H
 
-#include <qthread.h>
 #include <qmutex.h>
+#include <qthread.h>
 
-#include "xfcapp.h"
-#include "xfc.h"
 #include "main.h"
+#include "xfc.h"
+#include "xfcapp.h"
 
 class VerifyThread : public QThread
 {
-public:
-    VerifyThread(Xfc*, std::string catalogPath, std::string diskPath,
+   public:
+    VerifyThread(Xfc *, std::string catalogPath, std::string diskPath,
                  std::vector<EntityDiff> *);
 
     ~VerifyThread();
-    
+
     virtual void run();
-    
+
     int returnValue();
-    
+
     std::string getCurrentFile();
-    
+
     void setCurrentFile(std::string);
 
     int getResultCode() const;
 
     void stopThread();
-    
-private:
 
-    Xfc* mpCatalog;
-    
+   private:
+    Xfc *mpCatalog;
+
     std::string mCatalogPath, mDiskPath;
 
     std::vector<EntityDiff> *mpDifferences;
 
     std::string mCurrentFile;
-    
+
     QMutex mMutex;
-    
+
     int mResultCode;
 
     volatile bool mAbortFlag;
-    
 };
 
 #endif

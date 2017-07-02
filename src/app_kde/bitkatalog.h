@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #ifndef _BITKATALOG_H_
 #define _BITKATALOG_H_
 
@@ -29,14 +28,14 @@
 #include <QtGui/QDragEnterEvent>
 
 #include <kapplication.h>
-#include <kxmlguiwindow.h>
 #include <kstandardaction.h>
-#include <ktoolbar.h>
 #include <ktoggleaction.h>
+#include <ktoolbar.h>
+#include <kxmlguiwindow.h>
 
 #include "bitkatalogview.h"
 
-//class KPrinter;
+// class KPrinter;
 class Kurl;
 
 /**
@@ -47,7 +46,7 @@ class Kurl;
 class bitKatalog : public KXmlGuiWindow
 {
     Q_OBJECT
-public:
+   public:
     /**
      * Default Constructor
      */
@@ -61,18 +60,18 @@ public:
     /**
      * Use this method to load whatever file/URL you have
      */
-    void load(const KUrl& url);
-    
-    bitKatalogView* getView() const;
-    
+    void load(const KUrl &url);
+
+    bitKatalogView *getView() const;
+
     void setCatalogPath(std::string);
     void setCatalogPath(QString);
 
     std::string getCatalogPath() const;
 
-    void updateTitle(bool modified=false);
-    
-protected:
+    void updateTitle(bool modified = false);
+
+   protected:
     /**
      * Overridden virtuals for Qt drag 'n drop (XDND)
      */
@@ -81,22 +80,21 @@ protected:
 
     virtual bool queryClose();
 
-protected:
+   protected:
     /**
      * This function is called when it is time for the app to save its
      * properties for session management purposes.
      */
-    virtual void saveProperties(KConfigGroup&);
+    virtual void saveProperties(KConfigGroup &);
 
     /**
      * This function is called when this app is restored.  The KConfig
      * object points to the session management config file that was saved
      * with @ref saveProperties
      */
-    virtual void readProperties(const KConfigGroup&);
+    virtual void readProperties(const KConfigGroup &);
 
-
-private slots:
+   private slots:
     void fileNew();
     void fileOpen();
     void fileSave();
@@ -110,32 +108,28 @@ private slots:
     void newToolbarConfig();
 
     void search();
-    
+
     void addDisk();
-    
-    void changeStatusbar(const QString& text);
-    void changeCaption(const QString& text);
 
-private:
+    void changeStatusbar(const QString &text);
+    void changeCaption(const QString &text);
 
+   private:
     void setupAccel();
     void setupActions();
-    
-    void createNumberedBackup(std::string lFile)
-            throw (std::string);
-    
-private:
 
+    void createNumberedBackup(std::string lFile) throw(std::string);
+
+   private:
     bitKatalogView *m_view;
 
     KMenu *mpFileMenu, *mpEditMenu;
-    //KPrinter   *m_printer;
+    // KPrinter   *m_printer;
 
     /*KToggleAction *m_toolbarAction;*/
     KToggleAction *m_statusbarAction;
-    
+
     std::string mCatalogPath;
 };
 
-#endif // _BITKATALOG_H_
-
+#endif  // _BITKATALOG_H_

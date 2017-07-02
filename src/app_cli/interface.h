@@ -20,8 +20,8 @@
 #if !defined(_interface_h_)
 #define _interface_h_
 
-#include <vector>
 #include <string>
+#include <vector>
 
 std::vector<std::string> getCommand();
 
@@ -29,7 +29,7 @@ void displayError(std::string);
 
 void displayError(std::string, std::string);
 
-void displayMessage(std::string lMsg1, std::string lMsg2="", 
-                    std::string lMsg3="", std::string lMsg4="");
-                    
+void displayMessage(std::string lMsg1, std::string lMsg2 = "", std::string lMsg3 = "",
+                    std::string lMsg4 = "");
+
 #endif

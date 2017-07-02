@@ -18,34 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #ifndef _BITKATALOGPREF_H_
 #define _BITKATALOGPREF_H_
 
-#include <kpagedialog.h>
-#include <klineedit.h>
 #include <Qt/qframe.h>
+#include <klineedit.h>
+#include <kpagedialog.h>
 #include <QRadioButton>
-
 
 class bitKatalogPreferences : public KPageDialog
 {
     Q_OBJECT
-public:
-
+   public:
     bitKatalogPreferences();
 
-protected slots:  
-    
+   protected slots:
+
     virtual void accept();
     virtual void reject();
 
-private slots:
+   private slots:
 
     virtual void setSearchPath();
 
-private:
-
+   private:
     void layout();
 
     KLineEdit *mpSearchPathEdit;
@@ -53,5 +49,4 @@ private:
     QRadioButton *mpButton1, *mpButton2;
 };
 
-
-#endif // _BITKATALOGPREF_H_
+#endif  // _BITKATALOGPREF_H_

@@ -22,86 +22,83 @@
 
 #include <kpagedialog.h>
 
+#include <Qt3Support/q3hbox.h>
+#include <Qt3Support/q3vgroupbox.h>
 #include <k3buttonbox.h>
+#include <klineedit.h>
 #include <kpushbutton.h>
+#include <kvbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
-#include <Qt3Support/q3vgroupbox.h>
-#include <Qt3Support/q3hbox.h>
 #include <QTreeWidget>
-#include <kvbox.h>
-#include <klineedit.h>
 
 #include "main.h"
 #include "xfcapp.h"
 #include "xmlentityitem.h"
 
-
 class DetailsBox : public KPageDialog
 {
     Q_OBJECT
-            
-public:
+
+   public:
     DetailsBox();
-    
-    DetailsBox(Xfc*, std::string, XfcEntity*, QTreeWidgetItem*,
+
+    DetailsBox(Xfc *, std::string, XfcEntity *, QTreeWidgetItem *,
                const std::vector<QString> &rAllLabels);
 
     virtual ~DetailsBox();
-    
+
     bool catalogWasModified() const;
 
     bool labelsWereModified() const;
 
-public slots:
-   
+   public slots:
+
     void editLabels();
-    
-protected slots:  
-    
+
+   protected slots:
+
     virtual void accept();
     virtual void reject();
-        
-private:
-    
+
+   private:
     void connectButtons();
-    
+
     void layout();
 
-    static void addDetailLabels(QFrame *pFrame,
-                                const char *pText1, const char *pText2);
+    static void addDetailLabels(QFrame *pFrame, const char *pText1, const char *pText2);
 
     Xfc *mpCatalog;
-    
+
     XfcEntity *mpXmlItem;
 
     std::string mCompletePath;
-    
+
     bool mCatalogWasModified;
     bool mLabelsWereModified;
 
     QTreeWidgetItem *mpListItem;
-      
-    QVBoxLayout *top_layout1, *top_layout2; // on heap
-                
+
+    QVBoxLayout *top_layout1, *top_layout2;  // on heap
+
     K3ButtonBox *mpButtonBox;
     K3ButtonBox *mpLabelButtonBox;
-    
+
     QPushButton *mpOkButton;
     QPushButton *mpCancelButton;
     QPushButton *mpEditLabelsButton;
 
-    QLabel *mpName; // entity name - on heap
+    QLabel *mpName;  // entity name - on heap
 
-    Q3VGroupBox *mpLabelGroup; // on heap
-      
+    Q3VGroupBox *mpLabelGroup;  // on heap
+
     KHBox *mpCdateBox;
-    
-    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3; // on heap
+
+    QLabel *mpTmpLabel1, *mpTmpLabel2, *mpTmpLabel3;  // on heap
 
     QLabel *mpSha1Label, *mpSha256Label, *mpSizeLabel;
-    
-    KLineEdit *mpDescriptionEdit; // on heap
+
+    KLineEdit *mpDescriptionEdit;  // on heap
     KLineEdit *mpStorageDevEdit;
 
     KLineEdit *mpCdateEdit;
@@ -109,12 +106,10 @@ private:
 
     QTreeWidget *mpLabels;
 
-    const std::vector<QString> & mrAllLabels;
+    const std::vector<QString> &mrAllLabels;
     std::vector<QString> mCurrentLabels;
 };
 
-
 bool contains(std::vector<QString> vect, QString elt);
-
 
 #endif
