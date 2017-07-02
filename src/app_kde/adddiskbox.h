@@ -24,6 +24,7 @@
 #include <Qt3Support/q3vgroupbox.h>
 #include <k3listbox.h>
 #include <kdatepicker.h>
+#include <khbox.h>
 #include <klineedit.h>
 #include <kpagedialog.h>
 #include <kprogressdialog.h>

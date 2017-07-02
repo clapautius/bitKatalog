@@ -43,7 +43,7 @@ class DetailsBox : public KPageDialog
    public:
     DetailsBox();
 
-    DetailsBox(Xfc *, std::string, XfcEntity *, QTreeWidgetItem *,
+    DetailsBox(Xfc *, std::string, XfcEntity *, XmlEntityItem *,
                const std::vector<QString> &rAllLabels);
 
     virtual ~DetailsBox();
@@ -70,14 +70,14 @@ class DetailsBox : public KPageDialog
 
     Xfc *mpCatalog;
 
-    XfcEntity *mpXmlItem;
+    XfcEntity *mpXfcItem;
 
     std::string mCompletePath;
 
     bool mCatalogWasModified;
     bool mLabelsWereModified;
 
-    QTreeWidgetItem *mpListItem;
+    XmlEntityItem *mpViewItem;
 
     QVBoxLayout *top_layout1, *top_layout2;  // on heap
 

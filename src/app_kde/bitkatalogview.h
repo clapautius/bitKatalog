@@ -174,7 +174,7 @@ class bitKatalogView : public QWidget
     std::string mCurrentItemPath;
 
    protected:
-    void setupColumns();
+    void setupListColumns();
 
     const int k_name_column_idx = 0;
     const int k_description_column_idx = 1;

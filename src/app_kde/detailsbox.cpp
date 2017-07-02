@@ -46,7 +46,7 @@ using std::vector;
 using std::map;
 
 DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath, XfcEntity *lpXmlItem,
-                       QTreeWidgetItem *pListItem, const vector<QString> &rAllLabels)
+                      XmlEntityItem *pListItem, const vector<QString> &rAllLabels)
     : KPageDialog(), mrAllLabels(rAllLabels)
 
 {
@@ -55,9 +55,9 @@ DetailsBox::DetailsBox(Xfc *lpCatalog, std::string lCompletePath, XfcEntity *lpX
     setButtons(KDialog::Ok | KDialog::Cancel);
     setModal(true);
     mCompletePath = lCompletePath;
-    mpXmlItem = lpXmlItem;
+    mpXfcItem = lpXmlItem;
     mpCatalog = lpCatalog;
-    mpListItem = pListItem;
+    mpViewItem = pListItem;
     mCatalogWasModified = false;
     mLabelsWereModified = false;
     layout();
@@ -114,7 +114,7 @@ void DetailsBox::layout()
     KPageWidgetItem *pPage1 = addPage(pBox1, QString("General"));
     pPage1->setHeader(QString("General"));
 
-    mpName = new QLabel(str2qstr(mpXmlItem->getName()), pBox1);
+    mpName = new QLabel(str2qstr(mpXfcItem->getName()), pBox1);
     mpName->setAlignment(Qt::AlignHCenter);
     mpName->setTextInteractionFlags(Qt::TextSelectableByMouse);
     lFont = mpName->font();
@@ -124,13 +124,13 @@ void DetailsBox::layout()
     KHBox *pDescriptionBox = new KHBox(pBox1);
     mpTmpLabel1 = new QLabel("Description: ", pDescriptionBox);
     mpDescriptionEdit = new KLineEdit(pDescriptionBox);
-    details = mpXmlItem->getDetails();
+    details = mpXfcItem->getDetails();
     mpDescriptionEdit->setText(str2qstr(details["description"]));
 
     KHBox *pCommentBox = new KHBox(pBox1);
     mpTmpLabel1 = new QLabel("Comment: ", pCommentBox);
     mpCommentEdit = new KLineEdit(pCommentBox);
-    string comment = mpXmlItem->getComment();
+    string comment = mpXfcItem->getComment();
     mpCommentEdit->setText(str2qstr(comment));
 
     // labels group box
@@ -151,7 +151,7 @@ void DetailsBox::layout()
     mpLabels->resize(lSize.width(), 2 * lpFontMetrics->height());
     delete lpFontMetrics;
 
-    mCurrentLabels = vectWstringToVectWQString(mpXmlItem->getLabels());
+    mCurrentLabels = vectWstringToVectWQString(mpXfcItem->getLabels());
     for (uint i = 0; i < mCurrentLabels.size(); i++) {
         QStringList list;
         list.push_back("");
@@ -169,9 +169,9 @@ void DetailsBox::layout()
     // page2
     KPageWidgetItem *pPage2 = NULL;
     KVBox *pBox2 = NULL;
-    if (mpXmlItem->isFileOrDir()) {
+    if (mpXfcItem->isFileOrDir()) {
         int fileType;
-        fileType = mpXmlItem->getTypeOfFile();
+        fileType = mpXfcItem->getTypeOfFile();
         if (0 == fileType)  // not good
             ;
         else if (1 == fileType) {
@@ -212,7 +212,7 @@ void DetailsBox::layout()
             pPage2 = addPage(pBox2, QString("Directory details"));
             pPage2->setHeader(QString("Directory details"));
         }
-    } else if (mpXmlItem->isDisk()) {  // disk
+    } else if (mpXfcItem->isDisk()) {  // disk
         pBox2 = new KVBox();
         pPage2 = addPage(pBox2, QString("Disk details"));
         pPage2->setHeader(QString("Disk details"));
@@ -224,7 +224,7 @@ void DetailsBox::layout()
         KHBox *pStorageDevBox = new KHBox(pBox2);
         mpTmpLabel1 = new QLabel("Storage devices: ", pStorageDevBox);
         mpStorageDevEdit = new KLineEdit(pStorageDevBox);
-        string storage_dev = mpXmlItem->getStorageDev();
+        string storage_dev = mpXfcItem->getStorageDev();
         mpStorageDevEdit->setText(str2qstr(storage_dev));
 
         pBox2->layout()->addItem(
@@ -234,39 +234,40 @@ void DetailsBox::layout()
 
 void DetailsBox::accept()
 {
-    QString lQString;
+    QString qstr;
     // std::vector<std::string> lDetails;
     map<string, string> details;
-    bool lModifiedLabels = false;
+    bool labels_modified = false;
+    bool item_modified = false;
 
-    details = mpXmlItem->getDetails();
+    details = mpXfcItem->getDetails();
 
     // update description
-    lQString = mpDescriptionEdit->text();
-    if (lQString != str2qstr(details["description"])) {
-        mpListItem->setText(gpView->getDescriptionColumnIndex(), lQString);
-        mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(lQString));
-        mCatalogWasModified = true;
+    qstr = mpDescriptionEdit->text();
+    if (qstr != str2qstr(details["description"])) {
+        details["description"] = qstr.toStdString();
+        mpCatalog->setDescriptionOf(mCompletePath, qstr2cchar(qstr));
+        item_modified = true;
     }
 
     // check labels and update if modified
-    vector<QString> labels = vectWstringToVectWQString(mpXmlItem->getLabels());
+    vector<QString> labels = vectWstringToVectWQString(mpXfcItem->getLabels());
     if (mCurrentLabels.size() != labels.size())
-        lModifiedLabels = true;
+        labels_modified = true;
     else {
         // :fixme: optimize - use set or something else
-        for (uint i = 0; i < mCurrentLabels.size() && !lModifiedLabels; i++) {
+        for (uint i = 0; i < mCurrentLabels.size() && !labels_modified; i++) {
             if (!contains(labels, mCurrentLabels[i])) {
-                lModifiedLabels = true;
+                labels_modified = true;
             }
         }
-        for (uint i = 0; i < labels.size() && !lModifiedLabels; i++) {
+        for (uint i = 0; i < labels.size() && !labels_modified; i++) {
             if (!contains(mCurrentLabels, labels[i])) {
-                lModifiedLabels = true;
+                labels_modified = true;
             }
         }
     }
-    if (lModifiedLabels) {
+    if (labels_modified) {
         // remove all labels
         for (unsigned int i = 0; i < labels.size(); i++)
             mpCatalog->removeLabelFrom(mCompletePath, qstr2cchar(labels[i]));
@@ -276,43 +277,45 @@ void DetailsBox::accept()
             gkLog << qstr2cchar(mCurrentLabels[i]) << eol;
             mpCatalog->addLabelTo(mCompletePath, qstr2cchar(mCurrentLabels[i]));
         }
-        mCatalogWasModified = true;
+        item_modified = true;
         mLabelsWereModified = true;
-        string labelsString = mpXmlItem->getLabelsAsString();
-        mpListItem->setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
+        string labelsString = mpXfcItem->getLabelsAsString();
+        details["labels"] = labelsString;
     }
 
     // update comment
-    lQString = mpCommentEdit->text();
-    string comment = mpXmlItem->getComment();
-    if (lQString != str2qstr(comment)) {
-        // :fixme: TODO update column if needed (or tooltip)
-        mpXmlItem->setComment(qstr2cchar(lQString));
-        mCatalogWasModified = true;
+    qstr = mpCommentEdit->text();
+    string comment = mpXfcItem->getComment();
+    if (qstr != str2qstr(comment)) {
+        mpXfcItem->setComment(qstr2cchar(qstr));
+        item_modified = true;
     }
 
-    if (mpXmlItem->isDisk()) {
+    if (mpXfcItem->isDisk()) {
         try {
             // update cdate
-            lQString = mpCdateEdit->text();
-            if (lQString != details["cdate"].c_str()) {
-                mpCatalog->setCDate(mCompletePath, qstr2cchar(lQString));
-                mCatalogWasModified = true;
+            qstr = mpCdateEdit->text();
+            if (qstr != details["cdate"].c_str()) {
+                mpCatalog->setCDate(mCompletePath, qstr2cchar(qstr));
+                item_modified = true;
             }
 
             // update storage_dev
-            lQString = mpStorageDevEdit->text();
-            string storage_dev = mpXmlItem->getStorageDev();
-            if (lQString != str2qstr(storage_dev)) {
-                mpListItem->setText(gpView->getStorageDevColumnIndex(), lQString);
-                mpXmlItem->setStorageDev(qstr2cchar(lQString));
-                mCatalogWasModified = true;
+            qstr = mpStorageDevEdit->text();
+            string storage_dev = mpXfcItem->getStorageDev();
+            if (qstr != str2qstr(storage_dev)) {
+                mpXfcItem->setStorageDev(qstr2cchar(qstr));
+                item_modified = true;
             }
         } catch (...) {
             KMessageBox::error(this, "Error updating disk");
         }
     }
 
+    if (item_modified) {
+        mCatalogWasModified = true;
+        mpViewItem->updateVisualTexts(*mpXfcItem, details);
+    }
     KPageDialog::accept();
 }
 

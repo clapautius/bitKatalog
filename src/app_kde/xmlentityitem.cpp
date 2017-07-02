@@ -53,17 +53,8 @@ void XmlEntityItem::setXmlNode(xmlNodePtr lpNode) { mpNode = lpNode; }
 void XmlEntityItem::redisplay(bool first)
 {
     XfcEntity lEnt(mpNode, mspCatalog);
-    map<string, string> details;
-    string labelsString;
-    setText(gpView->getNameColumnIndex(), str2qstr(lEnt.getName()));
-    details = lEnt.getDetails();
-    if (!details["description"].empty())
-        setText(gpView->getDescriptionColumnIndex(), str2qstr(details["description"]));
-    else
-        setText(gpView->getDescriptionColumnIndex(), "");
-    labelsString = lEnt.getLabelsAsString();
-    setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
-    setText(gpView->getStorageDevColumnIndex(), str2qstr(lEnt.getStorageDev()));
+    map<string, string> details = mspCatalog->getDetailsForNode(mpNode);
+    updateVisualTexts(lEnt, details);
 
 #if defined(XFC_DEBUG)
     cout << ":debug:" << __FUNCTION__ << ": this=" << this << endl;
@@ -125,6 +116,7 @@ void XmlEntityItem::setOpened(bool lOpen)
             if (lpTempIterator->hasMoreChildren())
                 lpItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
             delete lpTempIterator;
+            lpItem->updateVisualTexts(ent, details);
         }
         mAlreadyOpened = true;
     }
@@ -148,5 +140,62 @@ std::string XmlEntityItem::xmlName() const
 {
     return mspCatalog->getNameOfElement(mpNode);
 }
+
+
+void XmlEntityItem::updateVisualTexts(const XfcEntity &ent,
+                                      const map<string, string> &details,
+                                      bool skip_columns)
+{
+    if (!skip_columns) {
+        // columns
+        string labelsString = ent.getLabelsAsString();
+        setText(gpView->getNameColumnIndex(), str2qstr(ent.getName()));
+        std::map<string, string>::const_iterator elt_pos =
+          details.find("description");
+        if (elt_pos != details.end()) {
+            setText(gpView->getDescriptionColumnIndex(), str2qstr(elt_pos->second));
+        }
+        setText(gpView->getLabelsColumnIndex(), str2qstr(labelsString));
+        setText(gpView->getStorageDevColumnIndex(), ent.getStorageDev().c_str());
+    }
+    updateTooltip(ent, details);
+}
+
+void XmlEntityItem::updateTooltip(const XfcEntity &ent, const map<string, string> &details)
+{
+    QString tooltip;
+    if (ent.getName().empty()) {
+        tooltip = "Unnamed entity";
+    } else {
+        tooltip = ent.getName().c_str();
+    }
+    tooltip += "\n\nDescription: ";
+    std::map<string, string>::const_iterator elt_pos = details.find("description");
+    if(elt_pos != details.end()) {
+        tooltip += elt_pos->second.c_str();
+    }
+
+    tooltip += "\nComment: ";
+    tooltip += ent.getComment().c_str();
+
+    tooltip += "\nStorage dev.: ";
+    tooltip += ent.getStorageDev().c_str();
+
+    elt_pos = details.find("cdate");
+    if (elt_pos != details.end() && !(elt_pos->second.empty())) {
+        tooltip += "\nC. date: ";
+        tooltip += elt_pos->second.c_str();
+    }
+    elt_pos = details.find("size");
+    if (elt_pos != details.end() && !(elt_pos->second.empty())) {
+        tooltip += "\nSize: ";
+        tooltip += elt_pos->second.c_str();
+    }
+
+    for (int i = 0; i < gpView->getNoColumns(); i++) {
+        setToolTip(i, tooltip);
+    }
+}
+
 
 Xfc *XmlEntityItem::mspCatalog = NULL;

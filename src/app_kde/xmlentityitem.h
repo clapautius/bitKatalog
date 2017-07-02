@@ -47,10 +47,18 @@ class XmlEntityItem : public QTreeWidgetItem
 
     std::string xmlName() const;
 
+    void updateVisualTexts(const XfcEntity &ent,
+                           const std::map<std::string, std::string> &details,
+                           bool skip_columns = false);
+
     static Xfc *mspCatalog;
     // :fixme: - maybe fix this
 
    private:
+
+    void updateTooltip(const XfcEntity &ent,
+                       const std::map<std::string, std::string> &details);
+
     QTreeWidgetItem *nextSibling();
 
     xmlNodePtr mpNode;

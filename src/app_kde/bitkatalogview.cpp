@@ -118,7 +118,7 @@ void bitKatalogView::setupListView()
     mListView = new QTreeWidget(this);
     mListView->setRootIsDecorated(true);
     mListView->setAlternatingRowColors(true);
-    setupColumns();
+    setupListColumns();
     mListView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(mListView, SIGNAL(itemExpanded(QTreeWidgetItem *)), this,
             SLOT(expandItem(QTreeWidgetItem *)));
@@ -504,6 +504,7 @@ void bitKatalogView::addFirstLevelElement(XfcEntity &rEnt)
 #endif
     pItem->setXmlNode(rEnt.getXmlNode());
     pItem->setIcon(0, *gpDiskIcon);
+    pItem->updateVisualTexts(rEnt, details, true);
     pTempIterator = new EntityIterator(*pCatalog, rEnt.getXmlNode());
     if (pTempIterator->hasMoreChildren())
         pItem->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -530,6 +531,7 @@ void bitKatalogView::populateTree(Xfc *mpCatalog)
                      labelsString, rootEnt);
     mRootItem = new XmlEntityItem(mListView, columns);
     mRootItem->setXmlNode(pRootNode);
+    mRootItem->updateVisualTexts(rootEnt, details, true);
 
     EntityIterator *lpIterator;
     std::string lS = "/";
@@ -615,7 +617,7 @@ void bitKatalogView::collapseItem(QTreeWidgetItem *pItem)
 
 void bitKatalogView::treeRedrawn() { mListView->sortItems(0, Qt::AscendingOrder); }
 
-void bitKatalogView::setupColumns()
+void bitKatalogView::setupListColumns()
 {
     mListView->setAllColumnsShowFocus(true);
     mListView->setColumnCount(k_max_columns);
