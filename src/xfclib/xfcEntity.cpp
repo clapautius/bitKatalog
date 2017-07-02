@@ -225,11 +225,17 @@ void XfcEntity::setComment(const std::string &comment)
     return setOrAddParam("comment", comment);
 }
 
-std::string XfcEntity::getComment() const { return getParamValue("comment"); }
+std::string XfcEntity::getComment() const
+{
+    return getParamValue("comment");
+}
 
 void XfcEntity::setStorageDev(const std::string &storage_dev)
 {
     return setOrAddParam("storage_dev", storage_dev);
 }
 
-std::string XfcEntity::getStorageDev() const { return getParamValue("storage_dev"); }
+std::string XfcEntity::getStorageDev() const
+{
+    return getParamValue("storage_dev");
+}

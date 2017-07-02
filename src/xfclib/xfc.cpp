@@ -1377,7 +1377,11 @@ std::string Xfc::getNodeText(xmlNodePtr pNode)
     std::string s;
     if (pNode) {
         xmlChar *pStr = xmlNodeListGetString(mpDoc, pNode->xmlChildrenNode, 1);
-        s = (char *)pStr;
+        if (pStr) {
+            s = (char *)pStr;
+        } else {
+            s = "";
+        }
         xmlFree(pStr);
     }
     return s;
