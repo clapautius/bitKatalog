@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Tudor Pristavu                                  *
- *   clapautiusAtGmailDotCom                                               *
+ *   Copyright (C) 2005-2010 by Tudor Pristavu                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,7 +20,11 @@
 #include <unistd.h>
 
 #include <kdatepicker.h>
-#include <kfiledialog.h>
+#ifdef USE_QT_FILEDLG
+#  include <Qt/qfiledialog.h>
+#else
+#  include <kfiledialog.h>
+#endif
 #include <kglobal.h>
 #include <khbox.h>
 #include <klocale.h>
@@ -264,7 +267,11 @@ void AddDiskBox::browseButtonClicked()
     QString prevDir;
     prevDir = gpConfig->group("").readEntry("LastDirAddDisk", "/");
     QString dir =
+#ifdef USE_QT_FILEDLG
+        QFileDialog::getExistingDirectory(this, i18n("Path to add"), QString("/"), QFileDialog::DontUseNativeDialog);
+#else
         KFileDialog::getExistingDirectory(QString("/"), this, i18n("Path to add"));
+#endif
     if (dir != "") {
         mpPathLabel->setText(dir);
         gpConfig->group("").writeEntry("LastDirAddDisk", dir);

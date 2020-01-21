@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
- *   clapautiusAtGmailDotCom                                               *
+ *   Copyright (C) 2009-2020 by Tudor Marian Pristavu                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,7 +19,12 @@
 #include <Qt/qlayout.h>
 #include <Qt/qpainter.h>
 
-#include <kfiledialog.h>
+#ifdef USE_QT_FILEDLG
+#  include <Qt/qfiledialog.h>
+#else
+#  include <kfiledialog.h>
+#endif
+
 #include <kinputdialog.h>
 #include <klibloader.h>
 #include <klocale.h>
@@ -288,8 +292,14 @@ void bitKatalogView::verifyDisk() throw()
 
     QString previousDir;
     previousDir = gpConfig->group("").readEntry("LastDirVerify", "/");
-    QString dir = KFileDialog::getExistingDirectory(KUrl(previousDir), this,
-                                                    QString("Path to verify"));
+    QString dir =
+#ifdef USE_QT_FILEDLG
+      QFileDialog::getExistingDirectory(this, QString("Path to verify"),
+                                        previousDir, QFileDialog::DontUseNativeDialog);
+#else
+      KFileDialog::getExistingDirectory(KUrl(previousDir),
+                                        this, QString("Path to verify"));
+#endif
     if ("" == dir)  // cancel
         return;
     gpConfig->group("").writeEntry("LastDirVerify", dir);

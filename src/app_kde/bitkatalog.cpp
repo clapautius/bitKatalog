@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Marian Pristavu                           *
- *   clapautiusAtGmailDotCom                                               *
+ *   Copyright (C) 2009-2020 by Tudor Marian Pristavu                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +26,12 @@
 #include <QtGui/QPrinter>
 //#include <qpaintdevicemetrics.h>
 
+#ifdef USE_QT_FILEDLG
+#  include <Qt/qfiledialog.h>
+#else
+#  include <kfiledialog.h>
+#endif
+
 #include <kapplication.h>
 #include <kdeversion.h>
 #include <kglobal.h>
@@ -35,7 +40,6 @@
 #include <kstatusbar.h>
 //#include <kaccel.h>
 #include <kconfig.h>
-#include <kfiledialog.h>
 #include <kio/netaccess.h>
 #include <kurl.h>
 #include <kurlrequesterdlg.h>
@@ -254,15 +258,16 @@ void bitKatalog::fileOpen()
     // this slot is called whenever the File->Open menu is selected,
     // the Open shortcut is pressed (usually CTRL+O) or the Open toolbar
     // button is clicked
-    /*
-        // this brings up the generic open dialog
-        KURL url = KURLRequesterDlg::getURL(QString::null, this, i18n("Open Location") );
-    */
     // standard filedialog
     QString lLastDir;
     lLastDir = gpConfig->group("").readEntry("LastDir", ".");
-    KUrl url =
-        KFileDialog::getOpenUrl(lLastDir, QString::null, this, i18n("Open Location"));
+    KUrl url;
+#ifdef USE_QT_FILEDLG
+    url = QFileDialog::getOpenFileName(this, tr("Open file"), lLastDir, QString(),
+                                       nullptr, QFileDialog::DontUseNativeDialog);
+#else
+    url = KFileDialog::getOpenUrl(lLastDir, QString::null, this, i18n("Open Location"));
+#endif
     if (!url.isEmpty()) {
         m_view->openUrl(url);
         lLastDir = url.directory();
@@ -310,7 +315,12 @@ void bitKatalog::fileSaveAs()
     // this slot is called whenever the File->Save As menu is selected,
     QString lLastDir;
     lLastDir = gpConfig->group("").readEntry("LastDir", ".");
-    KUrl file_url = KFileDialog::getSaveUrl(lLastDir);
+    KUrl file_url;
+#ifdef USE_QT_FILEDLG
+    file_url = QFileDialog::getSaveFileName(nullptr, "Save as ...", lLastDir, QString(), nullptr, QFileDialog::DontUseNativeDialog);
+#else
+    file_url = KFileDialog::getSaveUrl(lLastDir);
+#endif
     if (!file_url.isEmpty() && file_url.isValid()) {
         lLastDir = file_url.directory();
         gpConfig->group("").writeEntry("LastDir", lLastDir);

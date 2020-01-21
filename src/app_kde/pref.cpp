@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Tudor Pristavu   *
- *   clapautiuAtGmaliDotCom   *
+ *   Copyright (C) 2009-2020 by Tudor Pristavu                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,7 +21,11 @@
 
 #include <Qt/qlabel.h>
 #include <Qt/qlayout.h>
-#include <kfiledialog.h>
+#ifdef USE_QT_FILEDLG
+#  include <Qt/qfiledialog.h>
+#else
+#  include <kfiledialog.h>
+#endif
 #include <khbox.h>
 #include <klineedit.h>
 #include <klocale.h>
@@ -92,7 +95,13 @@ void bitKatalogPreferences::reject() { KPageDialog::reject(); }
 
 void bitKatalogPreferences::setSearchPath()
 {
-    QString dir = KFileDialog::getExistingDirectory(KUrl(), this, i18n("Search path"));
+    QString dir =
+#ifdef USE_QT_FILEDLG
+      QFileDialog::getExistingDirectory(this, i18n("Search path"),
+                                        QString(), QFileDialog::DontUseNativeDialog);
+#else
+      KFileDialog::getExistingDirectory(KUrl(), this, i18n("Search path"));
+#endif
     if (dir != "") {
         mpSearchPathEdit->setText(dir);
     }
