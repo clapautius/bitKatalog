@@ -6,9 +6,7 @@ die()
 {
     local rc="$1"
     shift
-    echo
-    echo "$*"
-    echo
+    echo -e "\n$*\n"
     popd > /dev/null
     exit $rc
 }
@@ -28,7 +26,6 @@ locate_or_download_linuxdeployqt()
     return 0
 }
 
-
 pushd "." > /dev/null
 [ -d "$1" ] || die 1 "No such dir: $1"
 [ -d "$2" ] || die 1 "No such dir: $2"
@@ -37,23 +34,24 @@ popd > /dev/null
 pushd "$2" > /dev/null
 locate_or_download_linuxdeployqt
 
+# don't use standard KDE open/save dialogs, but Qt file dialogs (to prevent crashes on
+# some systems)
+cxxflags="-DUSE_QT_FILEDLG "
 
 os_name=$(sed -n "/^ID=/ s/^ID=// p" /etc/os-release)
 os_ver=$(sed -n "/^VERSION_ID=/ s/^VERSION_ID=\"\([^\"]*\)\"/\1/ p" /etc/os-release)
-
-cmake "$src_dir" || die 2 "cmake error"
-
 if [ $os_name=="ubuntu" -a $os_ver=="16.04" ]; then
-    cxxflags="-std=c++11 -fPIC "
+    cxxflags="${cxxflags} -std=c++11 -fPIC "
     echo "Ubuntu 16.04 xenial detected, using custom CXX flags: $cxxflags"
 fi
 
-make CXXFLAGS="$cxxflags" || die 2 "make error"
+cmake -D CMAKE_CXX_FLAGS="$cxxflags" "$src_dir" || die 2 "cmake error"
+
+make || die 2 "make error"
 mkdir -p AppDir/bin || die 2 "mkdir error"
 mkdir -p AppDir/share/applications || die 2 "mkdir error"
 
-# copy file one by one (atm there's no "make install")
-#make install INSTALL_ROOT=AppDir || die 2 "make install error"
+# copy file one by one (atm there's no "make install" :fixme:)
 cp "$src_dir/data/bitKatalog.desktop" "AppDir/share/applications/"
 cp "$src_dir/data/bitKatalog-icon.png" "AppDir/share/applications/"
 cp "src/app_kde/bitKatalog" "AppDir/bin"
