@@ -3,7 +3,7 @@
 
 // :release:
 #define XFCAPP_NAME "bitKatalog"
-#define XFCAPP_VERSION "1.1"
+#define XFCAPP_VERSION "1.2-git"
 
 // :release:
 //#define XFC_DEBUG
